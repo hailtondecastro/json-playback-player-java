@@ -5,8 +5,8 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<groupId>io.github.hailtondecastro</groupId>
-	<artifactId>json-playback-player-hibernate</artifactId>
-	<version>0.2.1-SNAPSHOT</version>
+	<artifactId>json-playback-player-java</artifactId>
+	<version>0.1.0-SNAPSHOT</version>
 	<packaging>jar</packaging>
 	<name>json-playback-player-hibernate</name>
 	<description>Frameworks and APIs for exchanging/interoperation entity object graph states and their operations (changing fields, collections modifications, etc) between two software layers using json.</description>
