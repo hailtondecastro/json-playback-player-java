@@ -6,9 +6,9 @@ import java.util.Map;
 import java.util.Stack;
 
 import org.hibernate.proxy.HibernateProxy;
-import org.jsonplayback.hbsupport.HbSupport;
 import org.jsonplayback.player.IPlayerManager;
 import org.jsonplayback.player.IdentityRefKey;
+import org.jsonplayback.player.ObjPersistenceSupport;
 import org.jsonplayback.player.PlayerMetadatas;
 import org.jsonplayback.player.SignatureBean;
 
@@ -64,5 +64,5 @@ public interface IPlayerManagerImplementor extends IPlayerManager {
 	
 	List<OwnerAndProperty> getRegisteredComponentOwnerList(Object instance);
 	
-	public HbSupport getHbSupport();
+	public ObjPersistenceSupport getObjPersistenceSupport();
 }

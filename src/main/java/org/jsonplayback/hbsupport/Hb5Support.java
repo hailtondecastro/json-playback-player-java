@@ -24,10 +24,10 @@ import org.jsonplayback.player.hibernate.PlayerStatment;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class Hb5Support extends HbSupportBase {
+public class Hb5Support extends HbObjPersistenceSupportBase {
 	private static Logger logger = LoggerFactory.getLogger(Hb5Support.class);
 
-	private Map<AssociationAndComponentPathKey, AssociationAndComponentPathHbSupport> associationAndCompositiesMap = new HashMap<>();
+	private Map<AssociationAndComponentPathKey, AssociationAndComponentPathObjPersistenceSupport> associationAndCompositiesMap = new HashMap<>();
 	private Set<Class<?>> compositiesSet = new HashSet<>();
 
 	public Hb5Support(IPlayerManager manager) {

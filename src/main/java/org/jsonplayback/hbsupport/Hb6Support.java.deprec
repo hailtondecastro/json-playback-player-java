@@ -43,7 +43,7 @@ import org.jsonplayback.player.util.ReflectionUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class Hb6Support implements HbSupport {
+public class Hb6Support implements HbObjPersistenceSupport {
 	private static Logger logger = LoggerFactory.getLogger(Hb6Support.class);
 
 	protected IPlayerManager manager;

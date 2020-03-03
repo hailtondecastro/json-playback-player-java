@@ -349,6 +349,7 @@
 				</dependency>
 			</dependencies>
 		</profile>
+		<!-- 
 		<profile>
 			<id>hb6</id>
 			<properties>
@@ -369,6 +370,7 @@
 				</dependency>
 			</dependencies>			
 		</profile>
+		 -->
  		<profile>
 			<id>travis</id>
 			<properties>
@@ -388,7 +390,7 @@
 									<goal>sign</goal>
 								</goals>
 								<configuration>
-									<keyname>F4532B1D729C24A899FA83ECD3863F4B2A84E423</keyname>
+									<keyname>584A811A6F2547609E2A5F304B8D861E3E8D8C8B</keyname>
 								</configuration>
 							</execution>
 						</executions>

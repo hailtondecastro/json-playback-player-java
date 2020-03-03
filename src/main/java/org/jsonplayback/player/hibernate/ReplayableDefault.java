@@ -177,7 +177,7 @@ public class ReplayableDefault implements IReplayable {
 				}
 				Object ownerValue = action.resolveOwnerValue(this.manager, creationRefMap);
 				
-				this.manager.getHbSupport().processNewInstantiate(action.getResolvedOwnerPlayerType(), ownerValue);
+				this.manager.getObjPersistenceSupport().processNewInstantiate(action.getResolvedOwnerPlayerType(), ownerValue);
 				
 				break;
 			case SAVE:

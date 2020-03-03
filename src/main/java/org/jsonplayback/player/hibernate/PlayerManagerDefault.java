@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.Reader;
-import java.io.Serializable;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.lang.reflect.InvocationTargetException;
@@ -37,7 +36,6 @@ import org.hibernate.proxy.HibernateProxy;
 import org.jsonplayback.hbsupport.Hb3Support;
 import org.jsonplayback.hbsupport.Hb4Support;
 import org.jsonplayback.hbsupport.Hb5Support;
-import org.jsonplayback.hbsupport.HbSupport;
 import org.jsonplayback.player.IDirectRawWriter;
 import org.jsonplayback.player.IDirectRawWriterWrapper;
 import org.jsonplayback.player.IPlayerConfig;
@@ -45,6 +43,7 @@ import org.jsonplayback.player.IPlayerManager;
 import org.jsonplayback.player.IReplayable;
 import org.jsonplayback.player.IdentityRefKey;
 import org.jsonplayback.player.LazyProperty;
+import org.jsonplayback.player.ObjPersistenceSupport;
 import org.jsonplayback.player.PlayerMetadatas;
 import org.jsonplayback.player.PlayerSnapshot;
 import org.jsonplayback.player.SignatureBean;
@@ -129,7 +128,7 @@ public class PlayerManagerDefault implements IPlayerManagerImplementor {
 		if (logger.isDebugEnabled()) {
 			logger.debug("init()");
 		}
-		this.getHbSupport().init();
+		this.getObjPersistenceSupport().init();
 		this.initialed = true;
 		return this;
 	}
@@ -304,11 +303,11 @@ public class PlayerManagerDefault implements IPlayerManagerImplementor {
 	@Override
 	public SignatureBean generateLazySignatureForCollRelashionship(Class<?> ownerClass, String fieldName,
 			Object ownerValue, Object fieldValue) {
-		if (!this.getHbSupport().isCollectionRelationship(ownerClass, fieldName)) {
+		if (!this.getObjPersistenceSupport().isCollectionRelationship(ownerClass, fieldName)) {
 			throw new RuntimeException("This is not a relationship: " + ownerClass + "->" + fieldName);
 		}
 		
-		if (!this.getHbSupport().isCollectionRelationship(ownerClass, fieldName)) {
+		if (!this.getObjPersistenceSupport().isCollectionRelationship(ownerClass, fieldName)) {
 			throw new RuntimeException("Unespected type " + ownerClass + "->" + fieldName);
 		}
 
@@ -347,8 +346,8 @@ public class PlayerManagerDefault implements IPlayerManagerImplementor {
 		}
 
 		//if (prpType instanceof AssociationType) {
-		if (this.getHbSupport().isCollectionRelationship(ownerClass, fieldName)
-			|| this.getHbSupport().isManyToOneRelationship(ownerClass, fieldName)) {
+		if (this.getObjPersistenceSupport().isCollectionRelationship(ownerClass, fieldName)
+			|| this.getObjPersistenceSupport().isManyToOneRelationship(ownerClass, fieldName)) {
 			throw new RuntimeException("Unespected type " + ownerClass + "->" + fieldName);
 		}
 
@@ -367,7 +366,7 @@ public class PlayerManagerDefault implements IPlayerManagerImplementor {
 		signatureBean.setEntityName(entityClass.getName());
 		signatureBean.setPropertyName(null);
 
-		Object[] rawKeyValuesFromHbProxy = this.getHbSupport().getRawKeyValuesFromHbProxy(hibernateProxy);
+		Object[] rawKeyValuesFromHbProxy = this.getObjPersistenceSupport().getRawKeyValuesFromHbProxy(hibernateProxy);
 
 		signatureBean.setRawKeyValues(rawKeyValuesFromHbProxy);
 		
@@ -399,7 +398,7 @@ public class PlayerManagerDefault implements IPlayerManagerImplementor {
 		signatureBean.setEntityName(entityClass.getName());
 		signatureBean.setPropertyName(null);
 		
-		Object[] rawKeyValuesFromHbProxy = this.getHbSupport().getRawKeyValuesFromNonHbProxy(nonHibernateProxy);
+		Object[] rawKeyValuesFromHbProxy = this.getObjPersistenceSupport().getRawKeyValuesFromNonHbProxy(nonHibernateProxy);
 		
 		signatureBean.setRawKeyValues(rawKeyValuesFromHbProxy);
 		
@@ -416,8 +415,8 @@ public class PlayerManagerDefault implements IPlayerManagerImplementor {
 		if (logger.isTraceEnabled()) {
 			logger.trace(MessageFormat.format("getBySignature(). Begin. \nsignatureBean:\n{0}", signature));
 		}
-		Object idValue = this.getHbSupport().getIdValue(signature.getClazz(), signature.getRawKeyValues());
-		Object owner = this.getHbSupport().getById(signature.getClazz(), idValue);
+		Object idValue = this.getObjPersistenceSupport().getIdValue(signature.getClazz(), signature.getRawKeyValues());
+		Object owner = this.getObjPersistenceSupport().getById(signature.getClazz(), idValue);
 		Object result = owner;
 
 		if (logger.isTraceEnabled()) {
@@ -450,7 +449,7 @@ public class PlayerManagerDefault implements IPlayerManagerImplementor {
 	@SuppressWarnings("rawtypes")
 	@Override
 	public boolean isPersistentClass(Class clazz) {
-		return this.getHbSupport().isPersistentClass(clazz);
+		return this.getObjPersistenceSupport().isPersistentClass(clazz);
 	}
 
 	@Override
@@ -464,14 +463,14 @@ public class PlayerManagerDefault implements IPlayerManagerImplementor {
 		}
 
 		@SuppressWarnings("deprecation")
-		Object idValue = this.getHbSupport().getIdValue(object);
+		Object idValue = this.getObjPersistenceSupport().getIdValue(object);
 		return idValue;
 	}
 	
 	@Override
 	public String getPlayerObjectIdName(Class clazz) {
 
-		return this.getHbSupport().getPlayerObjectIdPrpName(clazz);
+		return this.getObjPersistenceSupport().getPlayerObjectIdPrpName(clazz);
 	}
 
 	@Override
@@ -590,7 +589,7 @@ public class PlayerManagerDefault implements IPlayerManagerImplementor {
 
 	@Override
 	public boolean isComponent(Class<?> componentClass) {
-		return this.getHbSupport().isComponent(componentClass);
+		return this.getObjPersistenceSupport().isComponent(componentClass);
 	}
 
 	@Override
@@ -652,10 +651,10 @@ public class PlayerManagerDefault implements IPlayerManagerImplementor {
 			String pathStr = this.mountPathFromStack(pathList);
 //			AssociationAndComponentPathKey aacKey = new AssociationAndComponentPathKey(lastEntityOwner.getClass(),
 //					pathStr);
-			if (this.getHbSupport().isComponentOrRelationship(lastEntityOwner.getClass(), pathStr)) {
+			if (this.getObjPersistenceSupport().isComponentOrRelationship(lastEntityOwner.getClass(), pathStr)) {
 				AssociationAndComponentTrackInfo trackInfo = new AssociationAndComponentTrackInfo();
 				trackInfo.setEntityOwner(lastEntityOwner);
-				trackInfo.setEntityAndComponentPath(this.getHbSupport().getAssociationAndComponentOnPath(lastEntityOwner.getClass(), pathStr));
+				trackInfo.setEntityAndComponentPath(this.getObjPersistenceSupport().getAssociationAndComponentOnPath(lastEntityOwner.getClass(), pathStr));
 				return trackInfo;
 			} else {
 				return null;
@@ -701,7 +700,7 @@ public class PlayerManagerDefault implements IPlayerManagerImplementor {
 		String pathStr = null;
 		if (lastEntityOwner != null && pathList.size() > 0) {
 			pathStr = this.mountPathFromStack(pathList);
-			if (this.getHbSupport().isManyToOneRelationship(lastEntityOwner.getClass(), pathStr)) {
+			if (this.getObjPersistenceSupport().isManyToOneRelationship(lastEntityOwner.getClass(), pathStr)) {
 				return true;
 			}
 //			AssociationAndComponentPathKey aacKey = new AssociationAndComponentPathKey(lastEntityOwner.getClass(),
@@ -916,8 +915,8 @@ public class PlayerManagerDefault implements IPlayerManagerImplementor {
 		Collections.reverse(resultList);
 		return resultList;
 	}	
-	private HbSupport hbSupport;
-	public HbSupport getHbSupport() {
+	private ObjPersistenceSupport hbSupport;
+	public ObjPersistenceSupport getObjPersistenceSupport() {
 		return this.hbSupport;
 	}
 	

@@ -266,7 +266,7 @@ public class PlayerJsonSerializer extends JsonSerializer<Object> {
 				} else {
 					return false;
 				}
-			} else if (this.manager.getHbSupport().isPersistentCollection(valueToSerialize)) {
+			} else if (this.manager.getObjPersistenceSupport().isPersistentCollection(valueToSerialize)) {
 				return false;
 			} else {
 				return false;
@@ -449,11 +449,11 @@ public class PlayerJsonSerializer extends JsonSerializer<Object> {
 					return false;
 				}
 			}
-		} else if (this.manager.getHbSupport().isPersistentCollection(valueToSerialize)) {
+		} else if (this.manager.getObjPersistenceSupport().isPersistentCollection(valueToSerialize)) {
 			//PersistentCollection pcvalue = (PersistentCollection) valueToSerialize;
 			//if (this.manager.getConfig().isSerialiseBySignatureAllRelationship() || !pcvalue.wasInitialized()) {
 			if (this.manager.getConfig().isSerialiseBySignatureAllRelationship()
-					|| this.manager.getHbSupport().isCollectionLazyUnitialized(
+					|| this.manager.getObjPersistenceSupport().isCollectionLazyUnitialized(
 							valueToSerialize, 
 							aacTrackInfo.getEntityOwner(), 
 							this.mountPathFromStack(aacTrackInfo.getEntityAndComponentPath().getCompositePrpPath()))
@@ -516,13 +516,13 @@ public class PlayerJsonSerializer extends JsonSerializer<Object> {
 
 					SignatureBean signatureBean = null;
 						
-					if (this.manager.getHbSupport().isComponentByTrack(aacTrackInfo)) {
+					if (this.manager.getObjPersistenceSupport().isComponentByTrack(aacTrackInfo)) {
 						signatureBean = this.manager.generateLazySignatureForCollRelashionship(
 							currPropertyWriter.getCurrOwner().getClass(),
 							currPropertyWriter.getBeanPropertyDefinition().getInternalName(),
 							currPropertyWriter.getCurrOwner(),
 							valueToSerialize);					
-					} else if (this.manager.getHbSupport().isPersistentClass(aacTrackInfo.getEntityOwner().getClass())) {
+					} else if (this.manager.getObjPersistenceSupport().isPersistentClass(aacTrackInfo.getEntityOwner().getClass())) {
 						signatureBean = this.manager.generateSignature(valueToSerialize);	
 					} else {
 						throw new RuntimeException("This should not happen");

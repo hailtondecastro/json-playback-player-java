@@ -33,12 +33,10 @@ import org.config.jsonplayback.TestServiceConfigBase;
 import org.hibernate.HibernateException;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
-import org.hibernate.criterion.Order;
-import org.hibernate.criterion.Restrictions;
 import org.hibernate.tool.hbm2ddl.SchemaExport;
-import org.jsonplayback.hbsupport.HbSupport;
 import org.jsonplayback.hbsupport.OrderCompat;
 import org.jsonplayback.player.IPlayerManager;
+import org.jsonplayback.player.ObjPersistenceSupport;
 import org.jsonplayback.player.PlayerSnapshot;
 import org.jsonplayback.player.SignatureBean;
 import org.jsonplayback.player.hibernate.entities.DetailAComp;
@@ -65,7 +63,6 @@ import org.junit.runner.RunWith;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestExecutionListeners;
@@ -266,21 +263,21 @@ public class PlayerManagerTest {
 //						System.out.println("####: " + masterAEnt.getDatetimeA().getTime());
 						masterAEnt.setBlobA(MessageFormat.format("MasterAEnt_REG{0,number,00}_BlobA", i).getBytes(StandardCharsets.UTF_8));
 						masterAEnt.setDetailAEntCol(new LinkedHashSet<>());
-						masterAEnt.setBlobB(((IPlayerManagerImplementor) PlayerManagerTest.this.manager).getHbSupport().getConnection().createBlob());
+						masterAEnt.setBlobB(((IPlayerManagerImplementor) PlayerManagerTest.this.manager).getObjPersistenceSupport().getConnection().createBlob());
 						OutputStream os = masterAEnt.getBlobB().setBinaryStream(1);
 						os.write(MessageFormat.format("MasterAEnt_REG{0,number,00}_BlobB", i).getBytes(StandardCharsets.UTF_8));
 						os.flush();
 						os.close();
 						
 						masterAEnt.setBlobLazyA(MessageFormat.format("MasterAEnt_REG{0,number,00}_BlobLazyA", i).getBytes(StandardCharsets.UTF_8));
-						masterAEnt.setBlobLazyB(((IPlayerManagerImplementor) PlayerManagerTest.this.manager).getHbSupport().getConnection().createBlob());
+						masterAEnt.setBlobLazyB(((IPlayerManagerImplementor) PlayerManagerTest.this.manager).getObjPersistenceSupport().getConnection().createBlob());
 						os = masterAEnt.getBlobLazyB().setBinaryStream(1);
 						os.write(MessageFormat.format("MasterAEnt_REG{0,number,00}_BlobLazyB", i).getBytes(StandardCharsets.UTF_8));
 						os.flush();
 						os.close();
 						
 						masterAEnt.setClobLazyA(MessageFormat.format("MasterAEnt_REG{0,number,00}_ClobLazyB", i));
-						masterAEnt.setClobLazyB(((IPlayerManagerImplementor) PlayerManagerTest.this.manager).getHbSupport().getConnection().createClob());
+						masterAEnt.setClobLazyB(((IPlayerManagerImplementor) PlayerManagerTest.this.manager).getObjPersistenceSupport().getConnection().createClob());
 						Writer w = masterAEnt.getClobLazyB().setCharacterStream(1);
 						w.write(MessageFormat.format("MasterAEnt_REG{0,number,00}_ClobLazyB", i));
 						w.flush();
@@ -304,7 +301,7 @@ public class PlayerManagerTest {
 						masterBEnt.setDateA(df.parse(MessageFormat.format("2019-{0,number,00}-{0,number,00} 00:00:00.00000", i)));
 						masterBEnt.setDatetimeA(df.parse(MessageFormat.format("2019-01-01 01:{0,number,00}:{0,number,00}", i) + ".00000"));
 						masterBEnt.setBlobA(MessageFormat.format("MasterBEnt_REG{0,number,00}_BlobA", i).getBytes(StandardCharsets.UTF_8));
-						masterBEnt.setBlobB(((IPlayerManagerImplementor) PlayerManagerTest.this.manager).getHbSupport().getConnection().createBlob());
+						masterBEnt.setBlobB(((IPlayerManagerImplementor) PlayerManagerTest.this.manager).getObjPersistenceSupport().getConnection().createBlob());
 						masterBEnt.setDetailAEntCol(new LinkedHashSet<>());
 						OutputStream os = masterBEnt.getBlobB().setBinaryStream(1);
 						os.write(MessageFormat.format("MasterBEnt_REG{0,number,00}_BlobB", i).getBytes(StandardCharsets.UTF_8));
@@ -329,7 +326,7 @@ public class PlayerManagerTest {
 						component.setVcharA(MessageFormat.format("DetailAEnt_REG{0,number,00}_REG01_VcharA", i));
 						component.setVcharB(MessageFormat.format("DetailAEnt_REG{0,number,00}_REG01_VcharB", i));
 						component.setBlobA(MessageFormat.format("DetailAEnt_REG{0,number,00}_BlobA", i).getBytes(StandardCharsets.UTF_8));
-						component.setBlobB(((IPlayerManagerImplementor) PlayerManagerTest.this.manager).getHbSupport().getConnection().createBlob());
+						component.setBlobB(((IPlayerManagerImplementor) PlayerManagerTest.this.manager).getObjPersistenceSupport().getConnection().createBlob());
 						component.setMasterB(detailAComponentMasterBEntArr[detailAComponentMasterBEntIndex]);
 						detailAEnt.setDetailAComp(component);
 						detailAComponentMasterBEntArr[detailAComponentMasterBEntIndex].getDetailAEntCol().add(detailAEnt);
@@ -390,21 +387,21 @@ public class PlayerManagerTest {
 //							System.out.println("####: " + masterAEnt.getDatetimeA().getTime());
 							masterAEnt.setBlobA(MessageFormat.format("MasterAEnt_REG{0,number,00}_BlobA", i).getBytes(StandardCharsets.UTF_8));
 							masterAEnt.setDetailAEntCol(new LinkedHashSet<>());
-							masterAEnt.setBlobB(((IPlayerManagerImplementor) PlayerManagerTest.this.manager).getHbSupport().getConnection().createBlob());
+							masterAEnt.setBlobB(((IPlayerManagerImplementor) PlayerManagerTest.this.manager).getObjPersistenceSupport().getConnection().createBlob());
 							OutputStream os = masterAEnt.getBlobB().setBinaryStream(1);
 							os.write(MessageFormat.format("MasterAEnt_REG{0,number,00}_BlobB", i + iBigLoopIncremment).getBytes(StandardCharsets.UTF_8));
 							os.flush();
 							os.close();
 							
 							masterAEnt.setBlobLazyA(MessageFormat.format("MasterAEnt_REG{0,number,00}_BlobLazyA", i + iBigLoopIncremment).getBytes(StandardCharsets.UTF_8));
-							masterAEnt.setBlobLazyB(((IPlayerManagerImplementor) PlayerManagerTest.this.manager).getHbSupport().getConnection().createBlob());
+							masterAEnt.setBlobLazyB(((IPlayerManagerImplementor) PlayerManagerTest.this.manager).getObjPersistenceSupport().getConnection().createBlob());
 							os = masterAEnt.getBlobLazyB().setBinaryStream(1);
 							os.write(MessageFormat.format("MasterAEnt_REG{0,number,00}_BlobLazyB", i + iBigLoopIncremment).getBytes(StandardCharsets.UTF_8));
 							os.flush();
 							os.close();
 							
 							masterAEnt.setClobLazyA(MessageFormat.format("MasterAEnt_REG{0,number,00}_ClobLazyB", i + iBigLoopIncremment));
-							masterAEnt.setClobLazyB(((IPlayerManagerImplementor) PlayerManagerTest.this.manager).getHbSupport().getConnection().createClob());
+							masterAEnt.setClobLazyB(((IPlayerManagerImplementor) PlayerManagerTest.this.manager).getObjPersistenceSupport().getConnection().createClob());
 							Writer w = masterAEnt.getClobLazyB().setCharacterStream(1);
 							w.write(MessageFormat.format("MasterAEnt_REG{0,number,00}_ClobLazyB", i));
 							w.flush();
@@ -428,7 +425,7 @@ public class PlayerManagerTest {
 							masterBEnt.setDateA(df.parse(MessageFormat.format("2019-{0,number,00}-{0,number,00} 00:00:00.00000", i)));
 							masterBEnt.setDatetimeA(df.parse(MessageFormat.format("2019-01-01 01:{0,number,00}:{0,number,00}", i) + ".00000"));
 							masterBEnt.setBlobA(MessageFormat.format("MasterBEnt_REG{0,number,00}_BlobA", i + iBigLoopIncremment).getBytes(StandardCharsets.UTF_8));
-							masterBEnt.setBlobB(((IPlayerManagerImplementor) PlayerManagerTest.this.manager).getHbSupport().getConnection().createBlob());
+							masterBEnt.setBlobB(((IPlayerManagerImplementor) PlayerManagerTest.this.manager).getObjPersistenceSupport().getConnection().createBlob());
 							masterBEnt.setDetailAEntCol(new LinkedHashSet<>());
 							OutputStream os = masterBEnt.getBlobB().setBinaryStream(1);
 							os.write(MessageFormat.format("MasterBEnt_REG{0,number,00}_BlobB", i + iBigLoopIncremment).getBytes(StandardCharsets.UTF_8));
@@ -453,7 +450,7 @@ public class PlayerManagerTest {
 							component.setVcharA(MessageFormat.format("DetailAEnt_REG{0,number,00}_REG01_VcharA", i + iBigLoopIncremment));
 							component.setVcharB(MessageFormat.format("DetailAEnt_REG{0,number,00}_REG01_VcharB", i + iBigLoopIncremment));
 							component.setBlobA(MessageFormat.format("DetailAEnt_REG{0,number,00}_BlobA", i + iBigLoopIncremment).getBytes(StandardCharsets.UTF_8));
-							component.setBlobB(((IPlayerManagerImplementor) PlayerManagerTest.this.manager).getHbSupport().getConnection().createBlob());
+							component.setBlobB(((IPlayerManagerImplementor) PlayerManagerTest.this.manager).getObjPersistenceSupport().getConnection().createBlob());
 							component.setMasterB(detailAComponentMasterBEntArr[detailAComponentMasterBEntIndex]);
 							detailAEnt.setDetailAComp(component);
 							detailAComponentMasterBEntArr[detailAComponentMasterBEntIndex].getDetailAEntCol().add(detailAEnt);
@@ -720,7 +717,7 @@ public class PlayerManagerTest {
 			String generatedFileResult = "target/"+PlayerManagerTest.class.getName()+".masterAList1000Test_result_generated.json";
 			TransactionTemplate transactionTemplate = new TransactionTemplate(this.transactionManager);
 			PlayerManagerTest.this.manager.startJsonWriteIntersept();
-			HbSupport hbSupport = ((IPlayerManagerImplementor)this.manager).getHbSupport();
+			ObjPersistenceSupport hbSupport = ((IPlayerManagerImplementor)this.manager).getObjPersistenceSupport();
 			transactionTemplate.execute(new TransactionCallback<Object>() {
 				
 				@Override
@@ -889,7 +886,7 @@ public class PlayerManagerTest {
 		String generatedFileResult = "target/"+PlayerManagerTest.class.getName()+".masterBList10Test_result_generated.json";
 		TransactionTemplate transactionTemplate = new TransactionTemplate(this.transactionManager);
 		PlayerManagerTest.this.manager.startJsonWriteIntersept();
-		HbSupport hbSupport = ((IPlayerManagerImplementor)this.manager).getHbSupport();
+		ObjPersistenceSupport hbSupport = ((IPlayerManagerImplementor)this.manager).getObjPersistenceSupport();
 		transactionTemplate.execute(new TransactionCallback<Object>() {
 
 			@Override
@@ -977,7 +974,7 @@ public class PlayerManagerTest {
 		String generatedFileResult = "target/"+PlayerManagerTest.class.getName()+".detailACompIdList10Test_result_generated.json";
 		TransactionTemplate transactionTemplate = new TransactionTemplate(this.transactionManager);
 		PlayerManagerTest.this.manager.startJsonWriteIntersept();
-		HbSupport hbSupport = ((IPlayerManagerImplementor)this.manager).getHbSupport();
+		ObjPersistenceSupport hbSupport = ((IPlayerManagerImplementor)this.manager).getObjPersistenceSupport();
 		
 		transactionTemplate.execute(new TransactionCallback<Object>() {
 
@@ -1072,7 +1069,7 @@ public class PlayerManagerTest {
 		String generatedFileResult = "target/"+PlayerManagerTest.class.getName()+".detailACompIdListDummyOwner10Test_result_generated.json";
 		TransactionTemplate transactionTemplate = new TransactionTemplate(this.transactionManager);
 		PlayerManagerTest.this.manager.startJsonWriteIntersept();
-		HbSupport hbSupport = ((IPlayerManagerImplementor)this.manager).getHbSupport();
+		ObjPersistenceSupport hbSupport = ((IPlayerManagerImplementor)this.manager).getObjPersistenceSupport();
 		transactionTemplate.execute(new TransactionCallback<Object>() {
 
 			@Override
@@ -1167,7 +1164,7 @@ public class PlayerManagerTest {
 		String generatedFileResult = "target/"+PlayerManagerTest.class.getName()+".detailACompCompListDummyOwner10Test_result_generated.json";
 		TransactionTemplate transactionTemplate = new TransactionTemplate(this.transactionManager);
 		PlayerManagerTest.this.manager.startJsonWriteIntersept();
-		HbSupport hbSupport = ((IPlayerManagerImplementor)this.manager).getHbSupport();
+		ObjPersistenceSupport hbSupport = ((IPlayerManagerImplementor)this.manager).getObjPersistenceSupport();
 		transactionTemplate.execute(new TransactionCallback<Object>() {
 
 			@Override
@@ -1265,7 +1262,7 @@ public class PlayerManagerTest {
 		String generatedFileResult = "target/"+PlayerManagerTest.class.getName()+".detailACompCompList10Test_result_generated.json";
 		TransactionTemplate transactionTemplate = new TransactionTemplate(this.transactionManager);
 		PlayerManagerTest.this.manager.startJsonWriteIntersept();
-		HbSupport hbSupport = ((IPlayerManagerImplementor)this.manager).getHbSupport();
+		ObjPersistenceSupport hbSupport = ((IPlayerManagerImplementor)this.manager).getObjPersistenceSupport();
 		transactionTemplate.execute(new TransactionCallback<Object>() {
 
 			@Override
@@ -1361,7 +1358,7 @@ public class PlayerManagerTest {
 		String generatedFileResult = "target/"+PlayerManagerTest.class.getName()+".masterBList10BizarreTest_result_generated.json";
 		TransactionTemplate transactionTemplate = new TransactionTemplate(this.transactionManager);
 		PlayerManagerTest.this.manager.startJsonWriteIntersept();
-		HbSupport hbSupport = ((IPlayerManagerImplementor)this.manager).getHbSupport();
+		ObjPersistenceSupport hbSupport = ((IPlayerManagerImplementor)this.manager).getObjPersistenceSupport();
 		transactionTemplate.execute(new TransactionCallback<Object>() {
 
 			@Override
@@ -1490,7 +1487,7 @@ public class PlayerManagerTest {
 							byteBuffer.put(byteArr);
 						} while (byteBuffer.remaining() > byteArr.length);
 						byteBuffer.flip();
-						masterAEnt.setBlobLazyB(((IPlayerManagerImplementor) PlayerManagerTest.this.manager).getHbSupport().getConnection().createBlob());
+						masterAEnt.setBlobLazyB(((IPlayerManagerImplementor) PlayerManagerTest.this.manager).getObjPersistenceSupport().getConnection().createBlob());
 						OutputStream os = masterAEnt.getBlobLazyB().setBinaryStream(1);
 						os.write(byteBuffer.array(), 0, byteBuffer.limit());
 						os.flush();
@@ -1511,7 +1508,7 @@ public class PlayerManagerTest {
 							cBuffer.put(charArr);
 						} while (cBuffer.remaining() > charArr.length);
 						cBuffer.flip();
-						masterAEnt.setClobLazyB(((IPlayerManagerImplementor) PlayerManagerTest.this.manager).getHbSupport().getConnection().createClob());
+						masterAEnt.setClobLazyB(((IPlayerManagerImplementor) PlayerManagerTest.this.manager).getObjPersistenceSupport().getConnection().createClob());
 						Writer w = masterAEnt.getClobLazyB().setCharacterStream(1);
 						w.write(cBuffer.toString());
 						w.flush();
@@ -1718,7 +1715,7 @@ public class PlayerManagerTest {
 			
 		TransactionTemplate transactionTemplate = new TransactionTemplate(this.transactionManager);
 		PlayerManagerTest.this.manager.startJsonWriteIntersept();
-		HbSupport hbSupport = ((IPlayerManagerImplementor)this.manager).getHbSupport();
+		ObjPersistenceSupport hbSupport = ((IPlayerManagerImplementor)this.manager).getObjPersistenceSupport();
 		transactionTemplate.execute(new TransactionCallback<Object>() {
 
 			@Override

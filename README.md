@@ -68,6 +68,8 @@ Framework for integrate entity object graph operations (field, collections modif
   $ git config --local user.email hailtondecastro@gmail.com
   $ # between every commit and push:
   $ git commit --amend --reset-author --no-edit -S
+  $ # or, for all non pushed commit's
+  $ git rebase --exec 'git commit --amend --no-edit -n --no-verify -S'
   $ # Run this and submit the content to [Add new GPG keys](https://github.com/settings/gpg/new):
   $ gpg --armor --export 2AAD7BC5340A5AD35E0EB1117B34C45B030EAE3F
   ```
@@ -143,6 +145,26 @@ Framework for integrate entity object graph operations (field, collections modif
   $ gpg --export-secret-keys F4532B1D729C24A899FA83ECD3863F4B2A84E423 > travis.gpg
   $ gpg --armor --export     F4532B1D729C24A899FA83ECD3863F4B2A84E423 > travis.gpg.pub
   $ gpg --send-keys
+  ```    
+  Update pom.xml:
+  ```xml
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-gpg-plugin</artifactId>
+						<version>1.6</version>
+						<executions>
+							<execution>
+								<id>sign-artifacts</id>
+								<phase>verify</phase>
+								<goals>
+									<goal>sign</goal>
+								</goals>
+								<configuration>
+									<keyname>584A811A6F2547609E2A5F304B8D861E3E8D8C8B</keyname>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
   ```
   Commit and push 'travis.gpg' and 'travis.gpg.pub'.  
   References:
@@ -155,3 +177,5 @@ Framework for integrate entity object graph operations (field, collections modif
       - GPG_PASSPHRASE: Passphare used for [travis.gpg](#user-content-working-with-pgp-signatures-centralsonatypeorg);
       - SONATYPE_USER: Generated user on [https://oss.sonatype.org -> Profile -> User Token](https://oss.sonatype.org/#profile;User%20Token);
       - SONATYPE_PASSWORD: Generated password on [https://oss.sonatype.org -> Profile -> User Token](https://oss.sonatype.org/#profile;User%20Token).
+      
+  Attemption: If you are using character other then [a-z0-1] then replace by regular expression '([^a-z0-9])' by '\\$1', with no quote.

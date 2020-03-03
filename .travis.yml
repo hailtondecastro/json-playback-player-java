@@ -8,7 +8,7 @@ before_install:
   - cp settings.template.xml $HOME/.m2/settings.xml
 
 script:
-  - mvn -f /dummy/    clean install
+  - mvn -f dummy/    clean install
   - mvn -P hb3,travis clean install
   - mvn -P hb4,travis clean install
   - mvn -P hb5,travis clean install

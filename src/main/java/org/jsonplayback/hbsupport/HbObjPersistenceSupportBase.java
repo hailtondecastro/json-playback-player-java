@@ -32,6 +32,7 @@ import org.hibernate.type.SetType;
 //import org.hibernate.type.EntityType;
 import org.hibernate.type.Type;
 import org.jsonplayback.player.IPlayerManager;
+import org.jsonplayback.player.ObjPersistenceSupport;
 import org.jsonplayback.player.hibernate.AssociationAndComponentPath;
 import org.jsonplayback.player.hibernate.AssociationAndComponentPathKey;
 import org.jsonplayback.player.hibernate.AssociationAndComponentTrackInfo;
@@ -39,15 +40,15 @@ import org.jsonplayback.player.util.ReflectionUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public abstract class HbSupportBase implements HbSupport {
-	private static Logger logger = LoggerFactory.getLogger(HbSupportBase.class);
+public abstract class HbObjPersistenceSupportBase implements ObjPersistenceSupport {
+	private static Logger logger = LoggerFactory.getLogger(HbObjPersistenceSupportBase.class);
 
 	protected IPlayerManager manager;
-	private Map<AssociationAndComponentPathKey, AssociationAndComponentPathHbSupport> associationAndCompositiesMap = new HashMap<>();
+	private Map<AssociationAndComponentPathKey, AssociationAndComponentPathObjPersistenceSupport> associationAndCompositiesMap = new HashMap<>();
 	protected Map<String, ClassMetadata> persistentClasses = new HashMap<>();
 	private Set<Class<?>> compositiesSet = new HashSet<>();
 
-	public HbSupportBase(IPlayerManager manager) {
+	public HbObjPersistenceSupportBase(IPlayerManager manager) {
 		this.manager = manager;
 		this.persistentCollecitonClass = this.resolvePersistentCollectionClass();
 		
@@ -143,7 +144,7 @@ public abstract class HbSupportBase implements HbSupport {
 		AssociationAndComponentPathKey aacKeyFromRoot = new AssociationAndComponentPathKey(ownerRootClass,
 				pathFromStack);
 		if (!this.associationAndCompositiesMap.containsKey(aacKeyFromRoot)) {
-			AssociationAndComponentPathHbSupport aacPath = new AssociationAndComponentPathHbSupport();
+			AssociationAndComponentPathObjPersistenceSupport aacPath = new AssociationAndComponentPathObjPersistenceSupport();
 			aacPath.setAacKey(aacKeyFromRoot);
 			aacPath.setCompositeTypePath(new CompositeType[] { compositeType });
 			aacPath.setCompType(compositeType);
@@ -179,7 +180,7 @@ public abstract class HbSupportBase implements HbSupport {
 					aacKeyFromRoot = new AssociationAndComponentPathKey(ownerRootClass, pathStackRelationStr);
 
 					if (!this.associationAndCompositiesMap.containsKey(aacKeyFromRoot)) {
-						AssociationAndComponentPathHbSupport relEacPathFromRoot = new AssociationAndComponentPathHbSupport();
+						AssociationAndComponentPathObjPersistenceSupport relEacPathFromRoot = new AssociationAndComponentPathObjPersistenceSupport();
 						relEacPathFromRoot.setAacKey(aacKeyFromRoot);
 						relEacPathFromRoot.setCompositeTypePath(
 								compositeTypePathStack.toArray(new CompositeType[compositeTypePathStack.size()]));
@@ -198,7 +199,7 @@ public abstract class HbSupportBase implements HbSupport {
 				
 					aacKeyFromRoot = new AssociationAndComponentPathKey(ownerRootClass, pathStackRelationStr);
 					if (!this.associationAndCompositiesMap.containsKey(aacKeyFromRoot)) {
-						AssociationAndComponentPathHbSupport relEacPathFromRoot = new AssociationAndComponentPathHbSupport();
+						AssociationAndComponentPathObjPersistenceSupport relEacPathFromRoot = new AssociationAndComponentPathObjPersistenceSupport();
 						relEacPathFromRoot.setAacKey(aacKeyFromRoot);
 						relEacPathFromRoot.setCompositeTypePath(
 								compositeTypePathStack.toArray(new CompositeType[compositeTypePathStack.size()]));
@@ -294,7 +295,7 @@ public abstract class HbSupportBase implements HbSupport {
 
 					aacKeyFromRoot = new AssociationAndComponentPathKey(ownerRootClass, prpName);
 
-					AssociationAndComponentPathHbSupport relEacPath = new AssociationAndComponentPathHbSupport();
+					AssociationAndComponentPathObjPersistenceSupport relEacPath = new AssociationAndComponentPathObjPersistenceSupport();
 					relEacPath.setAacKey(aacKeyFromRoot);
 					relEacPath.setCompositeTypePath(new CompositeType[] {});
 					relEacPath.setCompType(null);
@@ -307,7 +308,7 @@ public abstract class HbSupportBase implements HbSupport {
 
 					aacKeyFromRoot = new AssociationAndComponentPathKey(ownerRootClass, prpName);
 
-					AssociationAndComponentPathHbSupport relEacPath = new AssociationAndComponentPathHbSupport();
+					AssociationAndComponentPathObjPersistenceSupport relEacPath = new AssociationAndComponentPathObjPersistenceSupport();
 					relEacPath.setAacKey(aacKeyFromRoot);
 					relEacPath.setCompositeTypePath(new CompositeType[] {});
 					relEacPath.setCompType(null);
@@ -319,7 +320,7 @@ public abstract class HbSupportBase implements HbSupport {
 			}
 		}
 		for (AssociationAndComponentPathKey key : this.associationAndCompositiesMap.keySet()) {
-			AssociationAndComponentPathHbSupport aacPath = this.associationAndCompositiesMap.get(key);
+			AssociationAndComponentPathObjPersistenceSupport aacPath = this.associationAndCompositiesMap.get(key);
 			if (aacPath.getCompType() != null) {
 				Class<?> compositeClass = this.associationAndCompositiesMap.get(key).getCompType().getReturnedClass();
 				this.compositiesSet.add(compositeClass);
@@ -423,7 +424,7 @@ public abstract class HbSupportBase implements HbSupport {
 	public boolean isCollectionRelationship(Class<?> ownerClass, String pathFromOwner) {
 		AssociationAndComponentPathKey aacKey = new AssociationAndComponentPathKey(ownerClass, pathFromOwner);
 		if (this.associationAndCompositiesMap.containsKey(aacKey)) {
-			AssociationAndComponentPathHbSupport aacPath = this.associationAndCompositiesMap.get(aacKey);
+			AssociationAndComponentPathObjPersistenceSupport aacPath = this.associationAndCompositiesMap.get(aacKey);
 			return aacPath.getCollType() != null;
 		} else {
 			return false;
@@ -433,7 +434,7 @@ public abstract class HbSupportBase implements HbSupport {
 	@Override
 	public boolean isManyToOneRelationship(Class<?> ownerClass, String pathFromOwner) {
 		AssociationAndComponentPathKey aacKey = new AssociationAndComponentPathKey(ownerClass, pathFromOwner);
-		AssociationAndComponentPathHbSupport entityAndComponentPath = this.associationAndCompositiesMap.get(aacKey);
+		AssociationAndComponentPathObjPersistenceSupport entityAndComponentPath = this.associationAndCompositiesMap.get(aacKey);
 		if (entityAndComponentPath != null) {
 			return entityAndComponentPath.getRelEntity() != null;
 		} else {
@@ -460,9 +461,9 @@ public abstract class HbSupportBase implements HbSupport {
 
 	@Override
 	public boolean isComponentByTrack(AssociationAndComponentTrackInfo aacTrackInfo) {
-		AssociationAndComponentPathHbSupport aacOnPath = this.associationAndCompositiesMap.get(aacTrackInfo);
-		if (aacTrackInfo.getEntityAndComponentPath() instanceof AssociationAndComponentPathHbSupport) {
-			return ((AssociationAndComponentPathHbSupport)aacTrackInfo.getEntityAndComponentPath()).getCollType() != null;
+		AssociationAndComponentPathObjPersistenceSupport aacOnPath = this.associationAndCompositiesMap.get(aacTrackInfo);
+		if (aacTrackInfo.getEntityAndComponentPath() instanceof AssociationAndComponentPathObjPersistenceSupport) {
+			return ((AssociationAndComponentPathObjPersistenceSupport)aacTrackInfo.getEntityAndComponentPath()).getCollType() != null;
 		} else {
 			throw new RuntimeException("This should not happen. prpType: ");
 		}

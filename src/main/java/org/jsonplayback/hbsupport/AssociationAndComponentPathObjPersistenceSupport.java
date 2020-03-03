@@ -12,7 +12,7 @@ import org.jsonplayback.player.hibernate.AssociationAndComponentPath;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-public class AssociationAndComponentPathHbSupport extends AssociationAndComponentPath {
+public class AssociationAndComponentPathObjPersistenceSupport extends AssociationAndComponentPath {
 	private CompositeType[] compositeTypePath;
 	private CollectionType collType;
 	private CompositeType compType;	
