@@ -1,4 +1,4 @@
-package org.jsonplayback.player.hibernate;
+package org.jsonplayback.player.implementation;
 
 import org.jsonplayback.player.SignatureBean;
 
@@ -19,8 +19,9 @@ class SignatureBeanJson {
 	 * Se nulo eh a propria entidade, caso contrario eh o lazy de uma entidade.
 	 */
 	private String propertyName;
-	private String[] rawKeyValues;
-	private String[] rawKeyTypeNames;
+//	private String[] rawKeyValues;
+//	private String[] rawKeyTypeNames;
+	private String stringifiedObjectId;
 	public String getClazzName() {
 		return clazzName;
 	}
@@ -39,18 +40,18 @@ class SignatureBeanJson {
 	public void setPropertyName(String propertyName) {
 		this.propertyName = propertyName;
 	}
-	public String[] getRawKeyValues() {
-		return rawKeyValues;
-	}
-	public void setRawKeyValues(String[] rawKeyValues) {
-		this.rawKeyValues = rawKeyValues;
-	}
-	public String[] getRawKeyTypeNames() {
-		return rawKeyTypeNames;
-	}
-	public void setRawKeyTypeNames(String[] rawKeyTypeNames) {
-		this.rawKeyTypeNames = rawKeyTypeNames;
-	}
+//	public String[] getRawKeyValues() {
+//		return rawKeyValues;
+//	}
+//	public void setRawKeyValues(String[] rawKeyValues) {
+//		this.rawKeyValues = rawKeyValues;
+//	}
+//	public String[] getRawKeyTypeNames() {
+//		return rawKeyTypeNames;
+//	}
+//	public void setRawKeyTypeNames(String[] rawKeyTypeNames) {
+//		this.rawKeyTypeNames = rawKeyTypeNames;
+//	}
 	public Boolean getIsColl() {
 		return isColl;
 	}
@@ -75,7 +76,11 @@ class SignatureBeanJson {
 	public void setIsLazyProperty(Boolean isLazyProperty) {
 		this.isLazyProperty = isLazyProperty;
 	}
-	
-	
+	public String getStringifiedObjectId() {
+		return stringifiedObjectId;
+	}
+	public void setStringifiedObjectId(String stringifiedObjectId) {
+		this.stringifiedObjectId = stringifiedObjectId;
+	}
 }
 /*gerando conflito*/

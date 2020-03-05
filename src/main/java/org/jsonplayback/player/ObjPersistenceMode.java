@@ -1,8 +1,9 @@
-package org.jsonplayback.player.hibernate;
+package org.jsonplayback.player;
 
-public enum HibernateVersion {
+public enum ObjPersistenceMode {
 	HB3,
 	HB4,
 	HB5,
-	HB6
+	JPA,
+	CUSTOMIZED
 }

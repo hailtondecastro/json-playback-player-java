@@ -18,20 +18,20 @@ import org.hibernate.metadata.ClassMetadata;
 import org.hibernate.proxy.HibernateProxy;
 import org.hibernate.type.Type;
 import org.jsonplayback.player.IPlayerManager;
-import org.jsonplayback.player.hibernate.AssociationAndComponentPathKey;
-import org.jsonplayback.player.hibernate.PlayerResultSet;
-import org.jsonplayback.player.hibernate.PlayerStatment;
+import org.jsonplayback.player.implementation.AssociationAndComponentPathKey;
+import org.jsonplayback.player.implementation.PlayerResultSet;
+import org.jsonplayback.player.implementation.PlayerStatment;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class Hb5Support extends HbObjPersistenceSupportBase {
+public abstract class Hb5Support extends HbObjPersistenceSupportBase {
 	private static Logger logger = LoggerFactory.getLogger(Hb5Support.class);
 
 	private Map<AssociationAndComponentPathKey, AssociationAndComponentPathObjPersistenceSupport> associationAndCompositiesMap = new HashMap<>();
 	private Set<Class<?>> compositiesSet = new HashSet<>();
 
-	public Hb5Support(IPlayerManager manager) {
-		super(manager);
+	public Hb5Support() {
+		super();
 	}
 
 	@Override
@@ -74,7 +74,7 @@ public class Hb5Support extends HbObjPersistenceSupportBase {
 
 		Object idValue = this.getIdValue(hibernateProxy);
 //				classMetadata.getIdentifier(hibernateProxy,
-//						(org.hibernate.engine.SessionImplementor) this.manager.getConfig().getSessionFactory()
+//						(org.hibernate.engine.SessionImplementor) this.getSessionFactory()
 //						.getCurrentSession());
 		Type hbIdType = classMetadata.getIdentifierType();
 		try {
@@ -92,11 +92,11 @@ public class Hb5Support extends HbObjPersistenceSupportBase {
 					playerStatment, 
 					idValue, 
 					0, 
-					this.manager.getConfig().getSessionFactory().getCurrentSession()
+					this.getSessionFactory().getCurrentSession()
 				}
 			);
 //			hbIdType.nullSafeSet(playerStatment, idValue, 0,
-//					(org.hibernate.engine.spi.SessionImplementor) this.manager.getConfig().getSessionFactory().getCurrentSession());
+//					(org.hibernate.engine.spi.SessionImplementor) this.getSessionFactory().getCurrentSession());
 		} catch (HibernateException e) {
 			throw new RuntimeException("This should not happen", e);
 		}
@@ -123,10 +123,10 @@ public class Hb5Support extends HbObjPersistenceSupportBase {
 					classMetadata,
 					new Object[]{
 						nonHibernateProxy, 
-						this.manager.getConfig().getSessionFactory().getCurrentSession()
+						this.getSessionFactory().getCurrentSession()
 					});
 //		Object idValue = classMetadata.getIdentifier(nonHibernateProxy,
-//				(org.hibernate.engine.spi.SessionImplementor) this.manager.getConfig().getSessionFactory()
+//				(org.hibernate.engine.spi.SessionImplementor) this.getSessionFactory()
 //						.getCurrentSession());
 		
 		Type hbIdType = classMetadata.getIdentifierType();
@@ -145,11 +145,11 @@ public class Hb5Support extends HbObjPersistenceSupportBase {
 					playerStatment, 
 					idValue, 
 					0, 
-					this.manager.getConfig().getSessionFactory().getCurrentSession()
+					this.getSessionFactory().getCurrentSession()
 				}
 			);
 //			hbIdType.nullSafeSet(playerStatment, idValue, 0,
-//					(org.hibernate.engine.spi.SessionImplementor) this.manager.getConfig().getSessionFactory().getCurrentSession());
+//					(org.hibernate.engine.spi.SessionImplementor) this.getSessionFactory().getCurrentSession());
 		} catch (HibernateException e) {
 			throw new RuntimeException("This should not happen", e);
 		}
@@ -167,9 +167,105 @@ public class Hb5Support extends HbObjPersistenceSupportBase {
 		//return ((org.hibernate.collection.spi.PersistentCollection)coll).getRole();
 	}
 
+//	@Override
+//	public Serializable getIdValue(Class<?> entityClass, Object[] rawKeyValues) {
+//		ClassMetadata classMetadata = this.getAllClassMetadata().get(entityClass.getName());
+//
+//		Type hbIdType = classMetadata.getIdentifierType();
+//
+//		if (logger.isTraceEnabled()) {
+//			logger.trace(MessageFormat.format("getBySignature(). Hibernate id Type: ''{0}''", hbIdType));
+//		}
+//		
+//		Serializable idValue = null;
+//		
+//		PlayerResultSet playerResultSet = new PlayerResultSet(rawKeyValues);
+//		try {
+//			 idValue = (Serializable) 
+//					this.runByReflection(
+//						hbIdType.getClass().getName(),
+//						"nullSafeGet",
+//						new String[] {
+//							ResultSet.class.getName(),
+//							String[].class.getName(),
+//							"org.hibernate.engine.spi.SharedSessionContractImplementor",
+//							Object.class.getName()
+//						},
+//						hbIdType,
+//						new Object[]{
+//							playerResultSet,
+//							playerResultSet.getColumnNames(),
+//							this.getSessionFactory().getCurrentSession(),
+//							null
+//						}
+//					);
+//			
+////			idValue = (Serializable) hbIdType.nullSafeGet(playerResultSet, playerResultSet.getColumnNames(),
+////					(org.hibernate.engine.SessionImplementor) this.getSessionFactory().getCurrentSession(), null);
+//		} catch (HibernateException e) {
+//			throw new RuntimeException("This should not happen. prpType: ");
+//		}
+//		
+//		return idValue;
+//	}
+	
 	@Override
-	public Serializable getIdValue(Class<?> entityClass, Object[] rawKeyValues) {
+	public Serializable getIdValue(Object entityInstanceOrProxy) {
+		Class<?> entityClass = null;
+		if (entityInstanceOrProxy instanceof HibernateProxy) {
+			entityClass = (Class<?>) entityInstanceOrProxy.getClass().getSuperclass();
+		} else {
+			entityClass = (Class<?>) entityInstanceOrProxy.getClass();
+		}
 		ClassMetadata classMetadata = this.getAllClassMetadata().get(entityClass.getName());
+		PlayerStatment playerStatment = new PlayerStatment();
+		
+		Serializable idValue = 
+				(Serializable) this.runByReflection(
+				classMetadata.getClass().getName(),
+				"getIdentifier",
+				new String[]{ Object.class.getName(), "org.hibernate.engine.spi.SharedSessionContractImplementor"},
+				classMetadata,
+				new Object[]{ entityInstanceOrProxy, this.getSessionFactory().getCurrentSession()});
+		return idValue;
+	}
+	
+	@Override
+	protected Map<String, ClassMetadata> getAllClassMetadata() {
+		Object sessionFactoryImplementor = this.getSessionFactory();
+		Object metamodelImplementor = this.runByReflection(
+			"org.hibernate.engine.spi.SessionFactoryImplementor",
+			"getMetamodel",
+			new String[]{},
+			sessionFactoryImplementor,
+			new Object[]{}
+		);
+		@SuppressWarnings("unchecked")
+		Map<String, Object> entityPersisters = (Map<String, Object>) this.runByReflection(
+			"org.hibernate.metamodel.spi.MetamodelImplementor",
+			"entityPersisters",
+			new String[]{},
+			metamodelImplementor,
+			new Object[]{}
+		);
+		//SessionFactoryImplementor sessionFactoryImplementor = ((SessionFactoryImplementor)this.getSessionFactory());
+		//MetamodelImplementor metamodelImplementor = sessionFactoryImplementor.getMetamodel();
+		//Map<String, EntityPersister> entityPersisters = metamodelImplementor.entityPersisters();
+		Map<String, ClassMetadata> classMetadatas = new LinkedHashMap<String, ClassMetadata>();
+		for (String ettName : entityPersisters.keySet()) {
+			if (entityPersisters.get(ettName) instanceof ClassMetadata) {
+				classMetadatas.put(ettName, (ClassMetadata) entityPersisters.get(ettName));				
+			} else {
+				throw new RuntimeException("This should not happen. entityPersister: " + entityPersisters.get(ettName));
+			}
+		}
+		return classMetadatas;
+	}
+	
+	@Override
+	public Object parseObjectid(IPlayerManager manager, Class ownerClass, String stringifiedObjectid) {
+		Object[] rawKeyValues = this.getRawKeyValues(manager.getConfig().getObjectMapper(), stringifiedObjectid);
+		ClassMetadata classMetadata = this.getAllClassMetadata().get(ownerClass.getName());
 
 		Type hbIdType = classMetadata.getIdentifierType();
 
@@ -195,70 +291,17 @@ public class Hb5Support extends HbObjPersistenceSupportBase {
 						new Object[]{
 							playerResultSet,
 							playerResultSet.getColumnNames(),
-							this.manager.getConfig().getSessionFactory().getCurrentSession(),
+							this.getSessionFactory().getCurrentSession(),
 							null
 						}
 					);
 			
 //			idValue = (Serializable) hbIdType.nullSafeGet(playerResultSet, playerResultSet.getColumnNames(),
-//					(org.hibernate.engine.SessionImplementor) this.manager.getConfig().getSessionFactory().getCurrentSession(), null);
+//					(org.hibernate.engine.SessionImplementor) this.getSessionFactory().getCurrentSession(), null);
 		} catch (HibernateException e) {
 			throw new RuntimeException("This should not happen. prpType: ");
 		}
 		
 		return idValue;
-	}
-	
-	@Override
-	public Serializable getIdValue(Object entityInstanceOrProxy) {
-		Class<?> entityClass = null;
-		if (entityInstanceOrProxy instanceof HibernateProxy) {
-			entityClass = (Class<?>) entityInstanceOrProxy.getClass().getSuperclass();
-		} else {
-			entityClass = (Class<?>) entityInstanceOrProxy.getClass();
-		}
-		ClassMetadata classMetadata = this.getAllClassMetadata().get(entityClass.getName());
-		PlayerStatment playerStatment = new PlayerStatment();
-		
-		Serializable idValue = 
-				(Serializable) this.runByReflection(
-				classMetadata.getClass().getName(),
-				"getIdentifier",
-				new String[]{ Object.class.getName(), "org.hibernate.engine.spi.SharedSessionContractImplementor"},
-				classMetadata,
-				new Object[]{ entityInstanceOrProxy, this.manager.getConfig().getSessionFactory().getCurrentSession()});
-		return idValue;
-	}
-	
-	@Override
-	protected Map<String, ClassMetadata> getAllClassMetadata() {
-		Object sessionFactoryImplementor = this.manager.getConfig().getSessionFactory();
-		Object metamodelImplementor = this.runByReflection(
-			"org.hibernate.engine.spi.SessionFactoryImplementor",
-			"getMetamodel",
-			new String[]{},
-			sessionFactoryImplementor,
-			new Object[]{}
-		);
-		@SuppressWarnings("unchecked")
-		Map<String, Object> entityPersisters = (Map<String, Object>) this.runByReflection(
-			"org.hibernate.metamodel.spi.MetamodelImplementor",
-			"entityPersisters",
-			new String[]{},
-			metamodelImplementor,
-			new Object[]{}
-		);
-		//SessionFactoryImplementor sessionFactoryImplementor = ((SessionFactoryImplementor)this.manager.getConfig().getSessionFactory());
-		//MetamodelImplementor metamodelImplementor = sessionFactoryImplementor.getMetamodel();
-		//Map<String, EntityPersister> entityPersisters = metamodelImplementor.entityPersisters();
-		Map<String, ClassMetadata> classMetadatas = new LinkedHashMap<String, ClassMetadata>();
-		for (String ettName : entityPersisters.keySet()) {
-			if (entityPersisters.get(ettName) instanceof ClassMetadata) {
-				classMetadatas.put(ettName, (ClassMetadata) entityPersisters.get(ettName));				
-			} else {
-				throw new RuntimeException("This should not happen. entityPersister: " + entityPersisters.get(ettName));
-			}
-		}
-		return classMetadatas;
 	}
 }

@@ -1,4 +1,4 @@
-package org.jsonplayback.player.hibernate;
+package org.jsonplayback.player.implementation;
 
 public class OwnerAndProperty {
 	private Object owner;

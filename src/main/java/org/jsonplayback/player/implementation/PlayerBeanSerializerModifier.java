@@ -1,4 +1,4 @@
-package org.jsonplayback.player.hibernate;
+package org.jsonplayback.player.implementation;
 
 import java.sql.Blob;
 import java.sql.Clob;

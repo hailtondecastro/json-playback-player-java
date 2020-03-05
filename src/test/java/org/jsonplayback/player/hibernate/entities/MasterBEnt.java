@@ -21,8 +21,8 @@ import javax.persistence.OrderBy;
 import javax.persistence.Table;
 import javax.persistence.Version;
 
-import org.jsonplayback.player.hibernate.BlobBase64Serializer;
-import org.jsonplayback.player.hibernate.ByteArrayBase64Serializer;
+import org.jsonplayback.player.implementation.BlobBase64Serializer;
+import org.jsonplayback.player.implementation.ByteArrayBase64Serializer;
 
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 

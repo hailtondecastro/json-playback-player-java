@@ -13,12 +13,12 @@ public class SignatureBean {
 //	private Boolean isAssoc = false;
 	private Boolean isComp = false;
 	private Boolean isLazyProperty = false;
+	private String stringifiedObjectId;
 	/**
 	 * Se nulo eh a propria entidade, caso contrario eh o lazy de uma entidade.
 	 */
 	private String propertyName;
-	private Object[] rawKeyValues;
-	
+	//private Object[] rawKeyValues;
 	
 	public Boolean getIsLazyProperty() {
 		return isLazyProperty;
@@ -50,12 +50,18 @@ public class SignatureBean {
 	public void setPropertyName(String propertyName) {
 		this.propertyName = propertyName;
 	}
-	public Object[] getRawKeyValues() {
-		return rawKeyValues;
+	public String getStringifiedObjectId() {
+		return stringifiedObjectId;
 	}
-	public void setRawKeyValues(Object[] rawKeyValues) {
-		this.rawKeyValues = rawKeyValues;
+	public void setStringifiedObjectId(String stringifiedObjectId) {
+		this.stringifiedObjectId = stringifiedObjectId;
 	}
+//	public Object[] getRawKeyValues() {
+//		return rawKeyValues;
+//	}
+//	public void setRawKeyValues(Object[] rawKeyValues) {
+//		this.rawKeyValues = rawKeyValues;
+//	}
 	public Boolean getIsColl() {
 		return isColl;
 	}
@@ -83,7 +89,7 @@ public class SignatureBean {
 			thisAsMap.put("clazz",          this.getClazz()       );
 			thisAsMap.put("entityName",     this.getEntityName()  );
 			thisAsMap.put("propertyName",   this.getPropertyName());
-			thisAsMap.put("rawKeyValues",   this.getRawKeyValues());
+			thisAsMap.put("stringifiedObjectId",   this.getStringifiedObjectId());
 //			thisAsMap.put("isAssoc",        this.getIsAssoc());
 			thisAsMap.put("isColl",         this.getIsColl());
 			thisAsMap.put("isComp",         this.getIsComp());

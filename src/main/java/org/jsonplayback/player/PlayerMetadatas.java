@@ -2,7 +2,7 @@ package org.jsonplayback.player;
 
 import java.util.LinkedHashMap;
 
-import org.jsonplayback.player.hibernate.PlayerBeanPropertyWriter;
+import org.jsonplayback.player.implementation.PlayerBeanPropertyWriter;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;

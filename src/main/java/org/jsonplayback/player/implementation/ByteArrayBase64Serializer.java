@@ -1,4 +1,4 @@
-package org.jsonplayback.player.hibernate;
+package org.jsonplayback.player.implementation;
 
 import java.io.IOException;
 import java.util.Base64;

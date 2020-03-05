@@ -1,4 +1,4 @@
-package org.jsonplayback.player.hibernate;
+package org.jsonplayback.player.implementation;
 
 import java.util.Collection;
 import java.util.List;
@@ -15,9 +15,9 @@ import org.jsonplayback.player.SignatureBean;
 public interface IPlayerManagerImplementor extends IPlayerManager {
 	SignatureBean generateLazySignature(Collection<?> persistentCollection);
 
-	SignatureBean generateLazySignature(HibernateProxy hibernateProxy);
+	SignatureBean generateLazySignature(Object notLoadObject);
 
-	SignatureBean generateSignature(Object nonHibernateProxy);
+	SignatureBean generateSignature(Object alreadyLoadObject);
 	
 	Long getCurrId();
 

@@ -1,4 +1,4 @@
-package org.jsonplayback.hbsupport;
+package org.jsonplayback.player.hibernate;
 
 import java.lang.reflect.Method;
 import java.util.List;

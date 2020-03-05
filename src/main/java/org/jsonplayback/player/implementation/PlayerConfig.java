@@ -1,4 +1,4 @@
-package org.jsonplayback.player.hibernate;
+package org.jsonplayback.player.implementation;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -10,6 +10,7 @@ import java.util.Set;
 import org.hibernate.SessionFactory;
 import org.jsonplayback.player.IGetBySignatureListener;
 import org.jsonplayback.player.IPlayerConfig;
+import org.jsonplayback.player.ObjPersistenceSupport;
 import org.jsonplayback.player.SignatureCrypto;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -20,7 +21,7 @@ public class PlayerConfig implements IPlayerConfig, Cloneable {
 	private Set<Class> neverSignedClasses = new HashSet<>();
 	private Set<Class> nonLazybleClasses = new HashSet<>();
 	private List<IGetBySignatureListener> listeners = new ArrayList<>();
-	private SessionFactory sessionFactory;
+	private ObjPersistenceSupport objPersistenceSupport;
 	private ObjectMapper objectMapper;
 	private SignatureCrypto signatureCrypto;
 	private boolean serialiseBySignatureAllRelationship = false;
@@ -78,8 +79,8 @@ public class PlayerConfig implements IPlayerConfig, Cloneable {
 
 
 	@Override
-	public IPlayerConfig configSessionFactory(SessionFactory sessionFactory) {
-		this.sessionFactory = sessionFactory;
+	public IPlayerConfig configObjPersistenceSupport(ObjPersistenceSupport objPersistenceSupport) {
+		this.objPersistenceSupport = objPersistenceSupport;
 		return this;
 	}
 
@@ -89,8 +90,8 @@ public class PlayerConfig implements IPlayerConfig, Cloneable {
 	}
 
 	@Override
-	public SessionFactory getSessionFactory() {
-		return this.sessionFactory;
+	public ObjPersistenceSupport getObjPersistenceSupport() {
+		return this.objPersistenceSupport;
 	}
 
 	@Override
@@ -130,7 +131,7 @@ public class PlayerConfig implements IPlayerConfig, Cloneable {
 			}
 			thisAsMap.put("serialiseBySignatureAllRelationship", this.isSerialiseBySignatureAllRelationship());
 			thisAsMap.put("listeners", listenersList);
-			thisAsMap.put("sessionFactory", this.getSessionFactory() != null? this.getSessionFactory().getClass(): "null");
+			thisAsMap.put("sessionFactory", this.getObjPersistenceSupport() != null? this.getObjPersistenceSupport().getClass(): "null");
 			thisAsMap.put("signatureCrypto", this.getSignatureCrypto()!= null? this.getSignatureCrypto().getClass(): "null");
 			thisAsMap.put("neverSignedClasses", this.getNeverSignedClasses());
 			thisAsMap.put("playerMetadatasName", this.getPlayerMetadatasName());

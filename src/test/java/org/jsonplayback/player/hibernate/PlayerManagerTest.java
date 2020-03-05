@@ -34,7 +34,6 @@ import org.hibernate.HibernateException;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.tool.hbm2ddl.SchemaExport;
-import org.jsonplayback.hbsupport.OrderCompat;
 import org.jsonplayback.player.IPlayerManager;
 import org.jsonplayback.player.ObjPersistenceSupport;
 import org.jsonplayback.player.PlayerSnapshot;
@@ -50,6 +49,7 @@ import org.jsonplayback.player.hibernate.entities.MasterBCompId;
 import org.jsonplayback.player.hibernate.entities.MasterBEnt;
 import org.jsonplayback.player.hibernate.nonentities.DetailAWrapper;
 import org.jsonplayback.player.hibernate.nonentities.MasterAWrapper;
+import org.jsonplayback.player.implementation.IPlayerManagerImplementor;
 import org.jsonplayback.player.util.ReflectionUtil;
 import org.jsonplayback.player.util.SqlLogInspetor;
 import org.jsonplayback.player.util.spring.orm.hibernate3.JpbSpringJUnit4ClassRunner;
@@ -94,7 +94,10 @@ public class PlayerManagerTest {
     
     @AfterClass
     public static void tearDownAfterClass() throws Exception {
-    }    
+    }
+    
+    @Autowired
+    private HibernateJpaCompat hibernateJpaCompat;
     
     @Autowired
     IPlayerManager manager;
@@ -148,12 +151,12 @@ public class PlayerManagerTest {
 //    		SchemaExport export = new SchemaExport(this.localSessionFactoryBean4.getConfiguration());
 //    	    export.drop(false, true);
 //    	    export.create(false, true);
-    	} else if (this.getLocalSessionFactoryBean5Or6() != null) {
+    	} else if (this.getLocalSessionFactoryBean5OrJpa() != null) {
     		Object configuration = ReflectionUtil.runByReflection(
-				this.getLocalSessionFactoryBean5Or6().getClass().getName(),
+				this.getLocalSessionFactoryBean5OrJpa().getClass().getName(),
     			"getConfiguration",
     			new String[]{},
-    			this.getLocalSessionFactoryBean5Or6(),
+    			this.getLocalSessionFactoryBean5OrJpa(),
     			new Object[]{}
         	);
     		Object standardServiceRegistryBuilder = ReflectionUtil.runByReflection(
@@ -171,10 +174,10 @@ public class PlayerManagerTest {
     			new Object[]{}
         	);
     		Object metadataSources = ReflectionUtil.runByReflection(
-				this.getLocalSessionFactoryBean5Or6().getClass().getName(),
+				this.getLocalSessionFactoryBean5OrJpa().getClass().getName(),
     			"getMetadataSources",
     			new String[]{},
-    			this.getLocalSessionFactoryBean5Or6(),
+    			this.getLocalSessionFactoryBean5OrJpa(),
     			new Object[]{}
         	);
     		Object hb5Metadata = ReflectionUtil.runByReflection(
@@ -263,21 +266,21 @@ public class PlayerManagerTest {
 //						System.out.println("####: " + masterAEnt.getDatetimeA().getTime());
 						masterAEnt.setBlobA(MessageFormat.format("MasterAEnt_REG{0,number,00}_BlobA", i).getBytes(StandardCharsets.UTF_8));
 						masterAEnt.setDetailAEntCol(new LinkedHashSet<>());
-						masterAEnt.setBlobB(((IPlayerManagerImplementor) PlayerManagerTest.this.manager).getObjPersistenceSupport().getConnection().createBlob());
+						masterAEnt.setBlobB(PlayerManagerTest.this.hibernateJpaCompat.getConnection(ss, null).createBlob());
 						OutputStream os = masterAEnt.getBlobB().setBinaryStream(1);
 						os.write(MessageFormat.format("MasterAEnt_REG{0,number,00}_BlobB", i).getBytes(StandardCharsets.UTF_8));
 						os.flush();
 						os.close();
 						
 						masterAEnt.setBlobLazyA(MessageFormat.format("MasterAEnt_REG{0,number,00}_BlobLazyA", i).getBytes(StandardCharsets.UTF_8));
-						masterAEnt.setBlobLazyB(((IPlayerManagerImplementor) PlayerManagerTest.this.manager).getObjPersistenceSupport().getConnection().createBlob());
+						masterAEnt.setBlobLazyB(PlayerManagerTest.this.hibernateJpaCompat.getConnection(ss, null).createBlob());
 						os = masterAEnt.getBlobLazyB().setBinaryStream(1);
 						os.write(MessageFormat.format("MasterAEnt_REG{0,number,00}_BlobLazyB", i).getBytes(StandardCharsets.UTF_8));
 						os.flush();
 						os.close();
 						
 						masterAEnt.setClobLazyA(MessageFormat.format("MasterAEnt_REG{0,number,00}_ClobLazyB", i));
-						masterAEnt.setClobLazyB(((IPlayerManagerImplementor) PlayerManagerTest.this.manager).getObjPersistenceSupport().getConnection().createClob());
+						masterAEnt.setClobLazyB(PlayerManagerTest.this.hibernateJpaCompat.getConnection(ss, null).createClob());
 						Writer w = masterAEnt.getClobLazyB().setCharacterStream(1);
 						w.write(MessageFormat.format("MasterAEnt_REG{0,number,00}_ClobLazyB", i));
 						w.flush();
@@ -301,7 +304,7 @@ public class PlayerManagerTest {
 						masterBEnt.setDateA(df.parse(MessageFormat.format("2019-{0,number,00}-{0,number,00} 00:00:00.00000", i)));
 						masterBEnt.setDatetimeA(df.parse(MessageFormat.format("2019-01-01 01:{0,number,00}:{0,number,00}", i) + ".00000"));
 						masterBEnt.setBlobA(MessageFormat.format("MasterBEnt_REG{0,number,00}_BlobA", i).getBytes(StandardCharsets.UTF_8));
-						masterBEnt.setBlobB(((IPlayerManagerImplementor) PlayerManagerTest.this.manager).getObjPersistenceSupport().getConnection().createBlob());
+						masterBEnt.setBlobB(PlayerManagerTest.this.hibernateJpaCompat.getConnection(ss, null).createBlob());
 						masterBEnt.setDetailAEntCol(new LinkedHashSet<>());
 						OutputStream os = masterBEnt.getBlobB().setBinaryStream(1);
 						os.write(MessageFormat.format("MasterBEnt_REG{0,number,00}_BlobB", i).getBytes(StandardCharsets.UTF_8));
@@ -326,7 +329,7 @@ public class PlayerManagerTest {
 						component.setVcharA(MessageFormat.format("DetailAEnt_REG{0,number,00}_REG01_VcharA", i));
 						component.setVcharB(MessageFormat.format("DetailAEnt_REG{0,number,00}_REG01_VcharB", i));
 						component.setBlobA(MessageFormat.format("DetailAEnt_REG{0,number,00}_BlobA", i).getBytes(StandardCharsets.UTF_8));
-						component.setBlobB(((IPlayerManagerImplementor) PlayerManagerTest.this.manager).getObjPersistenceSupport().getConnection().createBlob());
+						component.setBlobB(PlayerManagerTest.this.hibernateJpaCompat.getConnection(ss, null).createBlob());
 						component.setMasterB(detailAComponentMasterBEntArr[detailAComponentMasterBEntIndex]);
 						detailAEnt.setDetailAComp(component);
 						detailAComponentMasterBEntArr[detailAComponentMasterBEntIndex].getDetailAEntCol().add(detailAEnt);
@@ -387,21 +390,21 @@ public class PlayerManagerTest {
 //							System.out.println("####: " + masterAEnt.getDatetimeA().getTime());
 							masterAEnt.setBlobA(MessageFormat.format("MasterAEnt_REG{0,number,00}_BlobA", i).getBytes(StandardCharsets.UTF_8));
 							masterAEnt.setDetailAEntCol(new LinkedHashSet<>());
-							masterAEnt.setBlobB(((IPlayerManagerImplementor) PlayerManagerTest.this.manager).getObjPersistenceSupport().getConnection().createBlob());
+							masterAEnt.setBlobB(PlayerManagerTest.this.hibernateJpaCompat.getConnection(ss, null).createBlob());
 							OutputStream os = masterAEnt.getBlobB().setBinaryStream(1);
 							os.write(MessageFormat.format("MasterAEnt_REG{0,number,00}_BlobB", i + iBigLoopIncremment).getBytes(StandardCharsets.UTF_8));
 							os.flush();
 							os.close();
 							
 							masterAEnt.setBlobLazyA(MessageFormat.format("MasterAEnt_REG{0,number,00}_BlobLazyA", i + iBigLoopIncremment).getBytes(StandardCharsets.UTF_8));
-							masterAEnt.setBlobLazyB(((IPlayerManagerImplementor) PlayerManagerTest.this.manager).getObjPersistenceSupport().getConnection().createBlob());
+							masterAEnt.setBlobLazyB(PlayerManagerTest.this.hibernateJpaCompat.getConnection(ss, null).createBlob());
 							os = masterAEnt.getBlobLazyB().setBinaryStream(1);
 							os.write(MessageFormat.format("MasterAEnt_REG{0,number,00}_BlobLazyB", i + iBigLoopIncremment).getBytes(StandardCharsets.UTF_8));
 							os.flush();
 							os.close();
 							
 							masterAEnt.setClobLazyA(MessageFormat.format("MasterAEnt_REG{0,number,00}_ClobLazyB", i + iBigLoopIncremment));
-							masterAEnt.setClobLazyB(((IPlayerManagerImplementor) PlayerManagerTest.this.manager).getObjPersistenceSupport().getConnection().createClob());
+							masterAEnt.setClobLazyB(PlayerManagerTest.this.hibernateJpaCompat.getConnection(ss, null).createClob());
 							Writer w = masterAEnt.getClobLazyB().setCharacterStream(1);
 							w.write(MessageFormat.format("MasterAEnt_REG{0,number,00}_ClobLazyB", i));
 							w.flush();
@@ -425,7 +428,7 @@ public class PlayerManagerTest {
 							masterBEnt.setDateA(df.parse(MessageFormat.format("2019-{0,number,00}-{0,number,00} 00:00:00.00000", i)));
 							masterBEnt.setDatetimeA(df.parse(MessageFormat.format("2019-01-01 01:{0,number,00}:{0,number,00}", i) + ".00000"));
 							masterBEnt.setBlobA(MessageFormat.format("MasterBEnt_REG{0,number,00}_BlobA", i + iBigLoopIncremment).getBytes(StandardCharsets.UTF_8));
-							masterBEnt.setBlobB(((IPlayerManagerImplementor) PlayerManagerTest.this.manager).getObjPersistenceSupport().getConnection().createBlob());
+							masterBEnt.setBlobB(PlayerManagerTest.this.hibernateJpaCompat.getConnection(ss, null).createBlob());
 							masterBEnt.setDetailAEntCol(new LinkedHashSet<>());
 							OutputStream os = masterBEnt.getBlobB().setBinaryStream(1);
 							os.write(MessageFormat.format("MasterBEnt_REG{0,number,00}_BlobB", i + iBigLoopIncremment).getBytes(StandardCharsets.UTF_8));
@@ -450,7 +453,7 @@ public class PlayerManagerTest {
 							component.setVcharA(MessageFormat.format("DetailAEnt_REG{0,number,00}_REG01_VcharA", i + iBigLoopIncremment));
 							component.setVcharB(MessageFormat.format("DetailAEnt_REG{0,number,00}_REG01_VcharB", i + iBigLoopIncremment));
 							component.setBlobA(MessageFormat.format("DetailAEnt_REG{0,number,00}_BlobA", i + iBigLoopIncremment).getBytes(StandardCharsets.UTF_8));
-							component.setBlobB(((IPlayerManagerImplementor) PlayerManagerTest.this.manager).getObjPersistenceSupport().getConnection().createBlob());
+							component.setBlobB(PlayerManagerTest.this.hibernateJpaCompat.getConnection(ss, null).createBlob());
 							component.setMasterB(detailAComponentMasterBEntArr[detailAComponentMasterBEntIndex]);
 							detailAEnt.setDetailAComp(component);
 							detailAComponentMasterBEntArr[detailAComponentMasterBEntIndex].getDetailAEntCol().add(detailAEnt);
@@ -513,11 +516,11 @@ public class PlayerManagerTest {
 //    @Autowired(required=false)
 //    @Qualifier("&localSessionFactoryBean5")
 //    private org.springframework.orm.hibernate5.LocalSessionFactoryBean localSessionFactoryBean5;
-    private Object getLocalSessionFactoryBean5Or6() {
+    private Object getLocalSessionFactoryBean5OrJpa() {
     	if (this.applicationContext.containsBean("&localSessionFactoryBean5")) {
     		return this.applicationContext.getBean("&localSessionFactoryBean5");    		
-    	} else if (this.applicationContext.containsBean("&localSessionFactoryBean6")) {
-    		return this.applicationContext.getBean("&localSessionFactoryBean6");    		
+    	} else if (this.applicationContext.containsBean("&localSessionFactoryBeanJpa")) {
+    		return this.applicationContext.getBean("&localSessionFactoryBeanJpa");    		
     	} else {
     		return null;
     	}
@@ -717,7 +720,7 @@ public class PlayerManagerTest {
 			String generatedFileResult = "target/"+PlayerManagerTest.class.getName()+".masterAList1000Test_result_generated.json";
 			TransactionTemplate transactionTemplate = new TransactionTemplate(this.transactionManager);
 			PlayerManagerTest.this.manager.startJsonWriteIntersept();
-			ObjPersistenceSupport hbSupport = ((IPlayerManagerImplementor)this.manager).getObjPersistenceSupport();
+			ObjPersistenceSupport objPersistenceSupport = ((IPlayerManagerImplementor)this.manager).getObjPersistenceSupport();
 			transactionTemplate.execute(new TransactionCallback<Object>() {
 				
 				@Override
@@ -730,7 +733,7 @@ public class PlayerManagerTest {
 					sqlLogInspetor.enable();
 					
 					@SuppressWarnings("unchecked")
-					List<MasterAEnt> masterAEntList = hbSupport.createCriteria(ss, MasterAEnt.class)
+					List<MasterAEnt> masterAEntList = PlayerManagerTest.this.hibernateJpaCompat.createCriteria(ss, MasterAEnt.class)
 						.addOrder(OrderCompat.asc("id")).list();
 					
 					PlayerManagerTest.this.manager
@@ -885,12 +888,11 @@ public class PlayerManagerTest {
 		Session ss = this.sessionFactory.openSession();
 		String generatedFileResult = "target/"+PlayerManagerTest.class.getName()+".masterBList10Test_result_generated.json";
 		TransactionTemplate transactionTemplate = new TransactionTemplate(this.transactionManager);
-		PlayerManagerTest.this.manager.startJsonWriteIntersept();
-		ObjPersistenceSupport hbSupport = ((IPlayerManagerImplementor)this.manager).getObjPersistenceSupport();
 		transactionTemplate.execute(new TransactionCallback<Object>() {
 
 			@Override
 			public Object doInTransaction(TransactionStatus arg0) {
+				PlayerManagerTest.this.manager.startJsonWriteIntersept();
 				//SchemaExport
 				
 				//Configuration hbConfiguration = PlayerManagerTest.this.localSessionFactoryBean.getConfiguration();
@@ -900,7 +902,7 @@ public class PlayerManagerTest {
 				
 				@SuppressWarnings("unchecked")
 				List<MasterBEnt> masterBEntList = 
-						hbSupport.createCriteria(ss, MasterBEnt.class)
+						PlayerManagerTest.this.hibernateJpaCompat.createCriteria(ss, MasterBEnt.class)
 							.addOrder(OrderCompat.asc("compId.idA"))
 							.addOrder(OrderCompat.asc("compId.idB")).list();
 				
@@ -974,7 +976,7 @@ public class PlayerManagerTest {
 		String generatedFileResult = "target/"+PlayerManagerTest.class.getName()+".detailACompIdList10Test_result_generated.json";
 		TransactionTemplate transactionTemplate = new TransactionTemplate(this.transactionManager);
 		PlayerManagerTest.this.manager.startJsonWriteIntersept();
-		ObjPersistenceSupport hbSupport = ((IPlayerManagerImplementor)this.manager).getObjPersistenceSupport();
+		ObjPersistenceSupport objPersistenceSupport = ((IPlayerManagerImplementor)this.manager).getObjPersistenceSupport();
 		
 		transactionTemplate.execute(new TransactionCallback<Object>() {
 
@@ -989,7 +991,7 @@ public class PlayerManagerTest {
 				
 				@SuppressWarnings("unchecked")
 				List<DetailAEnt> detailAEntList = 
-						hbSupport.createCriteria(ss, DetailAEnt.class)
+						PlayerManagerTest.this.hibernateJpaCompat.createCriteria(ss, DetailAEnt.class)
 							.addOrder(OrderCompat.asc("compId.masterA.id"))
 							.addOrder(OrderCompat.asc("compId.subId")).list();
 				
@@ -1069,7 +1071,7 @@ public class PlayerManagerTest {
 		String generatedFileResult = "target/"+PlayerManagerTest.class.getName()+".detailACompIdListDummyOwner10Test_result_generated.json";
 		TransactionTemplate transactionTemplate = new TransactionTemplate(this.transactionManager);
 		PlayerManagerTest.this.manager.startJsonWriteIntersept();
-		ObjPersistenceSupport hbSupport = ((IPlayerManagerImplementor)this.manager).getObjPersistenceSupport();
+		ObjPersistenceSupport objPersistenceSupport = ((IPlayerManagerImplementor)this.manager).getObjPersistenceSupport();
 		transactionTemplate.execute(new TransactionCallback<Object>() {
 
 			@Override
@@ -1083,7 +1085,7 @@ public class PlayerManagerTest {
 				
 				@SuppressWarnings("unchecked")
 				List<DetailAEnt> detailAEntList = 
-						hbSupport.createCriteria(ss, DetailAEnt.class)
+						PlayerManagerTest.this.hibernateJpaCompat.createCriteria(ss, DetailAEnt.class)
 							.addOrder(OrderCompat.asc("compId.masterA.id"))
 							.addOrder(OrderCompat.asc("compId.subId")).list();
 				
@@ -1164,7 +1166,7 @@ public class PlayerManagerTest {
 		String generatedFileResult = "target/"+PlayerManagerTest.class.getName()+".detailACompCompListDummyOwner10Test_result_generated.json";
 		TransactionTemplate transactionTemplate = new TransactionTemplate(this.transactionManager);
 		PlayerManagerTest.this.manager.startJsonWriteIntersept();
-		ObjPersistenceSupport hbSupport = ((IPlayerManagerImplementor)this.manager).getObjPersistenceSupport();
+		ObjPersistenceSupport objPersistenceSupport = ((IPlayerManagerImplementor)this.manager).getObjPersistenceSupport();
 		transactionTemplate.execute(new TransactionCallback<Object>() {
 
 			@Override
@@ -1178,7 +1180,7 @@ public class PlayerManagerTest {
 				
 				@SuppressWarnings("unchecked")
 				List<DetailAEnt> detailAEntList = 
-						hbSupport.createCriteria(ss, DetailAEnt.class)
+						PlayerManagerTest.this.hibernateJpaCompat.createCriteria(ss, DetailAEnt.class)
 							.addOrder(OrderCompat.asc("compId.masterA.id"))
 							.addOrder(OrderCompat.asc("compId.subId")).list();
 				
@@ -1262,7 +1264,7 @@ public class PlayerManagerTest {
 		String generatedFileResult = "target/"+PlayerManagerTest.class.getName()+".detailACompCompList10Test_result_generated.json";
 		TransactionTemplate transactionTemplate = new TransactionTemplate(this.transactionManager);
 		PlayerManagerTest.this.manager.startJsonWriteIntersept();
-		ObjPersistenceSupport hbSupport = ((IPlayerManagerImplementor)this.manager).getObjPersistenceSupport();
+		ObjPersistenceSupport objPersistenceSupport = ((IPlayerManagerImplementor)this.manager).getObjPersistenceSupport();
 		transactionTemplate.execute(new TransactionCallback<Object>() {
 
 			@Override
@@ -1276,7 +1278,7 @@ public class PlayerManagerTest {
 				
 				@SuppressWarnings("unchecked")
 				List<DetailAEnt> detailAEntList = 
-						hbSupport.createCriteria(ss, DetailAEnt.class)
+						PlayerManagerTest.this.hibernateJpaCompat.createCriteria(ss, DetailAEnt.class)
 							.addOrder(OrderCompat.asc("compId.masterA.id"))
 							.addOrder(OrderCompat.asc("compId.subId")).list();
 				
@@ -1358,7 +1360,7 @@ public class PlayerManagerTest {
 		String generatedFileResult = "target/"+PlayerManagerTest.class.getName()+".masterBList10BizarreTest_result_generated.json";
 		TransactionTemplate transactionTemplate = new TransactionTemplate(this.transactionManager);
 		PlayerManagerTest.this.manager.startJsonWriteIntersept();
-		ObjPersistenceSupport hbSupport = ((IPlayerManagerImplementor)this.manager).getObjPersistenceSupport();
+		ObjPersistenceSupport objPersistenceSupport = ((IPlayerManagerImplementor)this.manager).getObjPersistenceSupport();
 		transactionTemplate.execute(new TransactionCallback<Object>() {
 
 			@Override
@@ -1372,7 +1374,7 @@ public class PlayerManagerTest {
 				
 				@SuppressWarnings("unchecked")
 				List<MasterBEnt> masterBEntList = 
-						hbSupport.createCriteria(ss, MasterBEnt.class)
+						PlayerManagerTest.this.hibernateJpaCompat.createCriteria(ss, MasterBEnt.class)
 							.addOrder(OrderCompat.asc("compId.idA"))
 							.addOrder(OrderCompat.asc("compId.idB")).list();
 				List<Map<String, Map<String, MasterBEnt>>> masterBEntBizarreList = new ArrayList<>();
@@ -1487,7 +1489,7 @@ public class PlayerManagerTest {
 							byteBuffer.put(byteArr);
 						} while (byteBuffer.remaining() > byteArr.length);
 						byteBuffer.flip();
-						masterAEnt.setBlobLazyB(((IPlayerManagerImplementor) PlayerManagerTest.this.manager).getObjPersistenceSupport().getConnection().createBlob());
+						masterAEnt.setBlobLazyB(PlayerManagerTest.this.hibernateJpaCompat.getConnection(ss, null).createBlob());
 						OutputStream os = masterAEnt.getBlobLazyB().setBinaryStream(1);
 						os.write(byteBuffer.array(), 0, byteBuffer.limit());
 						os.flush();
@@ -1508,7 +1510,7 @@ public class PlayerManagerTest {
 							cBuffer.put(charArr);
 						} while (cBuffer.remaining() > charArr.length);
 						cBuffer.flip();
-						masterAEnt.setClobLazyB(((IPlayerManagerImplementor) PlayerManagerTest.this.manager).getObjPersistenceSupport().getConnection().createClob());
+						masterAEnt.setClobLazyB(PlayerManagerTest.this.hibernateJpaCompat.getConnection(ss, null).createClob());
 						Writer w = masterAEnt.getClobLazyB().setCharacterStream(1);
 						w.write(cBuffer.toString());
 						w.flush();
@@ -1715,7 +1717,7 @@ public class PlayerManagerTest {
 			
 		TransactionTemplate transactionTemplate = new TransactionTemplate(this.transactionManager);
 		PlayerManagerTest.this.manager.startJsonWriteIntersept();
-		ObjPersistenceSupport hbSupport = ((IPlayerManagerImplementor)this.manager).getObjPersistenceSupport();
+		ObjPersistenceSupport objPersistenceSupport = ((IPlayerManagerImplementor)this.manager).getObjPersistenceSupport();
 		transactionTemplate.execute(new TransactionCallback<Object>() {
 
 			@Override
@@ -1729,7 +1731,7 @@ public class PlayerManagerTest {
 				
 				@SuppressWarnings("unchecked")
 				List<MasterAEnt> masterAEntList = 
-						hbSupport.createCriteria(ss, MasterAEnt.class)
+						PlayerManagerTest.this.hibernateJpaCompat.createCriteria(ss, MasterAEnt.class)
 							.addOrder(OrderCompat.asc("id")).list();
 				List<MasterAWrapper> masterAWrapperList = new ArrayList<>();
 				for (MasterAEnt masterAEnt : masterAEntList) {

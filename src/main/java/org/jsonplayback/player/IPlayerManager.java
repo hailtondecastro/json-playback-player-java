@@ -2,8 +2,7 @@ package org.jsonplayback.player;
 
 import java.util.function.Function;
 
-import org.jsonplayback.player.hibernate.HibernateVersion;
-import org.jsonplayback.player.hibernate.PlayerManagerDefault;
+import org.jsonplayback.player.implementation.PlayerManagerDefault;
 
 public interface IPlayerManager {
 	String serializeSignature(SignatureBean signatureBean);
@@ -79,6 +78,6 @@ public interface IPlayerManager {
 	
 	<O> IPlayerManager registerComponentOwner(O owner, Function<O, ?> propertyFunc);
 	<O, T> IPlayerManager registerComponentOwner(Class<O> ownerClass, T targetOwned, Function<O, T> propertyFunc);
-	HibernateVersion getHibernateVersion();
+	ObjPersistenceMode getHibernateVersion();
 }
 /*gerando conflito*/

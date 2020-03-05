@@ -1,4 +1,4 @@
-package org.jsonplayback.player.hibernate;
+package org.jsonplayback.player.implementation;
 
 import java.beans.PropertyDescriptor;
 import java.io.IOException;
@@ -157,7 +157,7 @@ public class ReplayableDefault implements IReplayable {
 	}
 	
 	private void preProcessPlayBack(Tape tape, HashMap<Long, Object> creationRefMap) {
-		Session ss = this.manager.getConfig().getSessionFactory().getCurrentSession();
+		//Session ss = this.getSessionFactory().getCurrentSession();
 		ObjectMapper objectMapper = this.manager.getConfig().getObjectMapper();
 		Collection collection = null;
 		if (logger.isTraceEnabled()) {
@@ -236,7 +236,7 @@ public class ReplayableDefault implements IReplayable {
 		
 		List<IChangeActionListener> actionListenersList = null;
 		HashMap<Long, Object> creationRefMap = new HashMap<>();
-		Session ss = this.manager.getConfig().getSessionFactory().getCurrentSession();
+		//Session ss = this.getSessionFactory().getCurrentSession();
 		ObjectMapper objectMapper = this.manager.getConfig().getObjectMapper();
 		
 		this.preProcessPlayBack(this.tape, creationRefMap);
@@ -317,10 +317,10 @@ public class ReplayableDefault implements IReplayable {
 				//nada: feito no preprocessamento		
 				break;
 			case SAVE:
-				ss.save(resolvedOwnerValue);
+				this.manager.getConfig().getObjPersistenceSupport().persistencePersist(resolvedOwnerValue);
 				break;
 			case DELETE:
-				ss.delete(resolvedOwnerValue);
+				this.manager.getConfig().getObjPersistenceSupport().persistenceRemove(resolvedOwnerValue);
 				break;
 			case COLLECTION_ADD:
 				collection = (Collection) resolvedCollection;

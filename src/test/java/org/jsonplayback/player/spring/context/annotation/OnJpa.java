@@ -12,11 +12,11 @@ import org.springframework.core.type.AnnotatedTypeMetadata;
  * @author Hailton de Castro
  *
  */
-public class OnHibernate4 implements Condition {
-	public final static OnHibernate4 INSTANCE = new OnHibernate4();
+public class OnJpa implements Condition {
+	public final static OnJpa INSTANCE = new OnJpa();
 
 	@Override
 	public boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata) {
-		return PlayerManagerDefault.getObjPersistenceModeStatic() == ObjPersistenceMode.HB4;
+		return PlayerManagerDefault.getObjPersistenceModeStatic() == ObjPersistenceMode.JPA;
 	}
 }

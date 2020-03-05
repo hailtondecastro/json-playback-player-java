@@ -1,4 +1,4 @@
-package org.jsonplayback.player.hibernate;
+package org.jsonplayback.player.implementation;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -43,6 +43,7 @@ import org.jsonplayback.player.IPlayerManager;
 import org.jsonplayback.player.IReplayable;
 import org.jsonplayback.player.IdentityRefKey;
 import org.jsonplayback.player.LazyProperty;
+import org.jsonplayback.player.ObjPersistenceMode;
 import org.jsonplayback.player.ObjPersistenceSupport;
 import org.jsonplayback.player.PlayerMetadatas;
 import org.jsonplayback.player.PlayerSnapshot;
@@ -62,7 +63,7 @@ import com.fasterxml.jackson.databind.ser.BeanSerializer;
 import com.fasterxml.jackson.databind.ser.PropertyWriter;
 
 public class PlayerManagerDefault implements IPlayerManagerImplementor {
-	private static final String HBVERSION = "jsonplayback.hbversion"; 
+	private static final String OBJ_PERSISTENCE_MODE = "jsonplayback.objPersistenceMode"; 
 	private static Logger logger = LoggerFactory.getLogger(PlayerManagerDefault.class);
 	private static Properties envPrps = new Properties(); 
 	
@@ -104,14 +105,16 @@ public class PlayerManagerDefault implements IPlayerManagerImplementor {
 			logger.debug(MessageFormat.format("configure.  config:\n{0}", config));
 		}
 		this.config = config;
-		this.hibernateVersion = getHibernateVersionStatic();
+		this.hibernateVersion = getObjPersistenceModeStatic();
 		
-		if (this.hibernateVersion.equals(HibernateVersion.HB3)) {
-			this.hbSupport = new Hb3Support(this);
-		} else if (this.hibernateVersion.equals(HibernateVersion.HB4)) {
-			this.hbSupport = new Hb4Support(this);
-		} else if (this.hibernateVersion.equals(HibernateVersion.HB5)) {
-			this.hbSupport = new Hb5Support(this);
+		if (this.hibernateVersion.equals(ObjPersistenceMode.HB3)) {
+			this.objPersistenceSupport = config.getObjPersistenceSupport();
+		} else if (this.hibernateVersion.equals(ObjPersistenceMode.HB4)) {
+			this.objPersistenceSupport = config.getObjPersistenceSupport();
+		} else if (this.hibernateVersion.equals(ObjPersistenceMode.HB5)) {
+			this.objPersistenceSupport = config.getObjPersistenceSupport();
+		} else if (this.hibernateVersion.equals(ObjPersistenceMode.JPA)) {
+			this.objPersistenceSupport = config.getObjPersistenceSupport();
 		} else {
 			throw new RuntimeException(
 				"hibernate version not supported: " +
@@ -139,22 +142,24 @@ public class PlayerManagerDefault implements IPlayerManagerImplementor {
 
 		ArrayList<String> rawValueList = new ArrayList();
 		ArrayList<String> rawTypeList = new ArrayList();
-		for (Object item : signatureBean.getRawKeyValues()) {
-			if (item != null) {
-				rawValueList.add(item.toString());
-				rawTypeList.add(item.getClass().getName());
-			} else {
-				rawValueList.add(null);
-				rawTypeList.add(null);
-			}
-		}
+//		for (Object item : signatureBean.getRawKeyValues()) {
+//			if (item != null) {
+//				rawValueList.add(item.toString());
+//				rawTypeList.add(item.getClass().getName());
+//			} else {
+//				rawValueList.add(null);
+//				rawTypeList.add(null);
+//			}
+//		}
+		
 
 		signatureBeanJson.setClazzName(signatureBean.getClazz().getName());
 		signatureBeanJson.setPropertyName(signatureBean.getPropertyName());
-		signatureBeanJson.setRawKeyValues(new String[rawValueList.size()]);
-		signatureBeanJson.setRawKeyTypeNames(new String[rawValueList.size()]);
-		signatureBeanJson.setRawKeyValues(rawValueList.toArray(signatureBeanJson.getRawKeyValues()));
-		signatureBeanJson.setRawKeyTypeNames(rawTypeList.toArray(signatureBeanJson.getRawKeyTypeNames()));
+//		signatureBeanJson.setRawKeyValues(new String[rawValueList.size()]);
+//		signatureBeanJson.setRawKeyTypeNames(new String[rawValueList.size()]);
+//		signatureBeanJson.setRawKeyValues(rawValueList.toArray(signatureBeanJson.getRawKeyValues()));
+//		signatureBeanJson.setRawKeyTypeNames(rawTypeList.toArray(signatureBeanJson.getRawKeyTypeNames()));
+		signatureBeanJson.setStringifiedObjectId(signatureBean.getStringifiedObjectId());
 		signatureBeanJson.setIsColl(signatureBean.getIsColl());
 		signatureBeanJson.setIsComp(signatureBean.getIsComp());
 
@@ -224,44 +229,45 @@ public class PlayerManagerDefault implements IPlayerManagerImplementor {
 		}
 		SignatureBean signatureBean = new SignatureBean();
 		
-		ArrayList<Object> rawObjValueList = new ArrayList();
-		for (int i = 0; i < signatureBeanJson.getRawKeyTypeNames().length; i++) {
-			Class<?> itemType;
-			try {
-				itemType = Class.forName(signatureBeanJson.getRawKeyTypeNames()[i]);
-			} catch (ClassNotFoundException e) {
-				throw new RuntimeException("This should not happen", e);
-			}
-			String itemValueStr = signatureBeanJson.getRawKeyValues()[i]; 
-			Method valueOfMethod;
-			try {
-				if (itemType == String.class) {
-					valueOfMethod = null;
-				} else {
-					valueOfMethod = itemType.getMethod("valueOf", String.class);					
-				}
-			} catch (NoSuchMethodException e) {
-				throw new RuntimeException("This should not happen", e);
-			} catch (SecurityException e) {
-				throw new RuntimeException("This should not happen", e);
-			}
-			Object itemValue;
-			try {
-				if (valueOfMethod == null) {
-					itemValue = itemValueStr;
-				} else {
-					itemValue = valueOfMethod.invoke(null, itemValueStr);					
-				}
-			} catch (IllegalAccessException e) {
-				throw new RuntimeException("This should not happen", e);
-			} catch (IllegalArgumentException e) {
-				throw new RuntimeException("This should not happen", e);
-			} catch (InvocationTargetException e) {
-				throw new RuntimeException("This should not happen", e);
-			}
-			rawObjValueList.add(itemValue);
-		}
-		signatureBean.setRawKeyValues(rawObjValueList.toArray());
+//		ArrayList<Object> rawObjValueList = new ArrayList();
+//		for (int i = 0; i < signatureBeanJson.getRawKeyTypeNames().length; i++) {
+//			Class<?> itemType;
+//			try {
+//				itemType = Class.forName(signatureBeanJson.getRawKeyTypeNames()[i]);
+//			} catch (ClassNotFoundException e) {
+//				throw new RuntimeException("This should not happen", e);
+//			}
+//			String itemValueStr = signatureBeanJson.getRawKeyValues()[i]; 
+//			Method valueOfMethod;
+//			try {
+//				if (itemType == String.class) {
+//					valueOfMethod = null;
+//				} else {
+//					valueOfMethod = itemType.getMethod("valueOf", String.class);					
+//				}
+//			} catch (NoSuchMethodException e) {
+//				throw new RuntimeException("This should not happen", e);
+//			} catch (SecurityException e) {
+//				throw new RuntimeException("This should not happen", e);
+//			}
+//			Object itemValue;
+//			try {
+//				if (valueOfMethod == null) {
+//					itemValue = itemValueStr;
+//				} else {
+//					itemValue = valueOfMethod.invoke(null, itemValueStr);					
+//				}
+//			} catch (IllegalAccessException e) {
+//				throw new RuntimeException("This should not happen", e);
+//			} catch (IllegalArgumentException e) {
+//				throw new RuntimeException("This should not happen", e);
+//			} catch (InvocationTargetException e) {
+//				throw new RuntimeException("This should not happen", e);
+//			}
+//			rawObjValueList.add(itemValue);
+//		}
+//		signatureBean.setRawKeyValues(rawObjValueList.toArray());
+		signatureBean.setStringifiedObjectId(signatureBeanJson.getStringifiedObjectId());
 		try {
 			signatureBean.setClazz(Class.forName(signatureBeanJson.getClazzName()));
 		} catch (ClassNotFoundException e) {
@@ -359,16 +365,17 @@ public class PlayerManagerDefault implements IPlayerManagerImplementor {
 	}
 
 	@Override
-	public SignatureBean generateLazySignature(HibernateProxy hibernateProxy) {
-		Class entityClass = hibernateProxy.getClass().getSuperclass();
+	public SignatureBean generateLazySignature(Object notLoadObject) {
+		Class entityClass = notLoadObject.getClass().getSuperclass();
 		SignatureBean signatureBean = new SignatureBean();
 		signatureBean.setClazz(entityClass);
 		signatureBean.setEntityName(entityClass.getName());
 		signatureBean.setPropertyName(null);
 
-		Object[] rawKeyValuesFromHbProxy = this.getObjPersistenceSupport().getRawKeyValuesFromHbProxy(hibernateProxy);
+		//Object[] rawKeyValuesFromHbProxy = this.getObjPersistenceSupport().getRawKeyValuesFromHbProxy(hibernateProxy);
+		String stringfyObjectId = this.getObjPersistenceSupport().stringfyObjectId(this, notLoadObject);
 
-		signatureBean.setRawKeyValues(rawKeyValuesFromHbProxy);
+		signatureBean.setStringifiedObjectId(stringfyObjectId);
 		
 		if (logger.isTraceEnabled()) {
 			logger.trace(MessageFormat.format("generateLazySignature(). signatureBean:\nsignatureBean:\n{0}",
@@ -388,19 +395,20 @@ public class PlayerManagerDefault implements IPlayerManagerImplementor {
 	}
 	
 	@Override
-	public SignatureBean generateSignature(Object nonHibernateProxy) {
-		if (nonHibernateProxy instanceof HibernateProxy) {
-			throw new RuntimeException("nonHibernateProxy instanceof HibernateProxy: " + nonHibernateProxy);
+	public SignatureBean generateSignature(Object alreadyLoadObject) {
+		if (alreadyLoadObject instanceof HibernateProxy) {
+			throw new RuntimeException("nonHibernateProxy instanceof HibernateProxy: " + alreadyLoadObject);
 		}
-		Class entityClass = nonHibernateProxy.getClass();
+		Class entityClass = alreadyLoadObject.getClass();
 		SignatureBean signatureBean = new SignatureBean();
 		signatureBean.setClazz(entityClass);
 		signatureBean.setEntityName(entityClass.getName());
 		signatureBean.setPropertyName(null);
 		
-		Object[] rawKeyValuesFromHbProxy = this.getObjPersistenceSupport().getRawKeyValuesFromNonHbProxy(nonHibernateProxy);
+		//Object[] rawKeyValuesFromHbProxy = this.getObjPersistenceSupport().getRawKeyValuesFromNonHbProxy(alreadyLoadObject);
+		String stringfyObjectId = this.getObjPersistenceSupport().stringfyObjectId(this, alreadyLoadObject);
 		
-		signatureBean.setRawKeyValues(rawKeyValuesFromHbProxy);
+		signatureBean.setStringifiedObjectId(stringfyObjectId);
 		
 		if (logger.isTraceEnabled()) {
 			logger.trace(MessageFormat.format("generateSignature(Object nonHibernateProxy). signatureBean:\n{0}",
@@ -415,7 +423,8 @@ public class PlayerManagerDefault implements IPlayerManagerImplementor {
 		if (logger.isTraceEnabled()) {
 			logger.trace(MessageFormat.format("getBySignature(). Begin. \nsignatureBean:\n{0}", signature));
 		}
-		Object idValue = this.getObjPersistenceSupport().getIdValue(signature.getClazz(), signature.getRawKeyValues());
+		//Object idValue = this.getObjPersistenceSupport().getIdValue(signature.getClazz(), signature.getRawKeyValues());
+		Object idValue = this.getObjPersistenceSupport().parseObjectid(this, signature.getClazz(), signature.getStringifiedObjectId());
 		Object owner = this.getObjPersistenceSupport().getById(signature.getClazz(), idValue);
 		Object result = owner;
 
@@ -915,17 +924,17 @@ public class PlayerManagerDefault implements IPlayerManagerImplementor {
 		Collections.reverse(resultList);
 		return resultList;
 	}	
-	private ObjPersistenceSupport hbSupport;
+	private ObjPersistenceSupport objPersistenceSupport;
 	public ObjPersistenceSupport getObjPersistenceSupport() {
-		return this.hbSupport;
+		return this.objPersistenceSupport;
 	}
 	
-	private HibernateVersion hibernateVersion;
-	public HibernateVersion getHibernateVersion() {
+	private ObjPersistenceMode hibernateVersion;
+	public ObjPersistenceMode getHibernateVersion() {
 		return this.hibernateVersion;
 	}
 	
-	public static HibernateVersion getHibernateVersionStatic() {
-		return HibernateVersion.valueOf(envPrps.getProperty(HBVERSION));
+	public static ObjPersistenceMode getObjPersistenceModeStatic() {
+		return ObjPersistenceMode.valueOf(envPrps.getProperty(OBJ_PERSISTENCE_MODE));
 	}
 }

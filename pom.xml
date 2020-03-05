@@ -349,6 +349,36 @@
 				</dependency>
 			</dependencies>
 		</profile>
+		<profile>
+			<id>jpa</id>
+			<properties>
+				<jsonplayback.classifier>jpa</jsonplayback.classifier>
+				<jsonplayback.springboot.version>2.1.8.RELEASE</jsonplayback.springboot.version>
+				<jsonplayback.spring.version>5.1.9.RELEASE</jsonplayback.spring.version>
+			</properties>
+			<dependencies>
+				<dependency>
+					<groupId>org.hibernate</groupId>
+					<artifactId>hibernate-core</artifactId>
+					<version>${jsonplayback.hbversion5}</version>
+				</dependency>
+			</dependencies>			
+		</profile>
+		<profile>
+			<id>customized</id>
+			<properties>
+				<jsonplayback.classifier>customized</jsonplayback.classifier>
+				<jsonplayback.springboot.version>2.1.8.RELEASE</jsonplayback.springboot.version>
+				<jsonplayback.spring.version>5.1.9.RELEASE</jsonplayback.spring.version>
+			</properties>
+			<dependencies>
+				<dependency>
+					<groupId>org.hibernate</groupId>
+					<artifactId>hibernate-core</artifactId>
+					<version>${jsonplayback.hbversion5}</version>
+				</dependency>
+			</dependencies>			
+		</profile>
 		<!-- 
 		<profile>
 			<id>hb6</id>

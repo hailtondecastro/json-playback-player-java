@@ -2,7 +2,6 @@ package org.jsonplayback.hbsupport;
 
 import java.beans.PropertyDescriptor;
 import java.io.Serializable;
-import java.sql.Connection;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -13,7 +12,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.Stack;
-import java.util.concurrent.atomic.AtomicReference;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceUnitUtil;
@@ -28,31 +26,26 @@ import javax.persistence.metamodel.Type;
 import javax.persistence.metamodel.Type.PersistenceType;
 
 import org.apache.commons.beanutils.PropertyUtils;
-import org.hibernate.Session;
-import org.hibernate.metadata.ClassMetadata;
-import org.hibernate.type.BagType;
 import org.hibernate.type.CompositeType;
-import org.hibernate.type.ListType;
-import org.hibernate.type.MapType;
-import org.hibernate.type.SetType;
 import org.jsonplayback.player.IPlayerManager;
-import org.jsonplayback.player.hibernate.AssociationAndComponentPath;
-import org.jsonplayback.player.hibernate.AssociationAndComponentPathKey;
-import org.jsonplayback.player.hibernate.AssociationAndComponentTrackInfo;
-import org.jsonplayback.player.util.ReflectionUtil;
+import org.jsonplayback.player.ObjPersistenceSupport;
+import org.jsonplayback.player.implementation.AssociationAndComponentPath;
+import org.jsonplayback.player.implementation.AssociationAndComponentPathKey;
+import org.jsonplayback.player.implementation.AssociationAndComponentTrackInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class Hb6Support implements HbObjPersistenceSupport {
-	private static Logger logger = LoggerFactory.getLogger(Hb6Support.class);
+public abstract class JpaSupport implements ObjPersistenceSupport {
+	private static Logger logger = LoggerFactory.getLogger(JpaSupport.class);
 
 	protected IPlayerManager manager;
-	private Map<AssociationAndComponentPathKey, AssociationAndComponentPathHb6Support> associationAndCompositiesMap = new HashMap<>();
+	private Map<AssociationAndComponentPathKey, AssociationAndComponentPathJpaSupport> associationAndCompositiesMap = new HashMap<>();
 	protected Map<String, EntityType<?>> persistentClasses = new HashMap<>();
 	private Set<Class<?>> compositiesSet = new HashSet<>();
 
-	public Hb6Support(IPlayerManager manager) {
-		this.manager = manager;
+	public abstract EntityManager getCurrentEntityManager();
+	
+	public JpaSupport() {
 	}
 
 	@Override
@@ -63,35 +56,18 @@ public class Hb6Support implements HbObjPersistenceSupport {
 
 	@Override
 	public boolean isCollectionLazyUnitialized(Object coll, Object rootOwner, String pathFromOwner) {
-	    PersistenceUnitUtil unitUtil = (PersistenceUnitUtil) ReflectionUtil.runByReflection(
-    		"org.hibernate.SessionFactory",
-    		"getPersistenceUnitUtil",
-    		new String[]{},
-    		this.manager.getConfig().getSessionFactory(),
-	    	new Object[]{}
-    	);
+	    PersistenceUnitUtil unitUtil = this.getCurrentEntityManager()
+	    		.getEntityManagerFactory()
+	    			.getPersistenceUnitUtil();
 	    return unitUtil.isLoaded(rootOwner, pathFromOwner);
 	}
 
 	@Override
-	public boolean isHibernateProxyLazyUnitialized(Object hProxy) {
-	    PersistenceUnitUtil unitUtil = (PersistenceUnitUtil) ReflectionUtil.runByReflection(
-	    		"org.hibernate.SessionFactory",
-	    		"getPersistenceUnitUtil",
-	    		new String[]{},
-	    		this.manager.getConfig().getSessionFactory(),
-		    	new Object[]{}
-	    	);
-	    return unitUtil.isLoaded(hProxy);
-	}
-
-	@Override
-	public Connection getConnection() {
-		final AtomicReference<Connection> connRef = new AtomicReference<>();
-		this.manager.getConfig().getSessionFactory().getCurrentSession().doWork(connection -> {
-			connRef.set(connection);
-		});
-		return connRef.get();
+	public boolean isHibernateProxyLazyUnitialized(Object entity) {
+	    PersistenceUnitUtil unitUtil = this.getCurrentEntityManager()
+	    		.getEntityManagerFactory()
+	    			.getPersistenceUnitUtil();
+	    return unitUtil.isLoaded(entity);
 	}
 
 //	@Override
@@ -112,17 +88,17 @@ public class Hb6Support implements HbObjPersistenceSupport {
 		return null;
 	}
 
-	@Override
-	public Object[] getRawKeyValuesFromHbProxy(Object hibernateProxy) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public Object[] getRawKeyValuesFromNonHbProxy(Object nonHibernateProxy) {
-		// TODO Auto-generated method stub
-		return null;
-	}
+//	@Override
+//	public Object[] getRawKeyValuesFromHbProxy(Object hibernateProxy) {
+//		// TODO Auto-generated method stub
+//		return null;
+//	}
+//
+//	@Override
+//	public Object[] getRawKeyValuesFromNonHbProxy(Object nonHibernateProxy) {
+//		// TODO Auto-generated method stub
+//		return null;
+//	}
 	
 	@SuppressWarnings("unchecked")
 	@Override
@@ -130,12 +106,7 @@ public class Hb6Support implements HbObjPersistenceSupport {
 		if (logger.isDebugEnabled()) {
 			logger.debug("collectAssociationAndCompositiesMap()");
 		}
-		Metamodel metamodel = (Metamodel) ReflectionUtil.runByReflection(
-			"org.hibernate.SessionFactory",
-			"getMetamodel",
-			new String[]{},
-			this.manager.getConfig().getSessionFactory(),
-			new Object[]{});
+		Metamodel metamodel = this.getCurrentEntityManager().getMetamodel();
 		Set<EntityType<?>> entityTypes = metamodel.getEntities();
 		for (EntityType<?> entityTypeItem : entityTypes) {
 			this.persistentClasses.put(entityTypeItem.getJavaType().getName(), entityTypeItem);
@@ -174,7 +145,7 @@ public class Hb6Support implements HbObjPersistenceSupport {
 
 					aacKeyFromRoot = new AssociationAndComponentPathKey(ownerRootClass, prpName);
 
-					AssociationAndComponentPathHb6Support relEacPath = new AssociationAndComponentPathHb6Support();
+					AssociationAndComponentPathJpaSupport relEacPath = new AssociationAndComponentPathJpaSupport();
 					relEacPath.setAacKey(aacKeyFromRoot);
 					relEacPath.setCompositeTypePath(new EmbeddableType<?>[] {});
 					relEacPath.setCompType(null);
@@ -196,7 +167,7 @@ public class Hb6Support implements HbObjPersistenceSupport {
 
 				aacKeyFromRoot = new AssociationAndComponentPathKey(ownerRootClass, prpAtt.getName());
 
-				AssociationAndComponentPathHb6Support relEacPath = new AssociationAndComponentPathHb6Support();
+				AssociationAndComponentPathJpaSupport relEacPath = new AssociationAndComponentPathJpaSupport();
 				relEacPath.setAacKey(aacKeyFromRoot);
 				relEacPath.setCompositeTypePath(new EmbeddableType<?>[]{});
 				relEacPath.setCompType(null);
@@ -207,7 +178,7 @@ public class Hb6Support implements HbObjPersistenceSupport {
 			}			
 		}
 		for (AssociationAndComponentPathKey key : this.associationAndCompositiesMap.keySet()) {
-			AssociationAndComponentPathHb6Support aacPath = this.associationAndCompositiesMap.get(key);
+			AssociationAndComponentPathJpaSupport aacPath = this.associationAndCompositiesMap.get(key);
 			if (aacPath.getCompType() != null) {
 				Class<?> compositeClass = this.associationAndCompositiesMap.get(key).getCompType().getJavaType();
 				this.compositiesSet.add(compositeClass);
@@ -231,7 +202,7 @@ public class Hb6Support implements HbObjPersistenceSupport {
 		AssociationAndComponentPathKey aacKeyFromRoot = new AssociationAndComponentPathKey(ownerRootClass,
 				pathFromStack);
 		if (!this.associationAndCompositiesMap.containsKey(aacKeyFromRoot)) {
-			AssociationAndComponentPathHb6Support aacPath = new AssociationAndComponentPathHb6Support();
+			AssociationAndComponentPathJpaSupport aacPath = new AssociationAndComponentPathJpaSupport();
 			aacPath.setAacKey(aacKeyFromRoot);
 			aacPath.setCompositeTypePath(new EmbeddableType<?>[] { compositeType });
 			aacPath.setCompType(compositeType);
@@ -269,7 +240,7 @@ public class Hb6Support implements HbObjPersistenceSupport {
 					aacKeyFromRoot = new AssociationAndComponentPathKey(ownerRootClass, pathStackRelationStr);
 
 					if (!this.associationAndCompositiesMap.containsKey(aacKeyFromRoot)) {
-						AssociationAndComponentPathHb6Support relEacPathFromRoot = new AssociationAndComponentPathHb6Support();
+						AssociationAndComponentPathJpaSupport relEacPathFromRoot = new AssociationAndComponentPathJpaSupport();
 						relEacPathFromRoot.setAacKey(aacKeyFromRoot);
 						relEacPathFromRoot.setCompositeTypePath(
 								compositeTypePathStack.toArray(new EmbeddableType<?>[compositeTypePathStack.size()]));
@@ -294,7 +265,7 @@ public class Hb6Support implements HbObjPersistenceSupport {
 			
 				aacKeyFromRoot = new AssociationAndComponentPathKey(ownerRootClass, pathStackRelationStr);
 				if (!this.associationAndCompositiesMap.containsKey(aacKeyFromRoot)) {
-					AssociationAndComponentPathHb6Support relEacPathFromRoot = new AssociationAndComponentPathHb6Support();
+					AssociationAndComponentPathJpaSupport relEacPathFromRoot = new AssociationAndComponentPathJpaSupport();
 					relEacPathFromRoot.setAacKey(aacKeyFromRoot);
 					relEacPathFromRoot.setCompositeTypePath(
 							compositeTypePathStack.toArray(new EmbeddableType<?>[compositeTypePathStack.size()]));
@@ -366,7 +337,7 @@ public class Hb6Support implements HbObjPersistenceSupport {
 	public boolean isCollectionRelationship(Class<?> ownerClass, String pathFromOwner) {
 		AssociationAndComponentPathKey aacKey = new AssociationAndComponentPathKey(ownerClass, pathFromOwner);
 		if (this.associationAndCompositiesMap.containsKey(aacKey)) {
-			AssociationAndComponentPathHb6Support aacPath = this.associationAndCompositiesMap.get(aacKey);
+			AssociationAndComponentPathJpaSupport aacPath = this.associationAndCompositiesMap.get(aacKey);
 			return aacPath.getCollType() != null;
 		} else {
 			return false;
@@ -376,7 +347,7 @@ public class Hb6Support implements HbObjPersistenceSupport {
 	@Override
 	public boolean isManyToOneRelationship(Class<?> ownerClass, String pathFromOwner) {
 		AssociationAndComponentPathKey aacKey = new AssociationAndComponentPathKey(ownerClass, pathFromOwner);
-		AssociationAndComponentPathHb6Support entityAndComponentPath = this.associationAndCompositiesMap.get(aacKey);
+		AssociationAndComponentPathJpaSupport entityAndComponentPath = this.associationAndCompositiesMap.get(aacKey);
 		if (entityAndComponentPath != null) {
 			return entityAndComponentPath.getRelEntity() != null;
 		} else {
@@ -392,42 +363,34 @@ public class Hb6Support implements HbObjPersistenceSupport {
 
 	@Override
 	public boolean isComponentByTrack(AssociationAndComponentTrackInfo aacTrackInfo) {
-		AssociationAndComponentPathHb6Support aacOnPath = this.associationAndCompositiesMap.get(aacTrackInfo);
-		if (aacTrackInfo.getEntityAndComponentPath() instanceof AssociationAndComponentPathHbSupport) {
-			return ((AssociationAndComponentPathHbSupport)aacTrackInfo.getEntityAndComponentPath()).getCollType() != null;
+		AssociationAndComponentPathJpaSupport aacOnPath = this.associationAndCompositiesMap.get(aacTrackInfo);
+		if (aacTrackInfo.getEntityAndComponentPath() instanceof AssociationAndComponentPathJpaSupport) {
+			return ((AssociationAndComponentPathJpaSupport)aacTrackInfo.getEntityAndComponentPath()).getCollType() != null;
 		} else {
 			throw new RuntimeException("This should not happen. prpType: ");
 		}
 	}
 
-	@Override
-	public Serializable getIdValue(Class<?> entityClass, Object[] rawKeyValues) {
-		return null;
-	}
+//	@Override
+//	public Serializable getIdValue(Class<?> entityClass, Object[] rawKeyValues) {
+//		return null;
+//	}
 
 	@Override
 	public Serializable getIdValue(Object entityInstanceOrProxy) {
-	    PersistenceUnitUtil unitUtil = (PersistenceUnitUtil) ReflectionUtil.runByReflection(
-	    		"org.hibernate.SessionFactory",
-	    		"getPersistenceUnitUtil",
-	    		new String[]{},
-	    		this.manager.getConfig().getSessionFactory(),
-		    	new Object[]{}
-	    	);
+	    PersistenceUnitUtil unitUtil = this.getCurrentEntityManager()
+	    		.getEntityManagerFactory()
+	    			.getPersistenceUnitUtil();
 	    return (Serializable) unitUtil.getIdentifier(entityInstanceOrProxy);
 	}
 
 	@SuppressWarnings({ "unused", "deprecation" })
 	@Override
 	public Object getById(Class<?> entityClass, Object idValue) {
-		PersistenceUnitUtil unitUtil = (PersistenceUnitUtil) ReflectionUtil.runByReflection(
-	    		"org.hibernate.SessionFactory",
-	    		"getPersistenceUnitUtil",
-	    		new String[]{},
-	    		this.manager.getConfig().getSessionFactory(),
-		    	new Object[]{}
-	    	);
-		return this.manager.getConfig().getSessionFactory().getCurrentSession().get(entityClass, (Serializable)idValue);
+	    PersistenceUnitUtil unitUtil = this.getCurrentEntityManager()
+	    		.getEntityManagerFactory()
+	    			.getPersistenceUnitUtil();
+	    return this.getCurrentEntityManager().find(entityClass, idValue);
 	}
 
 	@Override
@@ -457,16 +420,6 @@ public class Hb6Support implements HbObjPersistenceSupport {
 			}
 		}
 		return false;
-	}
-
-	@Override
-	public <R> CriteriaCompat<R> createCriteria(EntityManager em, Class<R> clazz) {
-		return new CriteriaCompatBase<>(em,  clazz);
-	}
-	
-	@Override
-	public <R> CriteriaCompat<R> createCriteria(Session session, Class<R> clazz) {
-		return new CriteriaCompatBase<>(session,  clazz);
 	}
 
 	@SuppressWarnings("rawtypes")
@@ -510,5 +463,15 @@ public class Hb6Support implements HbObjPersistenceSupport {
 			dotStr = ".";
 		}
 		return pathResult;
+	}
+	
+	@Override
+	public void persistenceRemove(Object entity) {
+		this.getCurrentEntityManager().remove(entity);		
+	}
+	
+	@Override
+	public void persistencePersist(Object entity) {
+		this.getCurrentEntityManager().persist(entity);		
 	}
 }

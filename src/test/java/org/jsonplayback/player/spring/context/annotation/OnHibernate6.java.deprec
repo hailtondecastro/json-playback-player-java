@@ -1,6 +1,6 @@
 package org.jsonplayback.player.spring.context.annotation;
 
-import org.jsonplayback.player.hibernate.HibernateVersion;
+import org.jsonplayback.player.hibernate.ObjPersistenceMode;
 import org.jsonplayback.player.hibernate.PlayerManagerDefault;
 import org.springframework.context.annotation.Condition;
 import org.springframework.context.annotation.ConditionContext;
@@ -17,6 +17,6 @@ public class OnHibernate6 implements Condition {
 
 	@Override
 	public boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata) {
-		return PlayerManagerDefault.getHibernateVersionStatic() == HibernateVersion.HB6;
+		return PlayerManagerDefault.getHibernateVersionStatic() == ObjPersistenceMode.HB6;
 	}
 }

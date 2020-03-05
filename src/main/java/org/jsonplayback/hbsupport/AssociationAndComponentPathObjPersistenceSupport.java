@@ -7,7 +7,7 @@ import java.util.LinkedHashMap;
 import org.hibernate.type.CollectionType;
 import org.hibernate.type.CompositeType;
 import org.hibernate.type.EntityType;
-import org.jsonplayback.player.hibernate.AssociationAndComponentPath;
+import org.jsonplayback.player.implementation.AssociationAndComponentPath;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;

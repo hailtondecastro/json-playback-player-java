@@ -4,9 +4,9 @@ import javax.persistence.metamodel.EmbeddableType;
 import javax.persistence.metamodel.EntityType;
 import javax.persistence.metamodel.PluralAttribute.CollectionType;
 
-import org.jsonplayback.player.hibernate.AssociationAndComponentPath;
+import org.jsonplayback.player.implementation.AssociationAndComponentPath;
 
-public class AssociationAndComponentPathHb6Support extends AssociationAndComponentPath {
+public class AssociationAndComponentPathJpaSupport extends AssociationAndComponentPath {
 	private EmbeddableType<?>[] compositeTypePath;
 	private CollectionType collType;
 	private EmbeddableType<?> compType;

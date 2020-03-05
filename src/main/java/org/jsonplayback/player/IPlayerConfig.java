@@ -10,7 +10,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 public interface IPlayerConfig {
 	List<IGetBySignatureListener> getListeners();
 
-	SessionFactory getSessionFactory();
+	//SessionFactory getSessionFactory();
+	ObjPersistenceSupport getObjPersistenceSupport();
 
 	SignatureCrypto getSignatureCrypto();
 
@@ -18,7 +19,7 @@ public interface IPlayerConfig {
 
 	IPlayerConfig configNeverSignedClasses(Set<Class> getNotLazyClasses);
 
-	IPlayerConfig configSessionFactory(SessionFactory sessionFactory);
+	IPlayerConfig configObjPersistenceSupport(ObjPersistenceSupport objPersistenceSupport);
 
 	IPlayerConfig configSerialiseBySignatureAllRelationship(boolean serialiseBySignatureAllRelationship);
 

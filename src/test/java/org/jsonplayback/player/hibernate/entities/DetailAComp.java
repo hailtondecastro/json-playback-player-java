@@ -9,8 +9,8 @@ import javax.persistence.JoinColumn;
 import javax.persistence.JoinColumns;
 import javax.persistence.ManyToOne;
 
-import org.jsonplayback.player.hibernate.BlobBase64Serializer;
-import org.jsonplayback.player.hibernate.ByteArrayBase64Serializer;
+import org.jsonplayback.player.implementation.BlobBase64Serializer;
+import org.jsonplayback.player.implementation.ByteArrayBase64Serializer;
 
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 

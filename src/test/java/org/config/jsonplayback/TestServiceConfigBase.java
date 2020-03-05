@@ -3,25 +3,32 @@ package org.config.jsonplayback;
 import java.util.Properties;
 
 import javax.annotation.PostConstruct;
+import javax.persistence.EntityManager;
+import javax.transaction.NotSupportedException;
 
 import org.hibernate.SessionFactory;
 import org.hsqldb.jdbc.JDBCDataSource;
+import org.jsonplayback.hbsupport.Hb3Support;
+import org.jsonplayback.hbsupport.Hb4Support;
+import org.jsonplayback.hbsupport.Hb5Support;
+import org.jsonplayback.hbsupport.JpaSupport;
 import org.jsonplayback.player.IPlayerConfig;
 import org.jsonplayback.player.IPlayerManager;
+import org.jsonplayback.player.ObjPersistenceMode;
 import org.jsonplayback.player.PlayerSnapshot;
-import org.jsonplayback.player.hibernate.IPlayerManagerImplementor;
-import org.jsonplayback.player.hibernate.PlayerBasicClassIntrospector;
-import org.jsonplayback.player.hibernate.PlayerBeanSerializerModifier;
-import org.jsonplayback.player.hibernate.PlayerConfig;
-import org.jsonplayback.player.hibernate.PlayerManagerDefault;
-import org.jsonplayback.player.hibernate.PlayerSnapshotSerializer;
 import org.jsonplayback.player.hibernate.entities.DetailAEnt;
 import org.jsonplayback.player.hibernate.entities.MasterAEnt;
 import org.jsonplayback.player.hibernate.entities.MasterBEnt;
+import org.jsonplayback.player.implementation.IPlayerManagerImplementor;
+import org.jsonplayback.player.implementation.PlayerBasicClassIntrospector;
+import org.jsonplayback.player.implementation.PlayerBeanSerializerModifier;
+import org.jsonplayback.player.implementation.PlayerConfig;
+import org.jsonplayback.player.implementation.PlayerManagerDefault;
+import org.jsonplayback.player.implementation.PlayerSnapshotSerializer;
 import org.jsonplayback.player.spring.context.annotation.OnHibernate3;
 import org.jsonplayback.player.spring.context.annotation.OnHibernate4;
 import org.jsonplayback.player.spring.context.annotation.OnHibernate5;
-import org.jsonplayback.player.spring.context.annotation.OnHibernate6;
+import org.jsonplayback.player.spring.context.annotation.OnJpa;
 import org.jsonplayback.player.util.NoOpLoggingSystem;
 import org.jsonplayback.player.util.ReflectionUtil;
 import org.slf4j.Logger;
@@ -46,6 +53,7 @@ import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.FilterType;
 import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
+import org.springframework.orm.jpa.LocalEntityManagerFactoryBean;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
@@ -231,8 +239,8 @@ public class TestServiceConfigBase {
     	return localSessionFactoryBean;
     }
 
-    @Bean("localSessionFactoryBean6")
-	@Conditional(OnHibernate6.class)
+    @Bean("localSessionFactoryBeanJpa")
+	@Conditional(OnJpa.class)
     public org.springframework.orm.hibernate5.LocalSessionFactoryBean getSessionFactoryBean6() {
     	
     	JDBCDataSource dataSource = new JDBCDataSource();
@@ -283,14 +291,50 @@ public class TestServiceConfigBase {
     }
     
     @Bean
-    @Conditional(OnHibernate6.class)
+    @Conditional(OnJpa.class)
     public PlatformTransactionManager transactionManager6(SessionFactory sessionFactory) {
     	return new org.springframework.orm.hibernate5.HibernateTransactionManager(sessionFactory);
     }
     
 	@Bean
-	public IPlayerConfig getConfig(@Autowired SessionFactory sessionFactory) {
-		return new PlayerConfig().configSessionFactory(sessionFactory);
+	public IPlayerConfig getConfig(@Autowired SessionFactory sessionFactory, @Autowired ApplicationContext applicationContext) {
+		if (PlayerManagerDefault.getObjPersistenceModeStatic() == ObjPersistenceMode.HB3) {
+			return new PlayerConfig().configObjPersistenceSupport(
+					new Hb3Support() {						
+						@Override
+						public SessionFactory getSessionFactory() {
+							return (SessionFactory) applicationContext.getBean("localSessionFactoryBean3");
+						}
+					});			
+		} else if (PlayerManagerDefault.getObjPersistenceModeStatic() == ObjPersistenceMode.HB4) {
+			return new PlayerConfig().configObjPersistenceSupport(
+					new Hb4Support() {						
+						@Override
+						public SessionFactory getSessionFactory() {
+							return (SessionFactory) applicationContext.getBean("localSessionFactoryBean4");
+						}
+					});						
+		} else if (PlayerManagerDefault.getObjPersistenceModeStatic() == ObjPersistenceMode.HB5) {
+			return new PlayerConfig().configObjPersistenceSupport(
+					new Hb5Support() {						
+						@Override
+						public SessionFactory getSessionFactory() {
+							return (SessionFactory) applicationContext.getBean("localSessionFactoryBean5");
+						}
+					});						
+		} else if (PlayerManagerDefault.getObjPersistenceModeStatic() == ObjPersistenceMode.JPA) {
+			return new PlayerConfig().configObjPersistenceSupport(
+					new JpaSupport() {
+						@Override
+						public EntityManager getCurrentEntityManager() {
+							return ((SessionFactory) applicationContext.getBean("localSessionFactoryBeanJpa")).getCurrentSession();
+						}
+					});					
+		} else if (PlayerManagerDefault.getObjPersistenceModeStatic() == ObjPersistenceMode.CUSTOMIZED) {
+			throw new RuntimeException("Not supported yet: ObjPersistenceMode.CUSTOMIZED");						
+		} else {
+			throw new RuntimeException("This should not happen. PlayerManagerDefault.getObjPersistenceModeStatic(): " + PlayerManagerDefault.getObjPersistenceModeStatic());
+		}
 	}
 	
 	@Bean

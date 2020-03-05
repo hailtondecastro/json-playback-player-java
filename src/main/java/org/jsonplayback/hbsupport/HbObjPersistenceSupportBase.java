@@ -1,8 +1,10 @@
 package org.jsonplayback.hbsupport;
 
 import java.beans.PropertyDescriptor;
+import java.io.IOException;
 import java.io.Serializable;
-import java.sql.Connection;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -14,12 +16,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.Stack;
-import java.util.concurrent.atomic.AtomicReference;
-
-import javax.persistence.EntityManager;
 
 import org.apache.commons.beanutils.PropertyUtils;
 import org.hibernate.Session;
+import org.hibernate.SessionFactory;
 import org.hibernate.metadata.ClassMetadata;
 import org.hibernate.proxy.HibernateProxy;
 import org.hibernate.type.BagType;
@@ -33,23 +33,32 @@ import org.hibernate.type.SetType;
 import org.hibernate.type.Type;
 import org.jsonplayback.player.IPlayerManager;
 import org.jsonplayback.player.ObjPersistenceSupport;
-import org.jsonplayback.player.hibernate.AssociationAndComponentPath;
-import org.jsonplayback.player.hibernate.AssociationAndComponentPathKey;
-import org.jsonplayback.player.hibernate.AssociationAndComponentTrackInfo;
+import org.jsonplayback.player.implementation.AssociationAndComponentPath;
+import org.jsonplayback.player.implementation.AssociationAndComponentPathKey;
+import org.jsonplayback.player.implementation.AssociationAndComponentTrackInfo;
 import org.jsonplayback.player.util.ReflectionUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 public abstract class HbObjPersistenceSupportBase implements ObjPersistenceSupport {
 	private static Logger logger = LoggerFactory.getLogger(HbObjPersistenceSupportBase.class);
 
-	protected IPlayerManager manager;
+	//protected IPlayerManager manager;
 	private Map<AssociationAndComponentPathKey, AssociationAndComponentPathObjPersistenceSupport> associationAndCompositiesMap = new HashMap<>();
 	protected Map<String, ClassMetadata> persistentClasses = new HashMap<>();
 	private Set<Class<?>> compositiesSet = new HashSet<>();
+	
+	public abstract SessionFactory getSessionFactory();
+	public Session getCurrentSession() {
+		return this.getSessionFactory().getCurrentSession();
+	}
 
-	public HbObjPersistenceSupportBase(IPlayerManager manager) {
-		this.manager = manager;
+	public HbObjPersistenceSupportBase() {
+		//this.manager = manager;
 		this.persistentCollecitonClass = this.resolvePersistentCollectionClass();
 		
 		this.primitiveTypes = new HashMap<>();
@@ -95,10 +104,10 @@ public abstract class HbObjPersistenceSupportBase implements ObjPersistenceSuppo
 //		return fieldName;
 //	}
 
-	@Override
+	//@Override
 	public abstract  Object[] getRawKeyValuesFromHbProxy(Object hibernateProxy);
 
-	@Override
+	//@Override
 	public abstract Object[] getRawKeyValuesFromNonHbProxy(Object nonHibernateProxy);
 
 	@Override
@@ -109,14 +118,14 @@ public abstract class HbObjPersistenceSupportBase implements ObjPersistenceSuppo
 		return ((HibernateProxy) hProxy).getHibernateLazyInitializer().isUninitialized();
 	}
 
-	@Override
-	public Connection getConnection() {
-		final AtomicReference<Connection> connRef = new AtomicReference<>();
-		this.manager.getConfig().getSessionFactory().getCurrentSession().doWork(connection -> {
-			connRef.set(connection);
-		});
-		return connRef.get();
-	}
+//	@Override
+//	public Connection getConnection() {
+//		final AtomicReference<Connection> connRef = new AtomicReference<>();
+//		this.getSessionFactory().getCurrentSession().doWork(connection -> {
+//			connRef.set(connection);
+//		});
+//		return connRef.get();
+//	}
 	
 	protected String mountPathFromStack(Collection<String> pathStack) {
 		String pathResult = "";
@@ -252,7 +261,7 @@ public abstract class HbObjPersistenceSupportBase implements ObjPersistenceSuppo
 				"org.hibernate.SessionFactory",
 				"getAllClassMetadata",
 				new String[]{},
-				this.manager.getConfig().getSessionFactory(),
+				this.getSessionFactory(),
 				new Object[]{});
 	}
 	
@@ -442,15 +451,15 @@ public abstract class HbObjPersistenceSupportBase implements ObjPersistenceSuppo
 		}
 	}
 
-	@Override
-	public abstract Object getIdValue(Class<?> entityClass, Object[] rawKeyValues);
+//	@Override
+//	public abstract Object getIdValue(Class<?> entityClass, Object[] rawKeyValues);
 	
 	@Override
 	public abstract Object getIdValue(Object entityInstanceOrProxy);
 
 	@Override
 	public Object getById(Class<?> entityClass, Object idValue) {
-		return this.manager.getConfig().getSessionFactory().getCurrentSession().get(entityClass, (Serializable) idValue);
+		return this.getSessionFactory().getCurrentSession().get(entityClass, (Serializable) idValue);
 	}
 
 	@Override
@@ -510,16 +519,6 @@ public abstract class HbObjPersistenceSupportBase implements ObjPersistenceSuppo
 	}
 	
 	@Override
-	public <R> CriteriaCompat<R> createCriteria(EntityManager em, Class<R> clazz) {
-		return new CriteriaCompatBase<>(em,  clazz);
-	}
-	
-	@Override
-	public <R> CriteriaCompat<R> createCriteria(Session session, Class<R> clazz) {
-		return new CriteriaCompatBase<>(session,  clazz);
-	}
-	
-	@Override
 	public void processNewInstantiate(Class<?> instType, Object instValue) {
 		ClassMetadata classMetadata = this.persistentClasses.get(instType.getName());
 		if (classMetadata != null) {
@@ -555,5 +554,96 @@ public abstract class HbObjPersistenceSupportBase implements ObjPersistenceSuppo
 	@Override
 	public String getPlayerObjectIdPrpName(Class clazz) {
 		return this.persistentClasses.get(clazz.getName()).getIdentifierPropertyName();
+	}
+	
+	@Override
+	public void persistenceRemove(Object entity) {
+		this.getCurrentSession().delete(entity);		
+	}
+	
+	@Override
+	public void persistencePersist(Object entity) {
+		this.getCurrentSession().save(entity);		
+	}
+	
+	public Object[] getRawKeyValues(ObjectMapper objectMapper, String stringifiedObjectid) {
+		HbObjectIdForStringify hbObjectIdForStringify;
+		try {
+			hbObjectIdForStringify = objectMapper.readValue(stringifiedObjectid, HbObjectIdForStringify.class);
+		} catch (JsonParseException e1) {
+			throw new RuntimeException("This should not happen. stringifiedObjectid: " + stringifiedObjectid, e1);
+		} catch (JsonMappingException e1) {
+			throw new RuntimeException("This should not happen. stringifiedObjectid: " + stringifiedObjectid, e1);
+		} catch (IOException e1) {
+			throw new RuntimeException("This should not happen. stringifiedObjectid: " + stringifiedObjectid, e1);
+		}
+		ArrayList<Object> rawObjValueList = new ArrayList();
+		for (int i = 0; i < hbObjectIdForStringify.getRawKeyTypeNames().length; i++) {
+			Class<?> itemType;
+			try {
+				itemType = Class.forName(hbObjectIdForStringify.getRawKeyTypeNames()[i]);
+			} catch (ClassNotFoundException e) {
+				throw new RuntimeException("This should not happen", e);
+			}
+			String itemValueStr = hbObjectIdForStringify.getRawKeyValues()[i]; 
+			Method valueOfMethod;
+			try {
+				if (itemType == String.class) {
+					valueOfMethod = null;
+				} else {
+					valueOfMethod = itemType.getMethod("valueOf", String.class);					
+				}
+			} catch (NoSuchMethodException e) {
+				throw new RuntimeException("This should not happen", e);
+			} catch (SecurityException e) {
+				throw new RuntimeException("This should not happen", e);
+			}
+			Object itemValue;
+			try {
+				if (valueOfMethod == null) {
+					itemValue = itemValueStr;
+				} else {
+					itemValue = valueOfMethod.invoke(null, itemValueStr);					
+				}
+			} catch (IllegalAccessException e) {
+				throw new RuntimeException("This should not happen", e);
+			} catch (IllegalArgumentException e) {
+				throw new RuntimeException("This should not happen", e);
+			} catch (InvocationTargetException e) {
+				throw new RuntimeException("This should not happen", e);
+			}
+			rawObjValueList.add(itemValue);
+		}
+		return rawObjValueList.toArray();
+	}
+	
+	@Override
+	public String stringfyObjectId(IPlayerManager manager, Object owner) {
+		Object[] rawValueArr = null;		
+		if (owner instanceof HibernateProxy) {
+			rawValueArr = this.getRawKeyValuesFromHbProxy(owner);
+		} else {
+			rawValueArr = this.getRawKeyValuesFromNonHbProxy(owner);
+		}
+		
+		ArrayList<String> rawValueList = new ArrayList();
+		ArrayList<String> rawTypeList = new ArrayList();
+		for (Object item : rawValueArr) {
+			if (item != null) {
+				rawValueList.add(item.toString());
+				rawTypeList.add(item.getClass().getName());
+			} else {
+				rawValueList.add(null);
+				rawTypeList.add(null);
+			}
+		}
+		
+		HbObjectIdForStringify hbObjectIdForStringify = new HbObjectIdForStringify();		
+		hbObjectIdForStringify.setRawKeyValues(new String[rawValueList.size()]);
+		hbObjectIdForStringify.setRawKeyTypeNames(new String[rawValueList.size()]);
+		hbObjectIdForStringify.setRawKeyValues(rawValueList.toArray(hbObjectIdForStringify.getRawKeyValues()));
+		hbObjectIdForStringify.setRawKeyTypeNames(rawTypeList.toArray(hbObjectIdForStringify.getRawKeyTypeNames()));
+		
+		return manager.getConfig().getObjectMapper().writeValueAsString(hbObjectIdForStringify);
 	}
 }
