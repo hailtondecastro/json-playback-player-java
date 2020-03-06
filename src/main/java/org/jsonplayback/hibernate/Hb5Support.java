@@ -1,4 +1,4 @@
-package org.jsonplayback.hbsupport;
+package org.jsonplayback.hibernate;
 
 import java.io.Serializable;
 import java.sql.PreparedStatement;
@@ -27,7 +27,7 @@ import org.slf4j.LoggerFactory;
 public abstract class Hb5Support extends HbObjPersistenceSupportBase {
 	private static Logger logger = LoggerFactory.getLogger(Hb5Support.class);
 
-	private Map<AssociationAndComponentPathKey, AssociationAndComponentPathObjPersistenceSupport> associationAndCompositiesMap = new HashMap<>();
+	private Map<AssociationAndComponentPathKey, AssociationAndComponentPathHbSupport> associationAndCompositiesMap = new HashMap<>();
 	private Set<Class<?>> compositiesSet = new HashSet<>();
 
 	public Hb5Support() {
@@ -35,7 +35,7 @@ public abstract class Hb5Support extends HbObjPersistenceSupportBase {
 	}
 
 	@Override
-	public boolean isCollectionLazyUnitialized(Object coll, Object rootOwner, String pathFromOwner) {
+	public boolean isLazyUnitialized(Object coll, Object rootOwner, String pathFromOwner) {
 		return !((boolean)super.runByReflection(
 				super.getPersistentCollecitonClass().getName(),
 				"wasInitialized",
@@ -263,8 +263,8 @@ public abstract class Hb5Support extends HbObjPersistenceSupportBase {
 	}
 	
 	@Override
-	public Object parseObjectid(IPlayerManager manager, Class ownerClass, String stringifiedObjectid) {
-		Object[] rawKeyValues = this.getRawKeyValues(manager.getConfig().getObjectMapper(), stringifiedObjectid);
+	public Object parseObjectId(IPlayerManager manager, Class ownerClass, String stringifiedObjectId) {
+		Object[] rawKeyValues = this.getRawKeyValues(manager.getConfig().getObjectMapper(), stringifiedObjectId);
 		ClassMetadata classMetadata = this.getAllClassMetadata().get(ownerClass.getName());
 
 		Type hbIdType = classMetadata.getIdentifierType();

@@ -1,15 +1,15 @@
-package org.jsonplayback.hbsupport;
+package org.jsonplayback.jpa;
 
 import javax.persistence.metamodel.EmbeddableType;
 import javax.persistence.metamodel.EntityType;
-import javax.persistence.metamodel.PluralAttribute.CollectionType;
+import javax.persistence.metamodel.PluralAttribute;
 
 import org.jsonplayback.player.implementation.AssociationAndComponentPath;
 
 public class AssociationAndComponentPathJpaSupport extends AssociationAndComponentPath {
 	private EmbeddableType<?>[] compositeTypePath;
-	private CollectionType collType;
-	private EmbeddableType<?> compType;
+	private PluralAttribute<?, ?, ?> pluralAttribuite;
+	private EmbeddableType<?> embeddableType;
 	private EntityType<?> relEntity;
 	public EmbeddableType<?>[] getCompositeTypePath() {
 		return compositeTypePath;
@@ -17,17 +17,17 @@ public class AssociationAndComponentPathJpaSupport extends AssociationAndCompone
 	public void setCompositeTypePath(EmbeddableType<?>[] compositeTypePath) {
 		this.compositeTypePath = compositeTypePath;
 	}
-	public CollectionType getCollType() {
-		return collType;
+	public PluralAttribute getPluralAttribuite() {
+		return pluralAttribuite;
 	}
-	public void setCollType(CollectionType collType) {
-		this.collType = collType;
+	public void setPluralAttribuite(PluralAttribute<?, ?, ?> pluralAttribute) {
+		this.pluralAttribuite = pluralAttribute;
 	}
-	public EmbeddableType<?> getCompType() {
-		return compType;
+	public EmbeddableType<?> getEmbeddableType() {
+		return embeddableType;
 	}
-	public void setCompType(EmbeddableType<?> compType) {
-		this.compType = compType;
+	public void setEmbeddableType(EmbeddableType<?> embeddableType) {
+		this.embeddableType = embeddableType;
 	}
 	public EntityType<?> getRelEntity() {
 		return relEntity;

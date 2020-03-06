@@ -1,13 +1,14 @@
 package org.jsonplayback.player;
 
-import org.jsonplayback.hbsupport.CollectionStyle;
+import org.jsonplayback.hibernate.CollectionStyle;
 import org.jsonplayback.player.implementation.AssociationAndComponentPath;
 import org.jsonplayback.player.implementation.AssociationAndComponentTrackInfo;
+import org.jsonplayback.player.implementation.IPlayerManagerImplementor;
 
 public interface ObjPersistenceSupport {
-	boolean isPersistentCollection(Object coll);
-	boolean isCollectionLazyUnitialized(Object coll, Object rootOwner, String pathFromOwner);
-	boolean isHibernateProxyLazyUnitialized(Object entity);
+	//boolean isPersistentCollection(AssociationAndComponentTrackInfo aacTrackInfo, Object coll);
+	boolean isLazyUnitialized(Object coll, Object rootOwner, String pathFromOwner);
+	boolean isLazyUnitialized(Object entity);
 //	Connection getConnection();
 //	Object getCollectionOwner(Object coll);
 //	String getCollectionFieldName(Object coll);
@@ -15,7 +16,7 @@ public interface ObjPersistenceSupport {
 //	Object[] getRawKeyValuesFromHbProxy(Object hibernateProxy);
 //	Object[] getRawKeyValuesFromNonHbProxy(Object nonHibernateProxy);
 	void collectAssociationAndCompositiesMap();
-	void init();
+	void init(IPlayerManagerImplementor playerManagerImplementor);
 	boolean isComponent(Class<?> componentClass);
 	boolean isPersistentClass(Class<?> clazz);
 	boolean isCollectionRelationship(Class<?> ownerClass, String pathFromOwner);
@@ -36,5 +37,5 @@ public interface ObjPersistenceSupport {
 	void persistencePersist(Object entity);
 	
 	String stringfyObjectId(IPlayerManager manager, Object owner);
-	Object parseObjectid(IPlayerManager manager, Class ownerClass, String stringifiedObjectid);
+	Object parseObjectId(IPlayerManager manager, Class ownerClass, String stringifiedObjectId);
 }

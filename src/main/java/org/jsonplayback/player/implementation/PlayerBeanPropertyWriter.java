@@ -94,7 +94,7 @@ public class PlayerBeanPropertyWriter extends BeanPropertyWriter {
 			return getCurrOwnerStackTL().get().peek();
 		} else {
 			return null;
-	}
+		}
 	}
 
 //	public Class<?> getComponentOwnerClass() {
@@ -138,11 +138,12 @@ public class PlayerBeanPropertyWriter extends BeanPropertyWriter {
 		try {
 			if (this.playerManager.isStarted()) {
 				if (!this.isMetadatasPlayerObjectId) {
-				this.playerManager.getPlayerBeanPropertyWriterStepStack().push(this);
+					this.playerManager.getPlayerBeanPropertyWriterStepStack().push(this);
 				} else {
 					PlayerMetadatas metadatas = (PlayerMetadatas) bean;
-					this.playerManager.getPlayerBeanPropertyWriterStepStack().push(metadatas.getOriginalPlayerObjectIdPropertyWriter());
-			}
+					this.playerManager.getPlayerBeanPropertyWriterStepStack()
+							.push(metadatas.getOriginalPlayerObjectIdPropertyWriter());
+				}
 			}
 			
 			//?!?!?!?! 
@@ -177,7 +178,7 @@ public class PlayerBeanPropertyWriter extends BeanPropertyWriter {
 					}
 				}
 			} else {
-			super.serializeAsField(bean, gen, prov);
+				super.serializeAsField(bean, gen, prov);
 			}	
 		} finally {
 			this.getCurrOwnerStackTL().get().pop();

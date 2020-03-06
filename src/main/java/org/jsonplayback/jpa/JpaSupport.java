@@ -1,9 +1,12 @@
-package org.jsonplayback.hbsupport;
+package org.jsonplayback.jpa;
 
 import java.beans.PropertyDescriptor;
+import java.io.IOException;
 import java.io.Serializable;
+import java.lang.reflect.InvocationTargetException;
 import java.text.MessageFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -12,6 +15,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.Stack;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceUnitUtil;
@@ -26,48 +31,81 @@ import javax.persistence.metamodel.Type;
 import javax.persistence.metamodel.Type.PersistenceType;
 
 import org.apache.commons.beanutils.PropertyUtils;
+import org.hibernate.annotations.ValueGenerationType;
 import org.hibernate.type.CompositeType;
+import org.jsonplayback.hibernate.AssociationAndComponentPathHbSupport;
+import org.jsonplayback.hibernate.CollectionStyle;
 import org.jsonplayback.player.IPlayerManager;
 import org.jsonplayback.player.ObjPersistenceSupport;
 import org.jsonplayback.player.implementation.AssociationAndComponentPath;
 import org.jsonplayback.player.implementation.AssociationAndComponentPathKey;
 import org.jsonplayback.player.implementation.AssociationAndComponentTrackInfo;
+import org.jsonplayback.player.implementation.IPlayerManagerImplementor;
+import org.jsonplayback.player.implementation.PlayerBasicClassIntrospector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.BeanDescription;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.JsonSerializer;
+import com.fasterxml.jackson.databind.Module.SetupContext;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationConfig;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.databind.module.SimpleModule;
+import com.fasterxml.jackson.databind.ser.BeanSerializerModifier;
 
 public abstract class JpaSupport implements ObjPersistenceSupport {
 	private static Logger logger = LoggerFactory.getLogger(JpaSupport.class);
 
-	protected IPlayerManager manager;
 	private Map<AssociationAndComponentPathKey, AssociationAndComponentPathJpaSupport> associationAndCompositiesMap = new HashMap<>();
 	protected Map<String, EntityType<?>> persistentClasses = new HashMap<>();
 	private Set<Class<?>> compositiesSet = new HashSet<>();
 
 	public abstract EntityManager getCurrentEntityManager();
-	
+
 	public JpaSupport() {
 	}
 
+//	@Override
+//	public boolean isPersistentCollection(AssociationAndComponentTrackInfo aacTrackInfo, Object coll) {
+//		if (aacTrackInfo != null) {
+//			PersistenceUnitUtil unitUtil = this.getCurrentEntityManager().getEntityManagerFactory()
+//					.getPersistenceUnitUtil();			
+//		}
+//		return false;
+//	}
+
+	Pattern fieldOnEmbNameRx = Pattern.compile("(.*)\\.([^\\.]+)");
+	
 	@Override
-	public boolean isPersistentCollection(Object coll) {
-		// TODO Auto-generated method stub
-		return false;
+	public boolean isLazyUnitialized(Object coll, Object rootOwner, String pathFromOwner) {
+		PersistenceUnitUtil unitUtil = this.getCurrentEntityManager().getEntityManagerFactory()
+				.getPersistenceUnitUtil();
+		Matcher matcher = fieldOnEmbNameRx.matcher(pathFromOwner);
+		if (matcher.find()) {
+			try {
+				Object embOwner = PropertyUtils.getNestedProperty(rootOwner, matcher.group(1));
+				return !unitUtil.isLoaded(embOwner, matcher.group(2));
+			} catch (IllegalAccessException e) {
+				throw new RuntimeException("This should not happen", e);
+			} catch (InvocationTargetException e) {
+				throw new RuntimeException("This should not happen", e);
+			} catch (NoSuchMethodException e) {
+				throw new RuntimeException("This should not happen", e);
+			}
+		} else {
+			return !unitUtil.isLoaded(rootOwner, pathFromOwner);			
+		}
 	}
 
 	@Override
-	public boolean isCollectionLazyUnitialized(Object coll, Object rootOwner, String pathFromOwner) {
-	    PersistenceUnitUtil unitUtil = this.getCurrentEntityManager()
-	    		.getEntityManagerFactory()
-	    			.getPersistenceUnitUtil();
-	    return unitUtil.isLoaded(rootOwner, pathFromOwner);
-	}
-
-	@Override
-	public boolean isHibernateProxyLazyUnitialized(Object entity) {
-	    PersistenceUnitUtil unitUtil = this.getCurrentEntityManager()
-	    		.getEntityManagerFactory()
-	    			.getPersistenceUnitUtil();
-	    return unitUtil.isLoaded(entity);
+	public boolean isLazyUnitialized(Object entity) {
+		PersistenceUnitUtil unitUtil = this.getCurrentEntityManager().getEntityManagerFactory()
+				.getPersistenceUnitUtil();
+		return !unitUtil.isLoaded(entity);
 	}
 
 //	@Override
@@ -99,7 +137,7 @@ public abstract class JpaSupport implements ObjPersistenceSupport {
 //		// TODO Auto-generated method stub
 //		return null;
 //	}
-	
+
 	@SuppressWarnings("unchecked")
 	@Override
 	public void collectAssociationAndCompositiesMap() {
@@ -111,7 +149,7 @@ public abstract class JpaSupport implements ObjPersistenceSupport {
 		for (EntityType<?> entityTypeItem : entityTypes) {
 			this.persistentClasses.put(entityTypeItem.getJavaType().getName(), entityTypeItem);
 		}
-		
+
 		for (String entityName : this.persistentClasses.keySet()) {
 			EntityType<?> classMetadata = this.persistentClasses.get(entityName);
 
@@ -125,7 +163,8 @@ public abstract class JpaSupport implements ObjPersistenceSupport {
 			List<Type<?>> singAllPrpsAndIdTypes = new ArrayList<>();
 			List<String> singAllPrpsAndIdNames = new ArrayList<>();
 			for (Attribute<?, ?> prpAtt : classMetadata.getSingularAttributes()) {
-				singAllPrpsAndIdTypes.add(classMetadata.getSingularAttribute(prpAtt.getName(), prpAtt.getJavaType()).getType());
+				singAllPrpsAndIdTypes
+						.add(classMetadata.getSingularAttribute(prpAtt.getName(), prpAtt.getJavaType()).getType());
 				singAllPrpsAndIdNames.add(prpAtt.getName());
 			}
 			singAllPrpsAndIdTypes.add(classMetadata.getIdType());
@@ -134,7 +173,7 @@ public abstract class JpaSupport implements ObjPersistenceSupport {
 				Type<?> prpType = singAllPrpsAndIdTypes.get(i);
 				String prpName = singAllPrpsAndIdNames.get(i);
 				AssociationAndComponentPathKey aacKeyFromRoot;
-				if (prpType instanceof CompositeType) {
+				if (prpType instanceof EmbeddableType) {
 					Stack<String> pathStack = new Stack<>();
 					Stack<EmbeddableType<?>> compositeTypePathStack = new Stack<>();
 					pathStack.push(prpName);
@@ -148,44 +187,44 @@ public abstract class JpaSupport implements ObjPersistenceSupport {
 					AssociationAndComponentPathJpaSupport relEacPath = new AssociationAndComponentPathJpaSupport();
 					relEacPath.setAacKey(aacKeyFromRoot);
 					relEacPath.setCompositeTypePath(new EmbeddableType<?>[] {});
-					relEacPath.setCompType(null);
+					relEacPath.setEmbeddableType(null);
 					relEacPath.setRelEntity(entityType);
-					relEacPath.setCollType(null);
+					relEacPath.setPluralAttribuite(null);
 					relEacPath.setCompositePrpPath(new String[] {});
 					this.associationAndCompositiesMap.put(aacKeyFromRoot, relEacPath);
 				}
 			}
-			
+
 //			List<PluralAttribute<?, ?, ?>> plurAllPrpAtts = new ArrayList<>();
 //			List<String> plurAllPrpNames = new ArrayList<>();
 			for (PluralAttribute<?, ?, ?> prpAtt : classMetadata.getPluralAttributes()) {
 				AssociationAndComponentPathKey aacKeyFromRoot;
-				
+
 //				plurAllPrpAtts.add(prpAtt);
-				
-				//CollectionType collType = (CollectionType) prpType;
+
+				// CollectionType collType = (CollectionType) prpType;
 
 				aacKeyFromRoot = new AssociationAndComponentPathKey(ownerRootClass, prpAtt.getName());
 
 				AssociationAndComponentPathJpaSupport relEacPath = new AssociationAndComponentPathJpaSupport();
 				relEacPath.setAacKey(aacKeyFromRoot);
-				relEacPath.setCompositeTypePath(new EmbeddableType<?>[]{});
-				relEacPath.setCompType(null);
+				relEacPath.setCompositeTypePath(new EmbeddableType<?>[] {});
+				relEacPath.setEmbeddableType(null);
 				relEacPath.setRelEntity(null);
-				relEacPath.setCollType(prpAtt.getCollectionType());
+				relEacPath.setPluralAttribuite(prpAtt);
 				relEacPath.setCompositePrpPath(new String[] {});
 				this.associationAndCompositiesMap.put(aacKeyFromRoot, relEacPath);
-			}			
+			}
 		}
 		for (AssociationAndComponentPathKey key : this.associationAndCompositiesMap.keySet()) {
 			AssociationAndComponentPathJpaSupport aacPath = this.associationAndCompositiesMap.get(key);
-			if (aacPath.getCompType() != null) {
-				Class<?> compositeClass = this.associationAndCompositiesMap.get(key).getCompType().getJavaType();
+			if (aacPath.getEmbeddableType() != null) {
+				Class<?> compositeClass = this.associationAndCompositiesMap.get(key).getEmbeddableType().getJavaType();
 				this.compositiesSet.add(compositeClass);
 			}
 		}
 	}
-	
+
 	protected void collectAssociationAndCompositiesMapRecursive(EntityType<?> ownerRootClassMetadata,
 			EmbeddableType<?> ownerCompositeType, EmbeddableType<?> compositeType, Stack<String> pathStack,
 			Stack<EmbeddableType<?>> compositeTypePathStack) {
@@ -205,9 +244,9 @@ public abstract class JpaSupport implements ObjPersistenceSupport {
 			AssociationAndComponentPathJpaSupport aacPath = new AssociationAndComponentPathJpaSupport();
 			aacPath.setAacKey(aacKeyFromRoot);
 			aacPath.setCompositeTypePath(new EmbeddableType<?>[] { compositeType });
-			aacPath.setCompType(compositeType);
+			aacPath.setEmbeddableType(compositeType);
 			aacPath.setRelEntity(null);
-			aacPath.setCollType(null);
+			aacPath.setPluralAttribuite(null);
 			aacPath.setCompositePrpPath(new String[] { pathStack.peek() });
 			this.associationAndCompositiesMap.put(aacKeyFromRoot, aacPath);
 
@@ -236,7 +275,7 @@ public abstract class JpaSupport implements ObjPersistenceSupport {
 					pathStackRelation.addAll(pathStack);
 					pathStackRelation.push(subPrpName);
 					String pathStackRelationStr = this.mountPathFromStack(pathStackRelation);
-			
+
 					aacKeyFromRoot = new AssociationAndComponentPathKey(ownerRootClass, pathStackRelationStr);
 
 					if (!this.associationAndCompositiesMap.containsKey(aacKeyFromRoot)) {
@@ -244,9 +283,9 @@ public abstract class JpaSupport implements ObjPersistenceSupport {
 						relEacPathFromRoot.setAacKey(aacKeyFromRoot);
 						relEacPathFromRoot.setCompositeTypePath(
 								compositeTypePathStack.toArray(new EmbeddableType<?>[compositeTypePathStack.size()]));
-						relEacPathFromRoot.setCompType(null);
+						relEacPathFromRoot.setEmbeddableType(null);
 						relEacPathFromRoot.setRelEntity(entityType);
-						relEacPathFromRoot.setCollType(null);
+						relEacPathFromRoot.setPluralAttribuite(null);
 						relEacPathFromRoot.setCompositePrpPath(pathStack.toArray(new String[pathStack.size()]));
 						this.associationAndCompositiesMap.put(aacKeyFromRoot, relEacPathFromRoot);
 					}
@@ -255,39 +294,41 @@ public abstract class JpaSupport implements ObjPersistenceSupport {
 //
 //				}
 			}
-			
+
 			for (PluralAttribute<?, ?, ?> prpAtt : compositeType.getPluralAttributes()) {
-				
+
 				Stack<String> pathStackRelation = new Stack<String>();
 				pathStackRelation.addAll(pathStack);
 				pathStackRelation.push(prpAtt.getName());
 				String pathStackRelationStr = this.mountPathFromStack(pathStackRelation);
-			
+
 				aacKeyFromRoot = new AssociationAndComponentPathKey(ownerRootClass, pathStackRelationStr);
 				if (!this.associationAndCompositiesMap.containsKey(aacKeyFromRoot)) {
 					AssociationAndComponentPathJpaSupport relEacPathFromRoot = new AssociationAndComponentPathJpaSupport();
 					relEacPathFromRoot.setAacKey(aacKeyFromRoot);
 					relEacPathFromRoot.setCompositeTypePath(
 							compositeTypePathStack.toArray(new EmbeddableType<?>[compositeTypePathStack.size()]));
-					relEacPathFromRoot.setCompType(null);
+					relEacPathFromRoot.setEmbeddableType(null);
 					relEacPathFromRoot.setRelEntity(null);
-					relEacPathFromRoot.setCollType(prpAtt.getCollectionType());
+					relEacPathFromRoot.setPluralAttribuite(prpAtt);
 					relEacPathFromRoot.setCompositePrpPath(pathStack.toArray(new String[pathStack.size()]));
 					this.associationAndCompositiesMap.put(aacKeyFromRoot, relEacPathFromRoot);
 				}
-				
-			}			
+
+			}
 		} else {
 			// maybe it is deprecated!?
-			EmbeddableType<?> existingComponent = this.associationAndCompositiesMap.get(aacKeyFromRoot).getCompType();
+			EmbeddableType<?> existingComponent = this.associationAndCompositiesMap.get(aacKeyFromRoot).getEmbeddableType();
 			boolean isDifferent = false;
 			if (logger.isTraceEnabled()) {
 				logger.trace(MessageFormat.format(
 						"Component already collected, verifying if the definition is the same: {0}", compositeType));
 			}
 			if (existingComponent.getSingularAttributes().size() == compositeType.getSingularAttributes().size()) {
-				List<SingularAttribute<?, ?>> existingComponentAttsArrL = new ArrayList<>(existingComponent.getSingularAttributes());
-				List<SingularAttribute<?, ?>> componentAttsArrL = new ArrayList<>(compositeType.getSingularAttributes());
+				List<SingularAttribute<?, ?>> existingComponentAttsArrL = new ArrayList<>(
+						existingComponent.getSingularAttributes());
+				List<SingularAttribute<?, ?>> componentAttsArrL = new ArrayList<>(
+						compositeType.getSingularAttributes());
 				for (int i = 0; i < compositeType.getSingularAttributes().size(); i++) {
 					if (existingComponentAttsArrL.get(i).getJavaType() != componentAttsArrL.get(i).getJavaType()) {
 						isDifferent = true;
@@ -312,11 +353,27 @@ public abstract class JpaSupport implements ObjPersistenceSupport {
 			compositeTypePathStack.pop();
 		}
 	}
-	
+
+	protected ObjectMapper mapperForObjId;
+
 	@Override
-	public void init() {
+	public void init(IPlayerManagerImplementor playerManagerImplementor) {
 		this.associationAndCompositiesMap.clear();
 		this.collectAssociationAndCompositiesMap();
+
+		JpaObjectIdBeanSerializerModifier modifier = new JpaObjectIdBeanSerializerModifier().configManager(playerManagerImplementor);
+		// jsonComponentModule.addSerializer(PlayerSnapshot.class,
+		// playerSnapshotSerializer);
+		// mapper.registerModule(jsonComponentModule);
+		this.mapperForObjId = new ObjectMapper();
+		this.mapperForObjId.setConfig(this.mapperForObjId.getSerializationConfig().with(playerManagerImplementor.getConfig().getBasicClassIntrospector()));
+		this.mapperForObjId.registerModule(new SimpleModule() {
+			@Override
+			public void setupModule(SetupContext context) {
+				super.setupModule(context);
+				context.addBeanSerializerModifier(modifier);
+			}
+		});
 	}
 
 	@Override
@@ -335,10 +392,14 @@ public abstract class JpaSupport implements ObjPersistenceSupport {
 
 	@Override
 	public boolean isCollectionRelationship(Class<?> ownerClass, String pathFromOwner) {
-		AssociationAndComponentPathKey aacKey = new AssociationAndComponentPathKey(ownerClass, pathFromOwner);
-		if (this.associationAndCompositiesMap.containsKey(aacKey)) {
-			AssociationAndComponentPathJpaSupport aacPath = this.associationAndCompositiesMap.get(aacKey);
-			return aacPath.getCollType() != null;
+		if (pathFromOwner != null) {
+			AssociationAndComponentPathKey aacKey = new AssociationAndComponentPathKey(ownerClass, pathFromOwner);
+			if (this.associationAndCompositiesMap.containsKey(aacKey)) {
+				AssociationAndComponentPathJpaSupport aacPath = this.associationAndCompositiesMap.get(aacKey);
+				return aacPath.getPluralAttribuite() != null;
+			} else {
+				return false;
+			}
 		} else {
 			return false;
 		}
@@ -346,12 +407,16 @@ public abstract class JpaSupport implements ObjPersistenceSupport {
 
 	@Override
 	public boolean isManyToOneRelationship(Class<?> ownerClass, String pathFromOwner) {
-		AssociationAndComponentPathKey aacKey = new AssociationAndComponentPathKey(ownerClass, pathFromOwner);
-		AssociationAndComponentPathJpaSupport entityAndComponentPath = this.associationAndCompositiesMap.get(aacKey);
-		if (entityAndComponentPath != null) {
-			return entityAndComponentPath.getRelEntity() != null;
+		if (pathFromOwner != null) {
+			AssociationAndComponentPathKey aacKey = new AssociationAndComponentPathKey(ownerClass, pathFromOwner);
+			AssociationAndComponentPathJpaSupport entityAndComponentPath = this.associationAndCompositiesMap.get(aacKey);
+			if (entityAndComponentPath != null) {
+				return entityAndComponentPath.getRelEntity() != null;
+			} else {
+				return false;
+			}
 		} else {
-			return false;			
+			return false;
 		}
 	}
 
@@ -365,7 +430,8 @@ public abstract class JpaSupport implements ObjPersistenceSupport {
 	public boolean isComponentByTrack(AssociationAndComponentTrackInfo aacTrackInfo) {
 		AssociationAndComponentPathJpaSupport aacOnPath = this.associationAndCompositiesMap.get(aacTrackInfo);
 		if (aacTrackInfo.getEntityAndComponentPath() instanceof AssociationAndComponentPathJpaSupport) {
-			return ((AssociationAndComponentPathJpaSupport)aacTrackInfo.getEntityAndComponentPath()).getCollType() != null;
+			return ((AssociationAndComponentPathJpaSupport) aacTrackInfo.getEntityAndComponentPath())
+					.getPluralAttribuite() != null;
 		} else {
 			throw new RuntimeException("This should not happen. prpType: ");
 		}
@@ -378,19 +444,17 @@ public abstract class JpaSupport implements ObjPersistenceSupport {
 
 	@Override
 	public Serializable getIdValue(Object entityInstanceOrProxy) {
-	    PersistenceUnitUtil unitUtil = this.getCurrentEntityManager()
-	    		.getEntityManagerFactory()
-	    			.getPersistenceUnitUtil();
-	    return (Serializable) unitUtil.getIdentifier(entityInstanceOrProxy);
+		PersistenceUnitUtil unitUtil = this.getCurrentEntityManager().getEntityManagerFactory()
+				.getPersistenceUnitUtil();
+		return (Serializable) unitUtil.getIdentifier(entityInstanceOrProxy);
 	}
 
 	@SuppressWarnings({ "unused", "deprecation" })
 	@Override
 	public Object getById(Class<?> entityClass, Object idValue) {
-	    PersistenceUnitUtil unitUtil = this.getCurrentEntityManager()
-	    		.getEntityManagerFactory()
-	    			.getPersistenceUnitUtil();
-	    return this.getCurrentEntityManager().find(entityClass, idValue);
+		PersistenceUnitUtil unitUtil = this.getCurrentEntityManager().getEntityManagerFactory()
+				.getPersistenceUnitUtil();
+		return this.getCurrentEntityManager().find(entityClass, idValue);
 	}
 
 	@Override
@@ -415,7 +479,7 @@ public abstract class JpaSupport implements ObjPersistenceSupport {
 				} else if (style == CollectionStyle.MAP && plrAttr.getCollectionType() == CollectionType.MAP) {
 					return true;
 				}
-			} else { 
+			} else {
 				return false;
 			}
 		}
@@ -438,15 +502,17 @@ public abstract class JpaSupport implements ObjPersistenceSupport {
 				} else if (pluralAttribute.getCollectionType() == CollectionType.COLLECTION) {
 					throw new RuntimeException("Not supported. prpType: " + pluralAttribute.getCollectionType());
 				} else {
-					throw new RuntimeException("This should not happen. prpType: " + pluralAttribute.getCollectionType());
+					throw new RuntimeException(
+							"This should not happen. prpType: " + pluralAttribute.getCollectionType());
 				}
 				try {
 					PropertyUtils.setProperty(instValue, pluralAttribute.getName(), resultColl);
 				} catch (Exception e) {
-					throw new RuntimeException("This should not happen. prpType: " + pluralAttribute.getCollectionType(), e);
+					throw new RuntimeException(
+							"This should not happen. prpType: " + pluralAttribute.getCollectionType(), e);
 				}
 			}
-		}				
+		}
 	}
 
 	@Override
@@ -454,7 +520,7 @@ public abstract class JpaSupport implements ObjPersistenceSupport {
 		EntityType<?> entityType = this.persistentClasses.get(clazz.getName());
 		return entityType.getId(entityType.getIdType().getJavaType()).getName();
 	}
-	
+
 	protected String mountPathFromStack(Collection<String> pathStack) {
 		String pathResult = "";
 		String dotStr = "";
@@ -464,14 +530,38 @@ public abstract class JpaSupport implements ObjPersistenceSupport {
 		}
 		return pathResult;
 	}
-	
+
 	@Override
 	public void persistenceRemove(Object entity) {
-		this.getCurrentEntityManager().remove(entity);		
+		this.getCurrentEntityManager().remove(entity);
 	}
-	
+
 	@Override
 	public void persistencePersist(Object entity) {
-		this.getCurrentEntityManager().persist(entity);		
+		this.getCurrentEntityManager().persist(entity);
+	}
+
+	@Override
+	public Object parseObjectId(IPlayerManager manager, Class ownerClass, String stringifiedObjectId) {
+		Object owner = null;
+		try {
+			owner = this.mapperForObjId.readValue(stringifiedObjectId, ownerClass);
+		} catch (JsonParseException e) {
+			throw new RuntimeException("This should not happen. stringifiedObjectId: " + stringifiedObjectId, e);
+		} catch (JsonMappingException e) {
+			throw new RuntimeException("This should not happen. stringifiedObjectId: " + stringifiedObjectId, e);
+		} catch (IOException e) {
+			throw new RuntimeException("This should not happen. stringifiedObjectId: " + stringifiedObjectId, e);
+		}
+		return this.getIdValue(owner);
+	}
+
+	@Override
+	public String stringfyObjectId(IPlayerManager manager, Object owner) {
+		try {
+			return this.mapperForObjId.writeValueAsString(owner);
+		} catch (JsonProcessingException e) {
+			throw new RuntimeException("This should not happen.", e);
+		}
 	}
 }

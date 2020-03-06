@@ -15,6 +15,7 @@ import org.jsonplayback.player.SignatureCrypto;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.introspect.BasicClassIntrospector;
 
 public class PlayerConfig implements IPlayerConfig, Cloneable {
 	private String playerMetadatasName = "$metadatas$";
@@ -26,7 +27,19 @@ public class PlayerConfig implements IPlayerConfig, Cloneable {
 	private SignatureCrypto signatureCrypto;
 	private boolean serialiseBySignatureAllRelationship = false;
 	private boolean ignoreAllLazyProperty = false;
+	private BasicClassIntrospector basicClassIntrospector = new PlayerBasicClassIntrospector();
 	
+	@Override
+	public BasicClassIntrospector getBasicClassIntrospector() {
+		return basicClassIntrospector;
+	}
+
+	@Override
+	public IPlayerConfig configBasicClassIntrospector(BasicClassIntrospector basicClassIntrospector) {
+		this.basicClassIntrospector = basicClassIntrospector;
+		return this;
+	}
+
 	@Override
 	public boolean isIgnoreAllLazyProperty() {
 		return ignoreAllLazyProperty;

@@ -1,4 +1,4 @@
-package org.jsonplayback.hbsupport;
+package org.jsonplayback.hibernate;
 
 import java.beans.PropertyDescriptor;
 import java.io.IOException;
@@ -36,11 +36,13 @@ import org.jsonplayback.player.ObjPersistenceSupport;
 import org.jsonplayback.player.implementation.AssociationAndComponentPath;
 import org.jsonplayback.player.implementation.AssociationAndComponentPathKey;
 import org.jsonplayback.player.implementation.AssociationAndComponentTrackInfo;
+import org.jsonplayback.player.implementation.IPlayerManagerImplementor;
 import org.jsonplayback.player.util.ReflectionUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -48,7 +50,7 @@ public abstract class HbObjPersistenceSupportBase implements ObjPersistenceSuppo
 	private static Logger logger = LoggerFactory.getLogger(HbObjPersistenceSupportBase.class);
 
 	//protected IPlayerManager manager;
-	private Map<AssociationAndComponentPathKey, AssociationAndComponentPathObjPersistenceSupport> associationAndCompositiesMap = new HashMap<>();
+	private Map<AssociationAndComponentPathKey, AssociationAndComponentPathHbSupport> associationAndCompositiesMap = new HashMap<>();
 	protected Map<String, ClassMetadata> persistentClasses = new HashMap<>();
 	private Set<Class<?>> compositiesSet = new HashSet<>();
 	
@@ -70,13 +72,13 @@ public abstract class HbObjPersistenceSupportBase implements ObjPersistenceSuppo
 	
 	protected Class<?> persistentCollecitonClass;
 
-	@Override
-	public boolean isPersistentCollection(Object coll) {
-		return persistentCollecitonClass.isAssignableFrom(coll.getClass());
-	}
+//	@Override
+//	public boolean isPersistentCollection(AssociationAndComponentTrackInfo aacTrackInfo, Object coll) {
+//		return persistentCollecitonClass.isAssignableFrom(coll.getClass());
+//	}
 
 	@Override
-	public abstract boolean isCollectionLazyUnitialized(Object coll, Object owner, String pathFromOwner);
+	public abstract boolean isLazyUnitialized(Object coll, Object owner, String pathFromOwner);
 	
 	public abstract Class<?> resolvePersistentCollectionClass();
 	
@@ -114,7 +116,7 @@ public abstract class HbObjPersistenceSupportBase implements ObjPersistenceSuppo
 	public abstract String getCollectionGetRole(Object coll);
 
 	@Override
-	public boolean isHibernateProxyLazyUnitialized(Object hProxy) {
+	public boolean isLazyUnitialized(Object hProxy) {
 		return ((HibernateProxy) hProxy).getHibernateLazyInitializer().isUninitialized();
 	}
 
@@ -153,7 +155,7 @@ public abstract class HbObjPersistenceSupportBase implements ObjPersistenceSuppo
 		AssociationAndComponentPathKey aacKeyFromRoot = new AssociationAndComponentPathKey(ownerRootClass,
 				pathFromStack);
 		if (!this.associationAndCompositiesMap.containsKey(aacKeyFromRoot)) {
-			AssociationAndComponentPathObjPersistenceSupport aacPath = new AssociationAndComponentPathObjPersistenceSupport();
+			AssociationAndComponentPathHbSupport aacPath = new AssociationAndComponentPathHbSupport();
 			aacPath.setAacKey(aacKeyFromRoot);
 			aacPath.setCompositeTypePath(new CompositeType[] { compositeType });
 			aacPath.setCompType(compositeType);
@@ -189,7 +191,7 @@ public abstract class HbObjPersistenceSupportBase implements ObjPersistenceSuppo
 					aacKeyFromRoot = new AssociationAndComponentPathKey(ownerRootClass, pathStackRelationStr);
 
 					if (!this.associationAndCompositiesMap.containsKey(aacKeyFromRoot)) {
-						AssociationAndComponentPathObjPersistenceSupport relEacPathFromRoot = new AssociationAndComponentPathObjPersistenceSupport();
+						AssociationAndComponentPathHbSupport relEacPathFromRoot = new AssociationAndComponentPathHbSupport();
 						relEacPathFromRoot.setAacKey(aacKeyFromRoot);
 						relEacPathFromRoot.setCompositeTypePath(
 								compositeTypePathStack.toArray(new CompositeType[compositeTypePathStack.size()]));
@@ -208,7 +210,7 @@ public abstract class HbObjPersistenceSupportBase implements ObjPersistenceSuppo
 				
 					aacKeyFromRoot = new AssociationAndComponentPathKey(ownerRootClass, pathStackRelationStr);
 					if (!this.associationAndCompositiesMap.containsKey(aacKeyFromRoot)) {
-						AssociationAndComponentPathObjPersistenceSupport relEacPathFromRoot = new AssociationAndComponentPathObjPersistenceSupport();
+						AssociationAndComponentPathHbSupport relEacPathFromRoot = new AssociationAndComponentPathHbSupport();
 						relEacPathFromRoot.setAacKey(aacKeyFromRoot);
 						relEacPathFromRoot.setCompositeTypePath(
 								compositeTypePathStack.toArray(new CompositeType[compositeTypePathStack.size()]));
@@ -304,7 +306,7 @@ public abstract class HbObjPersistenceSupportBase implements ObjPersistenceSuppo
 
 					aacKeyFromRoot = new AssociationAndComponentPathKey(ownerRootClass, prpName);
 
-					AssociationAndComponentPathObjPersistenceSupport relEacPath = new AssociationAndComponentPathObjPersistenceSupport();
+					AssociationAndComponentPathHbSupport relEacPath = new AssociationAndComponentPathHbSupport();
 					relEacPath.setAacKey(aacKeyFromRoot);
 					relEacPath.setCompositeTypePath(new CompositeType[] {});
 					relEacPath.setCompType(null);
@@ -317,7 +319,7 @@ public abstract class HbObjPersistenceSupportBase implements ObjPersistenceSuppo
 
 					aacKeyFromRoot = new AssociationAndComponentPathKey(ownerRootClass, prpName);
 
-					AssociationAndComponentPathObjPersistenceSupport relEacPath = new AssociationAndComponentPathObjPersistenceSupport();
+					AssociationAndComponentPathHbSupport relEacPath = new AssociationAndComponentPathHbSupport();
 					relEacPath.setAacKey(aacKeyFromRoot);
 					relEacPath.setCompositeTypePath(new CompositeType[] {});
 					relEacPath.setCompType(null);
@@ -329,7 +331,7 @@ public abstract class HbObjPersistenceSupportBase implements ObjPersistenceSuppo
 			}
 		}
 		for (AssociationAndComponentPathKey key : this.associationAndCompositiesMap.keySet()) {
-			AssociationAndComponentPathObjPersistenceSupport aacPath = this.associationAndCompositiesMap.get(key);
+			AssociationAndComponentPathHbSupport aacPath = this.associationAndCompositiesMap.get(key);
 			if (aacPath.getCompType() != null) {
 				Class<?> compositeClass = this.associationAndCompositiesMap.get(key).getCompType().getReturnedClass();
 				this.compositiesSet.add(compositeClass);
@@ -343,7 +345,7 @@ public abstract class HbObjPersistenceSupportBase implements ObjPersistenceSuppo
 	}
 
 	@Override
-	public void init() {
+	public void init(IPlayerManagerImplementor playerManagerImplementor) {
 		this.associationAndCompositiesMap.clear();
 		this.collectAssociationAndCompositiesMap();
 	}
@@ -431,10 +433,14 @@ public abstract class HbObjPersistenceSupportBase implements ObjPersistenceSuppo
 
 	@Override
 	public boolean isCollectionRelationship(Class<?> ownerClass, String pathFromOwner) {
-		AssociationAndComponentPathKey aacKey = new AssociationAndComponentPathKey(ownerClass, pathFromOwner);
-		if (this.associationAndCompositiesMap.containsKey(aacKey)) {
-			AssociationAndComponentPathObjPersistenceSupport aacPath = this.associationAndCompositiesMap.get(aacKey);
-			return aacPath.getCollType() != null;
+		if (pathFromOwner != null) {
+			AssociationAndComponentPathKey aacKey = new AssociationAndComponentPathKey(ownerClass, pathFromOwner);
+			if (this.associationAndCompositiesMap.containsKey(aacKey)) {
+				AssociationAndComponentPathHbSupport aacPath = this.associationAndCompositiesMap.get(aacKey);
+				return aacPath.getCollType() != null;
+			} else {
+				return false;
+			}
 		} else {
 			return false;
 		}
@@ -442,12 +448,16 @@ public abstract class HbObjPersistenceSupportBase implements ObjPersistenceSuppo
 
 	@Override
 	public boolean isManyToOneRelationship(Class<?> ownerClass, String pathFromOwner) {
-		AssociationAndComponentPathKey aacKey = new AssociationAndComponentPathKey(ownerClass, pathFromOwner);
-		AssociationAndComponentPathObjPersistenceSupport entityAndComponentPath = this.associationAndCompositiesMap.get(aacKey);
-		if (entityAndComponentPath != null) {
-			return entityAndComponentPath.getRelEntity() != null;
+		if (pathFromOwner != null) {
+			AssociationAndComponentPathKey aacKey = new AssociationAndComponentPathKey(ownerClass, pathFromOwner);
+			AssociationAndComponentPathHbSupport entityAndComponentPath = this.associationAndCompositiesMap.get(aacKey);
+			if (entityAndComponentPath != null) {
+				return entityAndComponentPath.getRelEntity() != null;
+			} else {
+				return false;	
+			}
 		} else {
-			return false;			
+			return false;	
 		}
 	}
 
@@ -470,9 +480,9 @@ public abstract class HbObjPersistenceSupportBase implements ObjPersistenceSuppo
 
 	@Override
 	public boolean isComponentByTrack(AssociationAndComponentTrackInfo aacTrackInfo) {
-		AssociationAndComponentPathObjPersistenceSupport aacOnPath = this.associationAndCompositiesMap.get(aacTrackInfo);
-		if (aacTrackInfo.getEntityAndComponentPath() instanceof AssociationAndComponentPathObjPersistenceSupport) {
-			return ((AssociationAndComponentPathObjPersistenceSupport)aacTrackInfo.getEntityAndComponentPath()).getCollType() != null;
+		AssociationAndComponentPathHbSupport aacOnPath = this.associationAndCompositiesMap.get(aacTrackInfo);
+		if (aacTrackInfo.getEntityAndComponentPath() instanceof AssociationAndComponentPathHbSupport) {
+			return ((AssociationAndComponentPathHbSupport)aacTrackInfo.getEntityAndComponentPath()).getCollType() != null;
 		} else {
 			throw new RuntimeException("This should not happen. prpType: ");
 		}
@@ -566,16 +576,16 @@ public abstract class HbObjPersistenceSupportBase implements ObjPersistenceSuppo
 		this.getCurrentSession().save(entity);		
 	}
 	
-	public Object[] getRawKeyValues(ObjectMapper objectMapper, String stringifiedObjectid) {
+	public Object[] getRawKeyValues(ObjectMapper objectMapper, String stringifiedObjectId) {
 		HbObjectIdForStringify hbObjectIdForStringify;
 		try {
-			hbObjectIdForStringify = objectMapper.readValue(stringifiedObjectid, HbObjectIdForStringify.class);
+			hbObjectIdForStringify = objectMapper.readValue(stringifiedObjectId, HbObjectIdForStringify.class);
 		} catch (JsonParseException e1) {
-			throw new RuntimeException("This should not happen. stringifiedObjectid: " + stringifiedObjectid, e1);
+			throw new RuntimeException("This should not happen. stringifiedObjectId: " + stringifiedObjectId, e1);
 		} catch (JsonMappingException e1) {
-			throw new RuntimeException("This should not happen. stringifiedObjectid: " + stringifiedObjectid, e1);
+			throw new RuntimeException("This should not happen. stringifiedObjectId: " + stringifiedObjectId, e1);
 		} catch (IOException e1) {
-			throw new RuntimeException("This should not happen. stringifiedObjectid: " + stringifiedObjectid, e1);
+			throw new RuntimeException("This should not happen. stringifiedObjectId: " + stringifiedObjectId, e1);
 		}
 		ArrayList<Object> rawObjValueList = new ArrayList();
 		for (int i = 0; i < hbObjectIdForStringify.getRawKeyTypeNames().length; i++) {
@@ -644,6 +654,10 @@ public abstract class HbObjPersistenceSupportBase implements ObjPersistenceSuppo
 		hbObjectIdForStringify.setRawKeyValues(rawValueList.toArray(hbObjectIdForStringify.getRawKeyValues()));
 		hbObjectIdForStringify.setRawKeyTypeNames(rawTypeList.toArray(hbObjectIdForStringify.getRawKeyTypeNames()));
 		
-		return manager.getConfig().getObjectMapper().writeValueAsString(hbObjectIdForStringify);
+		try {
+			return manager.getConfig().getObjectMapper().writeValueAsString(hbObjectIdForStringify);
+		} catch (JsonProcessingException e) {
+			throw new RuntimeException("This should not happen. ", e);
+		}
 	}
 }

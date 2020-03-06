@@ -32,10 +32,9 @@ import org.apache.commons.beanutils.PropertyUtils;
 import org.apache.commons.codec.binary.Base64;
 //import org.hibernate.metadata.ClassMetadata;
 import org.hibernate.proxy.HibernateProxy;
-//import org.hibernate.type.Type;
-import org.jsonplayback.hbsupport.Hb3Support;
-import org.jsonplayback.hbsupport.Hb4Support;
-import org.jsonplayback.hbsupport.Hb5Support;
+import org.jsonplayback.hibernate.Hb3Support;
+import org.jsonplayback.hibernate.Hb4Support;
+import org.jsonplayback.hibernate.Hb5Support;
 import org.jsonplayback.player.IDirectRawWriter;
 import org.jsonplayback.player.IDirectRawWriterWrapper;
 import org.jsonplayback.player.IPlayerConfig;
@@ -131,7 +130,7 @@ public class PlayerManagerDefault implements IPlayerManagerImplementor {
 		if (logger.isDebugEnabled()) {
 			logger.debug("init()");
 		}
-		this.getObjPersistenceSupport().init();
+		this.getObjPersistenceSupport().init(this);
 		this.initialed = true;
 		return this;
 	}
@@ -424,7 +423,7 @@ public class PlayerManagerDefault implements IPlayerManagerImplementor {
 			logger.trace(MessageFormat.format("getBySignature(). Begin. \nsignatureBean:\n{0}", signature));
 		}
 		//Object idValue = this.getObjPersistenceSupport().getIdValue(signature.getClazz(), signature.getRawKeyValues());
-		Object idValue = this.getObjPersistenceSupport().parseObjectid(this, signature.getClazz(), signature.getStringifiedObjectId());
+		Object idValue = this.getObjPersistenceSupport().parseObjectId(this, signature.getClazz(), signature.getStringifiedObjectId());
 		Object owner = this.getObjPersistenceSupport().getById(signature.getClazz(), idValue);
 		Object result = owner;
 

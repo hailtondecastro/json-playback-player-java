@@ -1,4 +1,4 @@
-package org.jsonplayback.hbsupport;
+package org.jsonplayback.hibernate;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -12,7 +12,7 @@ import org.jsonplayback.player.implementation.AssociationAndComponentPath;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-public class AssociationAndComponentPathObjPersistenceSupport extends AssociationAndComponentPath {
+public class AssociationAndComponentPathHbSupport extends AssociationAndComponentPath {
 	private CompositeType[] compositeTypePath;
 	private CollectionType collType;
 	private CompositeType compType;	

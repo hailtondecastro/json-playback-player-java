@@ -1,4 +1,4 @@
-package org.jsonplayback.hbsupport;
+package org.jsonplayback.hibernate;
 
 public enum CollectionStyle {
 	SET,

@@ -6,6 +6,7 @@ import java.util.Set;
 import org.hibernate.SessionFactory;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.introspect.BasicClassIntrospector;
 
 public interface IPlayerConfig {
 	List<IGetBySignatureListener> getListeners();
@@ -22,6 +23,8 @@ public interface IPlayerConfig {
 	IPlayerConfig configObjPersistenceSupport(ObjPersistenceSupport objPersistenceSupport);
 
 	IPlayerConfig configSerialiseBySignatureAllRelationship(boolean serialiseBySignatureAllRelationship);
+	
+	IPlayerConfig configBasicClassIntrospector(BasicClassIntrospector basicClassIntrospector);
 
 	boolean isSerialiseBySignatureAllRelationship();
 	
@@ -34,6 +37,8 @@ public interface IPlayerConfig {
 	Set<Class> getNonLazybleClasses();
 
 	String getPlayerMetadatasName();
+	
+	BasicClassIntrospector getBasicClassIntrospector();
 
 	IPlayerConfig configPlayerMetadatasName(String playerMetadatasName);
 

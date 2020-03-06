@@ -8,10 +8,10 @@ import javax.transaction.NotSupportedException;
 
 import org.hibernate.SessionFactory;
 import org.hsqldb.jdbc.JDBCDataSource;
-import org.jsonplayback.hbsupport.Hb3Support;
-import org.jsonplayback.hbsupport.Hb4Support;
-import org.jsonplayback.hbsupport.Hb5Support;
-import org.jsonplayback.hbsupport.JpaSupport;
+import org.jsonplayback.hibernate.Hb3Support;
+import org.jsonplayback.hibernate.Hb4Support;
+import org.jsonplayback.hibernate.Hb5Support;
+import org.jsonplayback.jpa.JpaSupport;
 import org.jsonplayback.player.IPlayerConfig;
 import org.jsonplayback.player.IPlayerManager;
 import org.jsonplayback.player.ObjPersistenceMode;
@@ -371,7 +371,7 @@ public class TestServiceConfigBase {
 		module.setSerializerModifier(modifier);
 		ObjectMapper mapperOriginal = mappingJackson2HttpMessageConverter.getObjectMapper();
 		ObjectMapper mapperNovo = builder.build();
-		mapperNovo.setConfig(mapperNovo.getSerializationConfig().with(new PlayerBasicClassIntrospector()));
+		mapperNovo.setConfig(mapperNovo.getSerializationConfig().with(manager.getConfig().getBasicClassIntrospector()));
 		mapperNovo.enable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
 		mapperNovo.enable(SerializationFeature.WRITE_DATE_KEYS_AS_TIMESTAMPS);
 		if (mapperOriginal != mapperNovo) {
