@@ -5,5 +5,5 @@ public enum ObjPersistenceMode {
 	HB4,
 	HB5,
 	JPA,
-	CUSTOMIZED
+	CUSTOMIZED_PERSISTENCE
 }

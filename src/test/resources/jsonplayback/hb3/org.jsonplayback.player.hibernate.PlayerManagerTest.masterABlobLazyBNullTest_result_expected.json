@@ -3,7 +3,7 @@
     "$metadatas$" : {
       "$iAmPlayerMetadatas$" : true,
       "$id$" : 1,
-      "$signature$" : "eyJjbGF6ek5hbWUiOiJvcmcuanNvbnBsYXliYWNrLnBsYXllci5oaWJlcm5hdGUuZW50aXRpZXMuTWFzdGVyQUVudCIsInJhd0tleVZhbHVlcyI6WyIxIl0sInJhd0tleVR5cGVOYW1lcyI6WyJqYXZhLmxhbmcuSW50ZWdlciJdfQ",
+      "$signature$" : "eyJjbGF6ek5hbWUiOiJvcmcuanNvbnBsYXliYWNrLnBsYXllci5oaWJlcm5hdGUuZW50aXRpZXMuTWFzdGVyQUVudCIsInN0cmluZ2lmaWVkT2JqZWN0SWQiOiJ7XCJyYXdLZXlWYWx1ZXNcIjpbXCIxXCJdLFwicmF3S2V5VHlwZU5hbWVzXCI6W1wiamF2YS5sYW5nLkludGVnZXJcIl19In0",
       "$playerObjectId$" : 1
     },
     "id" : 1,
@@ -17,7 +17,7 @@
     "detailAEntCol" : {
       "$metadatas$" : {
         "$iAmPlayerMetadatas$" : true,
-        "$signature$" : "eyJjbGF6ek5hbWUiOiJvcmcuanNvbnBsYXliYWNrLnBsYXllci5oaWJlcm5hdGUuZW50aXRpZXMuTWFzdGVyQUVudCIsImlzQ29sbCI6dHJ1ZSwicHJvcGVydHlOYW1lIjoiZGV0YWlsQUVudENvbCIsInJhd0tleVZhbHVlcyI6WyIxIl0sInJhd0tleVR5cGVOYW1lcyI6WyJqYXZhLmxhbmcuSW50ZWdlciJdfQ",
+        "$signature$" : "eyJjbGF6ek5hbWUiOiJvcmcuanNvbnBsYXliYWNrLnBsYXllci5oaWJlcm5hdGUuZW50aXRpZXMuTWFzdGVyQUVudCIsImlzQ29sbCI6dHJ1ZSwicHJvcGVydHlOYW1lIjoiZGV0YWlsQUVudENvbCIsInN0cmluZ2lmaWVkT2JqZWN0SWQiOiJ7XCJyYXdLZXlWYWx1ZXNcIjpbXCIxXCJdLFwicmF3S2V5VHlwZU5hbWVzXCI6W1wiamF2YS5sYW5nLkludGVnZXJcIl19In0",
         "$isLazyUninitialized$" : true,
         "$isAssociative$" : true
       }

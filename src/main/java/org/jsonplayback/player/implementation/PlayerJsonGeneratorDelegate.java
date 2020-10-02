@@ -55,6 +55,11 @@ public class PlayerJsonGeneratorDelegate extends JsonGeneratorDelegate {
 		} else if (this.manager.getIdByObjectMap().containsKey(new IdentityRefKey(forValue))) {
 			throw new RuntimeException(MessageFormat.format("Serializing an object that has been serialized and referenced. {0}: {1}", this.manager.getIdByObjectMap().get(forValue), forValue));
 		} else {
+			PlayerBeanPropertyWriter currPropertyWriter = null;
+			if (this.manager.getPlayerBeanPropertyWriterStepStack().size() > 0) {
+				currPropertyWriter = this.manager.getPlayerBeanPropertyWriterStepStack().peek();
+			}
+			
 			this.manager.currIdPlusPlus();
 			this.manager.getObjectByIdMap().put(this.manager.getCurrId(), forValue);
 			this.manager.getIdByObjectMap().put(new IdentityRefKey(forValue), this.manager.getCurrId());
@@ -66,7 +71,8 @@ public class PlayerJsonGeneratorDelegate extends JsonGeneratorDelegate {
 			PlayerMetadatas backendMetadatas = new PlayerMetadatas();
 			backendMetadatas.setId(this.manager.getCurrId());
 			
-			if (this.manager.isPersistentClass(forValue.getClass()) && !this.manager.isNeverSigned(forValue.getClass())) {
+			//if (this.manager.isPersistentClass(forValue.getClass()) && !this.manager.isNeverSigned(forValue.getClass())) {
+			if (this.manager.isPersistentClass(forValue.getClass())) {
 				SignatureBean signatureBean = this.manager.generateSignature(forValue);
 				String signatureStr = this.manager.serializeSignature(signatureBean);
 				if (logger.isTraceEnabled()) {
@@ -75,7 +81,7 @@ public class PlayerJsonGeneratorDelegate extends JsonGeneratorDelegate {
 							"backendMetadatas.signature", signatureStr));
 				}
 				backendMetadatas.setSignature(signatureStr);
-				if (this.manager.getPlayerBeanPropertyWriterStepStack().size() > 0) {
+				if (currPropertyWriter != null) {
 					if (logger.isTraceEnabled()) {
 						logger.trace(MessageFormat.format(
 								"Intercepting com.fasterxml.jackson.core.JsonGenerator.writeStartObject(Object). It is an associative class property. Setting \"{0}\": \"{1}\"",
@@ -86,13 +92,23 @@ public class PlayerJsonGeneratorDelegate extends JsonGeneratorDelegate {
 				this.manager.getPlayerJsonSerializerStepStack().peek().findPlayerObjectId(forValue, this, serializers, backendMetadatas);
 			} else {
 				AssociationAndComponentTrackInfo aacTrackInfo = this.manager.getCurrentAssociationAndComponentTrackInfo();
-				if (aacTrackInfo != null && !this.manager.isNeverSigned(forValue.getClass())) {
-					SignatureBean signatureBean = this.manager.generateComponentSignature(aacTrackInfo);
-					String signatureStr = this.manager.serializeSignature(signatureBean);
+				//if (aacTrackInfo != null && !this.manager.isNeverSigned(forValue.getClass())) {
+				if (aacTrackInfo != null) {
+					String signatureStr = null;
+					if (currPropertyWriter != null
+							&& !currPropertyWriter.isMetadatasPlayerObjectId()
+							&& !currPropertyWriter.getIsPlayerObjectId()) {
+						SignatureBean signatureBean = this.manager.generateComponentSignature(aacTrackInfo);
+						signatureStr = this.manager.serializeSignature(signatureBean);
+						backendMetadatas.setSignature(signatureStr);						
+					}
+					backendMetadatas.setIsComponent(true);
 					if (logger.isTraceEnabled()) {
 						if (logger.isTraceEnabled()) {
 							Map<String, Object> anyLogMap = new LinkedHashMap<>();
-							anyLogMap.put("backendMetadatas.signature", signatureStr);
+							if (signatureStr != null) {
+								anyLogMap.put("backendMetadatas.signature", signatureStr);								
+							}
 							anyLogMap.put("backendMetadatas.isComponent", true);
 							String jsonLogMsg = this.generateJsonStringForLog(anyLogMap);
 							jsonLogMsg = jsonLogMsg.substring(1, jsonLogMsg.length() - 1);
@@ -106,8 +122,6 @@ public class PlayerJsonGeneratorDelegate extends JsonGeneratorDelegate {
 						}
 						
 					}
-					backendMetadatas.setSignature(signatureStr);
-					backendMetadatas.setIsComponent(true);
 					this.manager.getPlayerJsonSerializerStepStack().peek().findPlayerObjectId(forValue, this, serializers, backendMetadatas);
 				} else {
 				}

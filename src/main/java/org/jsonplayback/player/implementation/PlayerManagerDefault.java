@@ -104,20 +104,22 @@ public class PlayerManagerDefault implements IPlayerManagerImplementor {
 			logger.debug(MessageFormat.format("configure.  config:\n{0}", config));
 		}
 		this.config = config;
-		this.hibernateVersion = getObjPersistenceModeStatic();
+		this.objPersistenceMode = getObjPersistenceModeStatic();
 		
-		if (this.hibernateVersion.equals(ObjPersistenceMode.HB3)) {
+		if (this.objPersistenceMode.equals(ObjPersistenceMode.HB3)) {
 			this.objPersistenceSupport = config.getObjPersistenceSupport();
-		} else if (this.hibernateVersion.equals(ObjPersistenceMode.HB4)) {
+		} else if (this.objPersistenceMode.equals(ObjPersistenceMode.HB4)) {
 			this.objPersistenceSupport = config.getObjPersistenceSupport();
-		} else if (this.hibernateVersion.equals(ObjPersistenceMode.HB5)) {
+		} else if (this.objPersistenceMode.equals(ObjPersistenceMode.HB5)) {
 			this.objPersistenceSupport = config.getObjPersistenceSupport();
-		} else if (this.hibernateVersion.equals(ObjPersistenceMode.JPA)) {
+		} else if (this.objPersistenceMode.equals(ObjPersistenceMode.JPA)) {
+			this.objPersistenceSupport = config.getObjPersistenceSupport();
+		} else if (this.objPersistenceMode.equals(ObjPersistenceMode.CUSTOMIZED_PERSISTENCE)) {
 			this.objPersistenceSupport = config.getObjPersistenceSupport();
 		} else {
 			throw new RuntimeException(
-				"hibernate version not supported: " +
-				this.hibernateVersion +
+				"Object Persistent mode not supported: " +
+				this.objPersistenceMode +
 				". Colaborate, help us to support this hibernate version.");
 		}
 		return this;
@@ -448,11 +450,11 @@ public class PlayerManagerDefault implements IPlayerManagerImplementor {
 		return (T) result;
 	}
 
-	@SuppressWarnings("rawtypes")
-	@Override
-	public boolean isNeverSigned(Class clazz) {
-		return this.config.getNeverSignedClasses().contains(clazz);
-	}
+//	@SuppressWarnings("rawtypes")
+//	@Override
+//	public boolean isNeverSigned(Class clazz) {
+//		return this.config.getNeverSignedClasses().contains(clazz);
+//	}
 	
 	@SuppressWarnings("rawtypes")
 	@Override
@@ -928,9 +930,9 @@ public class PlayerManagerDefault implements IPlayerManagerImplementor {
 		return this.objPersistenceSupport;
 	}
 	
-	private ObjPersistenceMode hibernateVersion;
-	public ObjPersistenceMode getHibernateVersion() {
-		return this.hibernateVersion;
+	private ObjPersistenceMode objPersistenceMode;
+	public ObjPersistenceMode getObjPersistenceMode() {
+		return this.objPersistenceMode;
 	}
 	
 	public static ObjPersistenceMode getObjPersistenceModeStatic() {

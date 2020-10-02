@@ -171,10 +171,33 @@ public class PlayerBeanPropertyWriter extends BeanPropertyWriter {
 					PlayerMetadatas metadatas = (PlayerMetadatas) bean;
 					if (metadatas.getPlayerObjectId() != null) {
 						gen.writeFieldName(_name);
-						metadatas.getOriginalPlayerObjectIdPropertyWriter().serializeAsElement(
-								metadatas.getOriginalPlayerObjectIdOwner(), 
-								gen, 
-								prov);						
+						try {
+							if (logger.isTraceEnabled()) {
+								logger.trace(
+									"Serialization 'playerObjectId' from 'metadatas':\n" +
+									this +
+									"\n" +
+									"I'm getting the PlayerBeanPropertyWriter from the 'original object id':\n" +
+									metadatas.getOriginalPlayerObjectIdPropertyWriter() + "\n" +
+									"I'm regisrering the 'owner of original object id' as owner of 'playerObjectId' from 'metadatas'");
+							}
+							metadatas
+								.getOriginalPlayerObjectIdPropertyWriter()
+									.getCurrOwnerStackTL()
+										.get()
+											.push(metadatas.getOriginalPlayerObjectIdOwner());
+							metadatas.getOriginalPlayerObjectIdPropertyWriter().serializeAsElement(
+									metadatas.getOriginalPlayerObjectIdOwner(), 
+									gen, 
+									prov);						
+						} finally {
+							metadatas
+								.getOriginalPlayerObjectIdPropertyWriter()
+									.getCurrOwnerStackTL()
+										.get()
+											.pop();				
+						}
+						
 					}
 				}
 			} else {

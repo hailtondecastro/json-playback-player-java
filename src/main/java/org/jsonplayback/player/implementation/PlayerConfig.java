@@ -86,7 +86,7 @@ public class PlayerConfig implements IPlayerConfig, Cloneable {
 
 	@Override
 	public IPlayerConfig configNeverSignedClasses(Set<Class> neverSignedClasses) {
-		this.neverSignedClasses = neverSignedClasses;
+		//this.neverSignedClasses = neverSignedClasses;
 		return this;
 	}
 
@@ -114,7 +114,6 @@ public class PlayerConfig implements IPlayerConfig, Cloneable {
 
 	@Override
 	public Set<Class> getNeverSignedClasses() {
-		// TODO Auto-generated method stub
 		return this.neverSignedClasses;
 	}
 
@@ -146,7 +145,7 @@ public class PlayerConfig implements IPlayerConfig, Cloneable {
 			thisAsMap.put("listeners", listenersList);
 			thisAsMap.put("sessionFactory", this.getObjPersistenceSupport() != null? this.getObjPersistenceSupport().getClass(): "null");
 			thisAsMap.put("signatureCrypto", this.getSignatureCrypto()!= null? this.getSignatureCrypto().getClass(): "null");
-			thisAsMap.put("neverSignedClasses", this.getNeverSignedClasses());
+			//thisAsMap.put("neverSignedClasses", this.getNeverSignedClasses());
 			thisAsMap.put("playerMetadatasName", this.getPlayerMetadatasName());
 			thisAsMap.put("nonLazybleClasses", this.getNonLazybleClasses());
 			return objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(thisAsMap);

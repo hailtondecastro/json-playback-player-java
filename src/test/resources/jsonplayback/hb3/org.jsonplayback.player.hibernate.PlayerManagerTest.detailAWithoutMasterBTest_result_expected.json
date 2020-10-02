@@ -3,7 +3,7 @@
     "$metadatas$" : {
       "$iAmPlayerMetadatas$" : true,
       "$id$" : 1,
-      "$signature$" : "eyJjbGF6ek5hbWUiOiJvcmcuanNvbnBsYXliYWNrLnBsYXllci5oaWJlcm5hdGUuZW50aXRpZXMuTWFzdGVyQUVudCIsInJhd0tleVZhbHVlcyI6WyIxIl0sInJhd0tleVR5cGVOYW1lcyI6WyJqYXZhLmxhbmcuSW50ZWdlciJdfQ",
+      "$signature$" : "eyJjbGF6ek5hbWUiOiJvcmcuanNvbnBsYXliYWNrLnBsYXllci5oaWJlcm5hdGUuZW50aXRpZXMuTWFzdGVyQUVudCIsInN0cmluZ2lmaWVkT2JqZWN0SWQiOiJ7XCJyYXdLZXlWYWx1ZXNcIjpbXCIxXCJdLFwicmF3S2V5VHlwZU5hbWVzXCI6W1wiamF2YS5sYW5nLkludGVnZXJcIl19In0",
       "$playerObjectId$" : 1
     },
     "id" : 1,
@@ -18,7 +18,7 @@
       "$metadatas$" : {
         "$iAmPlayerMetadatas$" : true,
         "$id$" : 2,
-        "$signature$" : "eyJjbGF6ek5hbWUiOiJvcmcuanNvbnBsYXliYWNrLnBsYXllci5oaWJlcm5hdGUuZW50aXRpZXMuRGV0YWlsQUVudCIsInJhd0tleVZhbHVlcyI6WyIxIiwiMCJdLCJyYXdLZXlUeXBlTmFtZXMiOlsiamF2YS5sYW5nLkludGVnZXIiLCJqYXZhLmxhbmcuSW50ZWdlciJdfQ",
+        "$signature$" : "eyJjbGF6ek5hbWUiOiJvcmcuanNvbnBsYXliYWNrLnBsYXllci5oaWJlcm5hdGUuZW50aXRpZXMuRGV0YWlsQUVudCIsInN0cmluZ2lmaWVkT2JqZWN0SWQiOiJ7XCJyYXdLZXlWYWx1ZXNcIjpbXCIxXCIsXCIwXCJdLFwicmF3S2V5VHlwZU5hbWVzXCI6W1wiamF2YS5sYW5nLkludGVnZXJcIixcImphdmEubGFuZy5JbnRlZ2VyXCJdfSJ9",
         "$isAssociative$" : true,
         "$playerObjectId$" : {
           "$metadatas$" : {
@@ -47,21 +47,21 @@
         "$metadatas$" : {
           "$iAmPlayerMetadatas$" : true,
           "$id$" : 4,
-          "$signature$" : "eyJjbGF6ek5hbWUiOiJvcmcuanNvbnBsYXliYWNrLnBsYXllci5oaWJlcm5hdGUuZW50aXRpZXMuRGV0YWlsQUVudCIsImlzQ29tcCI6dHJ1ZSwicHJvcGVydHlOYW1lIjoiZGV0YWlsQUNvbXAiLCJyYXdLZXlWYWx1ZXMiOlsiMSIsIjAiXSwicmF3S2V5VHlwZU5hbWVzIjpbImphdmEubGFuZy5JbnRlZ2VyIiwiamF2YS5sYW5nLkludGVnZXIiXX0",
+          "$signature$" : "eyJjbGF6ek5hbWUiOiJvcmcuanNvbnBsYXliYWNrLnBsYXllci5oaWJlcm5hdGUuZW50aXRpZXMuRGV0YWlsQUVudCIsImlzQ29tcCI6dHJ1ZSwicHJvcGVydHlOYW1lIjoiZGV0YWlsQUNvbXAiLCJzdHJpbmdpZmllZE9iamVjdElkIjoie1wicmF3S2V5VmFsdWVzXCI6W1wiMVwiLFwiMFwiXSxcInJhd0tleVR5cGVOYW1lc1wiOltcImphdmEubGFuZy5JbnRlZ2VyXCIsXCJqYXZhLmxhbmcuSW50ZWdlclwiXX0ifQ",
           "$isComponent$" : true
         },
         "detailACompComp" : {
           "$metadatas$" : {
             "$iAmPlayerMetadatas$" : true,
             "$id$" : 5,
-            "$signature$" : "eyJjbGF6ek5hbWUiOiJvcmcuanNvbnBsYXliYWNrLnBsYXllci5oaWJlcm5hdGUuZW50aXRpZXMuRGV0YWlsQUVudCIsImlzQ29tcCI6dHJ1ZSwicHJvcGVydHlOYW1lIjoiZGV0YWlsQUNvbXAuZGV0YWlsQUNvbXBDb21wIiwicmF3S2V5VmFsdWVzIjpbIjEiLCIwIl0sInJhd0tleVR5cGVOYW1lcyI6WyJqYXZhLmxhbmcuSW50ZWdlciIsImphdmEubGFuZy5JbnRlZ2VyIl19",
+            "$signature$" : "eyJjbGF6ek5hbWUiOiJvcmcuanNvbnBsYXliYWNrLnBsYXllci5oaWJlcm5hdGUuZW50aXRpZXMuRGV0YWlsQUVudCIsImlzQ29tcCI6dHJ1ZSwicHJvcGVydHlOYW1lIjoiZGV0YWlsQUNvbXAuZGV0YWlsQUNvbXBDb21wIiwic3RyaW5naWZpZWRPYmplY3RJZCI6IntcInJhd0tleVZhbHVlc1wiOltcIjFcIixcIjBcIl0sXCJyYXdLZXlUeXBlTmFtZXNcIjpbXCJqYXZhLmxhbmcuSW50ZWdlclwiLFwiamF2YS5sYW5nLkludGVnZXJcIl19In0",
             "$isComponent$" : true
           },
           "masterB" : {
             "$metadatas$" : {
               "$iAmPlayerMetadatas$" : true,
               "$id$" : 6,
-              "$signature$" : "eyJjbGF6ek5hbWUiOiJvcmcuanNvbnBsYXliYWNrLnBsYXllci5oaWJlcm5hdGUuZW50aXRpZXMuTWFzdGVyQkVudCIsInJhd0tleVZhbHVlcyI6WyIxIiwiMSJdLCJyYXdLZXlUeXBlTmFtZXMiOlsiamF2YS5sYW5nLkludGVnZXIiLCJqYXZhLmxhbmcuSW50ZWdlciJdfQ",
+              "$signature$" : "eyJjbGF6ek5hbWUiOiJvcmcuanNvbnBsYXliYWNrLnBsYXllci5oaWJlcm5hdGUuZW50aXRpZXMuTWFzdGVyQkVudCIsInN0cmluZ2lmaWVkT2JqZWN0SWQiOiJ7XCJyYXdLZXlWYWx1ZXNcIjpbXCIxXCIsXCIxXCJdLFwicmF3S2V5VHlwZU5hbWVzXCI6W1wiamF2YS5sYW5nLkludGVnZXJcIixcImphdmEubGFuZy5JbnRlZ2VyXCJdfSJ9",
               "$isLazyUninitialized$" : true,
               "$isAssociative$" : true,
               "$playerObjectId$" : {
@@ -86,7 +86,7 @@
       "$metadatas$" : {
         "$iAmPlayerMetadatas$" : true,
         "$id$" : 8,
-        "$signature$" : "eyJjbGF6ek5hbWUiOiJvcmcuanNvbnBsYXliYWNrLnBsYXllci5oaWJlcm5hdGUuZW50aXRpZXMuRGV0YWlsQUVudCIsInJhd0tleVZhbHVlcyI6WyIxIiwiMSJdLCJyYXdLZXlUeXBlTmFtZXMiOlsiamF2YS5sYW5nLkludGVnZXIiLCJqYXZhLmxhbmcuSW50ZWdlciJdfQ",
+        "$signature$" : "eyJjbGF6ek5hbWUiOiJvcmcuanNvbnBsYXliYWNrLnBsYXllci5oaWJlcm5hdGUuZW50aXRpZXMuRGV0YWlsQUVudCIsInN0cmluZ2lmaWVkT2JqZWN0SWQiOiJ7XCJyYXdLZXlWYWx1ZXNcIjpbXCIxXCIsXCIxXCJdLFwicmF3S2V5VHlwZU5hbWVzXCI6W1wiamF2YS5sYW5nLkludGVnZXJcIixcImphdmEubGFuZy5JbnRlZ2VyXCJdfSJ9",
         "$isAssociative$" : true,
         "$playerObjectId$" : {
           "$metadatas$" : {
@@ -115,7 +115,7 @@
         "$metadatas$" : {
           "$iAmPlayerMetadatas$" : true,
           "$id$" : 10,
-          "$signature$" : "eyJjbGF6ek5hbWUiOiJvcmcuanNvbnBsYXliYWNrLnBsYXllci5oaWJlcm5hdGUuZW50aXRpZXMuRGV0YWlsQUVudCIsImlzQ29tcCI6dHJ1ZSwicHJvcGVydHlOYW1lIjoiZGV0YWlsQUNvbXAiLCJyYXdLZXlWYWx1ZXMiOlsiMSIsIjEiXSwicmF3S2V5VHlwZU5hbWVzIjpbImphdmEubGFuZy5JbnRlZ2VyIiwiamF2YS5sYW5nLkludGVnZXIiXX0",
+          "$signature$" : "eyJjbGF6ek5hbWUiOiJvcmcuanNvbnBsYXliYWNrLnBsYXllci5oaWJlcm5hdGUuZW50aXRpZXMuRGV0YWlsQUVudCIsImlzQ29tcCI6dHJ1ZSwicHJvcGVydHlOYW1lIjoiZGV0YWlsQUNvbXAiLCJzdHJpbmdpZmllZE9iamVjdElkIjoie1wicmF3S2V5VmFsdWVzXCI6W1wiMVwiLFwiMVwiXSxcInJhd0tleVR5cGVOYW1lc1wiOltcImphdmEubGFuZy5JbnRlZ2VyXCIsXCJqYXZhLmxhbmcuSW50ZWdlclwiXX0ifQ",
           "$isComponent$" : true
         },
         "masterB" : {
@@ -128,7 +128,7 @@
           "$metadatas$" : {
             "$iAmPlayerMetadatas$" : true,
             "$id$" : 11,
-            "$signature$" : "eyJjbGF6ek5hbWUiOiJvcmcuanNvbnBsYXliYWNrLnBsYXllci5oaWJlcm5hdGUuZW50aXRpZXMuRGV0YWlsQUVudCIsImlzQ29tcCI6dHJ1ZSwicHJvcGVydHlOYW1lIjoiZGV0YWlsQUNvbXAuZGV0YWlsQUNvbXBDb21wIiwicmF3S2V5VmFsdWVzIjpbIjEiLCIxIl0sInJhd0tleVR5cGVOYW1lcyI6WyJqYXZhLmxhbmcuSW50ZWdlciIsImphdmEubGFuZy5JbnRlZ2VyIl19",
+            "$signature$" : "eyJjbGF6ek5hbWUiOiJvcmcuanNvbnBsYXliYWNrLnBsYXllci5oaWJlcm5hdGUuZW50aXRpZXMuRGV0YWlsQUVudCIsImlzQ29tcCI6dHJ1ZSwicHJvcGVydHlOYW1lIjoiZGV0YWlsQUNvbXAuZGV0YWlsQUNvbXBDb21wIiwic3RyaW5naWZpZWRPYmplY3RJZCI6IntcInJhd0tleVZhbHVlc1wiOltcIjFcIixcIjFcIl0sXCJyYXdLZXlUeXBlTmFtZXNcIjpbXCJqYXZhLmxhbmcuSW50ZWdlclwiLFwiamF2YS5sYW5nLkludGVnZXJcIl19In0",
             "$isComponent$" : true
           },
           "masterB" : {
@@ -147,7 +147,7 @@
       "$metadatas$" : {
         "$iAmPlayerMetadatas$" : true,
         "$id$" : 12,
-        "$signature$" : "eyJjbGF6ek5hbWUiOiJvcmcuanNvbnBsYXliYWNrLnBsYXllci5oaWJlcm5hdGUuZW50aXRpZXMuRGV0YWlsQUVudCIsInJhd0tleVZhbHVlcyI6WyIxIiwiMiJdLCJyYXdLZXlUeXBlTmFtZXMiOlsiamF2YS5sYW5nLkludGVnZXIiLCJqYXZhLmxhbmcuSW50ZWdlciJdfQ",
+        "$signature$" : "eyJjbGF6ek5hbWUiOiJvcmcuanNvbnBsYXliYWNrLnBsYXllci5oaWJlcm5hdGUuZW50aXRpZXMuRGV0YWlsQUVudCIsInN0cmluZ2lmaWVkT2JqZWN0SWQiOiJ7XCJyYXdLZXlWYWx1ZXNcIjpbXCIxXCIsXCIyXCJdLFwicmF3S2V5VHlwZU5hbWVzXCI6W1wiamF2YS5sYW5nLkludGVnZXJcIixcImphdmEubGFuZy5JbnRlZ2VyXCJdfSJ9",
         "$isAssociative$" : true,
         "$playerObjectId$" : {
           "$metadatas$" : {
@@ -176,7 +176,7 @@
         "$metadatas$" : {
           "$iAmPlayerMetadatas$" : true,
           "$id$" : 14,
-          "$signature$" : "eyJjbGF6ek5hbWUiOiJvcmcuanNvbnBsYXliYWNrLnBsYXllci5oaWJlcm5hdGUuZW50aXRpZXMuRGV0YWlsQUVudCIsImlzQ29tcCI6dHJ1ZSwicHJvcGVydHlOYW1lIjoiZGV0YWlsQUNvbXAiLCJyYXdLZXlWYWx1ZXMiOlsiMSIsIjIiXSwicmF3S2V5VHlwZU5hbWVzIjpbImphdmEubGFuZy5JbnRlZ2VyIiwiamF2YS5sYW5nLkludGVnZXIiXX0",
+          "$signature$" : "eyJjbGF6ek5hbWUiOiJvcmcuanNvbnBsYXliYWNrLnBsYXllci5oaWJlcm5hdGUuZW50aXRpZXMuRGV0YWlsQUVudCIsImlzQ29tcCI6dHJ1ZSwicHJvcGVydHlOYW1lIjoiZGV0YWlsQUNvbXAiLCJzdHJpbmdpZmllZE9iamVjdElkIjoie1wicmF3S2V5VmFsdWVzXCI6W1wiMVwiLFwiMlwiXSxcInJhd0tleVR5cGVOYW1lc1wiOltcImphdmEubGFuZy5JbnRlZ2VyXCIsXCJqYXZhLmxhbmcuSW50ZWdlclwiXX0ifQ",
           "$isComponent$" : true
         },
         "masterB" : {
@@ -189,7 +189,7 @@
           "$metadatas$" : {
             "$iAmPlayerMetadatas$" : true,
             "$id$" : 15,
-            "$signature$" : "eyJjbGF6ek5hbWUiOiJvcmcuanNvbnBsYXliYWNrLnBsYXllci5oaWJlcm5hdGUuZW50aXRpZXMuRGV0YWlsQUVudCIsImlzQ29tcCI6dHJ1ZSwicHJvcGVydHlOYW1lIjoiZGV0YWlsQUNvbXAuZGV0YWlsQUNvbXBDb21wIiwicmF3S2V5VmFsdWVzIjpbIjEiLCIyIl0sInJhd0tleVR5cGVOYW1lcyI6WyJqYXZhLmxhbmcuSW50ZWdlciIsImphdmEubGFuZy5JbnRlZ2VyIl19",
+            "$signature$" : "eyJjbGF6ek5hbWUiOiJvcmcuanNvbnBsYXliYWNrLnBsYXllci5oaWJlcm5hdGUuZW50aXRpZXMuRGV0YWlsQUVudCIsImlzQ29tcCI6dHJ1ZSwicHJvcGVydHlOYW1lIjoiZGV0YWlsQUNvbXAuZGV0YWlsQUNvbXBDb21wIiwic3RyaW5naWZpZWRPYmplY3RJZCI6IntcInJhd0tleVZhbHVlc1wiOltcIjFcIixcIjJcIl0sXCJyYXdLZXlUeXBlTmFtZXNcIjpbXCJqYXZhLmxhbmcuSW50ZWdlclwiLFwiamF2YS5sYW5nLkludGVnZXJcIl19In0",
             "$isComponent$" : true
           },
           "masterB" : {

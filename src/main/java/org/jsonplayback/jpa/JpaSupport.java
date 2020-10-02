@@ -6,7 +6,6 @@ import java.io.Serializable;
 import java.lang.reflect.InvocationTargetException;
 import java.text.MessageFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -31,9 +30,6 @@ import javax.persistence.metamodel.Type;
 import javax.persistence.metamodel.Type.PersistenceType;
 
 import org.apache.commons.beanutils.PropertyUtils;
-import org.hibernate.annotations.ValueGenerationType;
-import org.hibernate.type.CompositeType;
-import org.jsonplayback.hibernate.AssociationAndComponentPathHbSupport;
 import org.jsonplayback.hibernate.CollectionStyle;
 import org.jsonplayback.player.IPlayerManager;
 import org.jsonplayback.player.ObjPersistenceSupport;
@@ -41,21 +37,14 @@ import org.jsonplayback.player.implementation.AssociationAndComponentPath;
 import org.jsonplayback.player.implementation.AssociationAndComponentPathKey;
 import org.jsonplayback.player.implementation.AssociationAndComponentTrackInfo;
 import org.jsonplayback.player.implementation.IPlayerManagerImplementor;
-import org.jsonplayback.player.implementation.PlayerBasicClassIntrospector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.BeanDescription;
 import com.fasterxml.jackson.databind.JsonMappingException;
-import com.fasterxml.jackson.databind.JsonSerializer;
-import com.fasterxml.jackson.databind.Module.SetupContext;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationConfig;
-import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.module.SimpleModule;
-import com.fasterxml.jackson.databind.ser.BeanSerializerModifier;
 
 public abstract class JpaSupport implements ObjPersistenceSupport {
 	private static Logger logger = LoggerFactory.getLogger(JpaSupport.class);

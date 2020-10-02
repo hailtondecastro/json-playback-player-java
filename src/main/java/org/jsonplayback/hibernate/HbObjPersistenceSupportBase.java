@@ -116,8 +116,12 @@ public abstract class HbObjPersistenceSupportBase implements ObjPersistenceSuppo
 	public abstract String getCollectionGetRole(Object coll);
 
 	@Override
-	public boolean isLazyUnitialized(Object hProxy) {
-		return ((HibernateProxy) hProxy).getHibernateLazyInitializer().isUninitialized();
+	public boolean isLazyUnitialized(Object entity) {
+		if (entity instanceof HibernateProxy) {
+			return ((HibernateProxy) entity).getHibernateLazyInitializer().isUninitialized();			
+		} else {
+			return false;
+		}
 	}
 
 //	@Override

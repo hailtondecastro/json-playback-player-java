@@ -26,8 +26,8 @@ public interface IPlayerManager {
 
 	<T> T getBySignature(SignatureBean signature);
 
-	@SuppressWarnings("rawtypes")
-	boolean isNeverSigned(Class clazz);
+//	@SuppressWarnings("rawtypes")
+//	boolean isNeverSigned(Class clazz);
 
 	Object getPlayerObjectId(Object object);
 
@@ -78,6 +78,6 @@ public interface IPlayerManager {
 	
 	<O> IPlayerManager registerComponentOwner(O owner, Function<O, ?> propertyFunc);
 	<O, T> IPlayerManager registerComponentOwner(Class<O> ownerClass, T targetOwned, Function<O, T> propertyFunc);
-	ObjPersistenceMode getHibernateVersion();
+	ObjPersistenceMode getObjPersistenceMode();
 }
 /*gerando conflito*/

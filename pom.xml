@@ -8,7 +8,7 @@
 	<artifactId>json-playback-player-java</artifactId>
 	<version>0.1.0-SNAPSHOT</version>
 	<packaging>jar</packaging>
-	<name>json-playback-player-hibernate</name>
+	<name>json-playback-player-java</name>
 	<description>Frameworks and APIs for exchanging/interoperation entity object graph states and their operations (changing fields, collections modifications, etc) between two software layers using json.</description>
 	<url>https://github.com/hailtondecastro/json-playback-player-hibernate</url>
 
@@ -43,8 +43,8 @@
 		<jsonplayback.hbversion4>4.3.11.Final</jsonplayback.hbversion4>
 		<jsonplayback.hbversion5>5.4.5.Final</jsonplayback.hbversion5>
 		<jsonplayback.hbversion6>6.0.0.Alpha2</jsonplayback.hbversion6>
-	</properties>
-
+	</properties>	
+	
 	<dependencies>
 		<dependency>
 			<groupId>com.fasterxml.jackson.core</groupId>
@@ -76,6 +76,8 @@
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
 			<version>4.12</version>
+			<!-- 
+			 -->
 			<scope>test</scope>
 		</dependency>
 		<dependency>
@@ -115,6 +117,8 @@
 			<version>${jsonplayback.springboot.version}</version>
 			<scope>test</scope>
 			<exclusions>
+			<!-- 
+			 -->
 				<exclusion>
 					<groupId>org.hibernate</groupId>
 					<artifactId>hibernate-core</artifactId>
@@ -138,6 +142,7 @@
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-logging</artifactId>
 			<version>${jsonplayback.springboot.version}</version>
+			<scope>test</scope>
 			<exclusions>
 				<exclusion>
 					<groupId>org.slf4j</groupId>
@@ -186,6 +191,7 @@
 			<groupId>org.jboss.logging</groupId>
 			<artifactId>jboss-logging-log4j</artifactId>
 			<version>2.2.0.CR1</version>
+			<scope>test</scope>
 			<exclusions>
 				<exclusion>
 					<groupId>apache-log4j</groupId>
@@ -310,11 +316,14 @@
 				<jsonplayback.spring.version>4.3.7.RELEASE</jsonplayback.spring.version>
 			</properties>
 			<dependencies>
+			<!-- 
+			 -->
 				<dependency>
 					<groupId>org.hibernate</groupId>
 					<artifactId>hibernate-core</artifactId>
 					<version>${jsonplayback.hbversion3}</version>
 					<optional>true</optional>
+					<scope>compile</scope>
 				</dependency>
 			</dependencies>
 		</profile>
@@ -326,11 +335,14 @@
 				<jsonplayback.spring.version>4.3.7.RELEASE</jsonplayback.spring.version>
 			</properties>
 			<dependencies>
+			<!-- 
+			 -->
 				<dependency>
 					<groupId>org.hibernate</groupId>
 					<artifactId>hibernate-core</artifactId>
 					<version>${jsonplayback.hbversion4}</version>
 					<optional>true</optional>
+					<scope>compile</scope>
 				</dependency>
 			</dependencies>
 		</profile>
@@ -342,10 +354,14 @@
 				<jsonplayback.spring.version>5.1.9.RELEASE</jsonplayback.spring.version>
 			</properties>
 			<dependencies>
+			<!-- 
+			 -->
 				<dependency>
 					<groupId>org.hibernate</groupId>
 					<artifactId>hibernate-core</artifactId>
 					<version>${jsonplayback.hbversion5}</version>
+					<optional>true</optional>
+					<scope>compile</scope>
 				</dependency>
 			</dependencies>
 		</profile>
@@ -357,25 +373,35 @@
 				<jsonplayback.spring.version>5.1.9.RELEASE</jsonplayback.spring.version>
 			</properties>
 			<dependencies>
+			<!-- 
+			 -->
 				<dependency>
 					<groupId>org.hibernate</groupId>
 					<artifactId>hibernate-core</artifactId>
 					<version>${jsonplayback.hbversion5}</version>
+					<optional>true</optional>
+					<scope>compile</scope>
 				</dependency>
 			</dependencies>			
 		</profile>
 		<profile>
-			<id>customized</id>
+			<id>customized-persistence</id>
 			<properties>
-				<jsonplayback.classifier>customized</jsonplayback.classifier>
+				<jsonplayback.classifier>customized-persistence</jsonplayback.classifier>
 				<jsonplayback.springboot.version>2.1.8.RELEASE</jsonplayback.springboot.version>
 				<jsonplayback.spring.version>5.1.9.RELEASE</jsonplayback.spring.version>
 			</properties>
 			<dependencies>
+			<!-- 
+			 -->
 				<dependency>
 					<groupId>org.hibernate</groupId>
 					<artifactId>hibernate-core</artifactId>
 					<version>${jsonplayback.hbversion5}</version>
+					<!-- 
+					 -->
+					<scope>compile</scope>
+					<optional>true</optional>
 				</dependency>
 			</dependencies>			
 		</profile>

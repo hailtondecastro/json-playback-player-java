@@ -35,6 +35,7 @@ import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.tool.hbm2ddl.SchemaExport;
 import org.jsonplayback.player.IPlayerManager;
+import org.jsonplayback.player.ObjPersistenceMode;
 import org.jsonplayback.player.ObjPersistenceSupport;
 import org.jsonplayback.player.PlayerSnapshot;
 import org.jsonplayback.player.SignatureBean;
@@ -50,6 +51,7 @@ import org.jsonplayback.player.hibernate.entities.MasterBEnt;
 import org.jsonplayback.player.hibernate.nonentities.DetailAWrapper;
 import org.jsonplayback.player.hibernate.nonentities.MasterAWrapper;
 import org.jsonplayback.player.implementation.IPlayerManagerImplementor;
+import org.jsonplayback.player.implementation.PlayerManagerDefault;
 import org.jsonplayback.player.util.ReflectionUtil;
 import org.jsonplayback.player.util.SqlLogInspetor;
 import org.jsonplayback.player.util.spring.orm.hibernate3.JpbSpringJUnit4ClassRunner;
@@ -521,7 +523,9 @@ public class PlayerManagerTest {
     		return this.applicationContext.getBean("&localSessionFactoryBean5");    		
     	} else if (this.applicationContext.containsBean("&localSessionFactoryBeanJpa")) {
     		return this.applicationContext.getBean("&localSessionFactoryBeanJpa");    		
-    	} else {
+    	} else if (this.applicationContext.containsBean("&localSessionFactoryBeanCustomizedPersistence")) {
+    		return this.applicationContext.getBean("&localSessionFactoryBeanCustomizedPersistence");    		
+    	}  else {
     		return null;
     	}
     }
@@ -536,11 +540,11 @@ public class PlayerManagerTest {
 		String generatedFileResult = "target/"+PlayerManagerTest.class.getName()+".masterATest_result_generated.json";
 		
 		TransactionTemplate transactionTemplate = new TransactionTemplate(this.transactionManager);
-		PlayerManagerTest.this.manager.startJsonWriteIntersept();
 		transactionTemplate.execute(new TransactionCallback<Object>() {
 
 			@Override
 			public Object doInTransaction(TransactionStatus arg0) {
+				PlayerManagerTest.this.manager.startJsonWriteIntersept();
 				//SchemaExport
 				
 				//Configuration hbConfiguration = PlayerManagerTest.this.localSessionFactoryBean.getConfiguration();
@@ -593,7 +597,7 @@ public class PlayerManagerTest {
 		BufferedReader brExpected = 
 			new BufferedReader(
 				new InputStreamReader(
-					classLoader.getResourceAsStream("jsonplayback/"+PlayerManagerTest.class.getName()+".masterATest_result_expected.json")
+					classLoader.getResourceAsStream(this.getResourceFolder()+"/"+PlayerManagerTest.class.getName()+".masterATest_result_expected.json")
 				)
 			);
 		BufferedReader brGenerated = 
@@ -624,11 +628,11 @@ public class PlayerManagerTest {
 					+ ".masterABlobLazyBNullTest_result_generated.json";
 
 			TransactionTemplate transactionTemplate = new TransactionTemplate(this.transactionManager);
-			PlayerManagerTest.this.manager.startJsonWriteIntersept();
 			transactionTemplate.execute(new TransactionCallback<Object>() {
 
 				@Override
 				public Object doInTransaction(TransactionStatus arg0) {
+					PlayerManagerTest.this.manager.startJsonWriteIntersept();
 					// SchemaExport
 
 					// Configuration hbConfiguration =
@@ -689,7 +693,7 @@ public class PlayerManagerTest {
 
 			ClassLoader classLoader = getClass().getClassLoader();
 			BufferedReader brExpected = new BufferedReader(
-					new InputStreamReader(classLoader.getResourceAsStream("jsonplayback/"
+					new InputStreamReader(classLoader.getResourceAsStream(this.getResourceFolder() + "/"
 							+ PlayerManagerTest.class.getName() + ".masterABlobLazyBNullTest_result_expected.json")));
 			BufferedReader brGenerated = new BufferedReader(
 					new InputStreamReader(new FileInputStream(generatedFileResult)));
@@ -719,12 +723,12 @@ public class PlayerManagerTest {
 			Session ss = this.sessionFactory.openSession();
 			String generatedFileResult = "target/"+PlayerManagerTest.class.getName()+".masterAList1000Test_result_generated.json";
 			TransactionTemplate transactionTemplate = new TransactionTemplate(this.transactionManager);
-			PlayerManagerTest.this.manager.startJsonWriteIntersept();
 			ObjPersistenceSupport objPersistenceSupport = ((IPlayerManagerImplementor)this.manager).getObjPersistenceSupport();
 			transactionTemplate.execute(new TransactionCallback<Object>() {
 				
 				@Override
 				public Object doInTransaction(TransactionStatus arg0) {
+					PlayerManagerTest.this.manager.startJsonWriteIntersept();
 					//SchemaExport
 					
 					//Configuration hbConfiguration = PlayerManagerTest.this.localSessionFactoryBean.getConfiguration();
@@ -771,7 +775,7 @@ public class PlayerManagerTest {
 			BufferedReader brExpected = 
 					new BufferedReader(
 							new InputStreamReader(
-									classLoader.getResourceAsStream("jsonplayback/"+PlayerManagerTest.class.getName()+".masterAList1000Test_result_expected.json")
+									classLoader.getResourceAsStream(this.getResourceFolder()+"/"+PlayerManagerTest.class.getName()+".masterAList1000Test_result_expected.json")
 									)
 							);
 			BufferedReader brGenerated = 
@@ -803,11 +807,11 @@ public class PlayerManagerTest {
 		Session ss = this.sessionFactory.openSession();
 		String generatedFileResult = "target/"+PlayerManagerTest.class.getName()+".masterAListFirstTwiceTest_result_generated.json";
 		TransactionTemplate transactionTemplate = new TransactionTemplate(this.transactionManager);
-		PlayerManagerTest.this.manager.startJsonWriteIntersept();
 		transactionTemplate.execute(new TransactionCallback<Object>() {
 
 			@Override
 			public Object doInTransaction(TransactionStatus arg0) {
+				PlayerManagerTest.this.manager.startJsonWriteIntersept();
 				//SchemaExport
 				
 				//Configuration hbConfiguration = PlayerManagerTest.this.localSessionFactoryBean.getConfiguration();
@@ -860,7 +864,7 @@ public class PlayerManagerTest {
 		BufferedReader brExpected = 
 			new BufferedReader(
 				new InputStreamReader(
-					classLoader.getResourceAsStream("jsonplayback/"+PlayerManagerTest.class.getName()+".masterAListFirstTwiceTest_result_expected.json")
+					classLoader.getResourceAsStream(this.getResourceFolder()+"/"+PlayerManagerTest.class.getName()+".masterAListFirstTwiceTest_result_expected.json")
 				)
 			);
 		BufferedReader brGenerated = 
@@ -947,7 +951,7 @@ public class PlayerManagerTest {
 		BufferedReader brExpected = 
 			new BufferedReader(
 				new InputStreamReader(
-					classLoader.getResourceAsStream("jsonplayback/"+PlayerManagerTest.class.getName()+".masterBList10Test_result_expected.json")
+					classLoader.getResourceAsStream(this.getResourceFolder()+"/"+PlayerManagerTest.class.getName()+".masterBList10Test_result_expected.json")
 				)
 			);
 		BufferedReader brGenerated = 
@@ -975,13 +979,13 @@ public class PlayerManagerTest {
 		Session ss = this.sessionFactory.openSession();
 		String generatedFileResult = "target/"+PlayerManagerTest.class.getName()+".detailACompIdList10Test_result_generated.json";
 		TransactionTemplate transactionTemplate = new TransactionTemplate(this.transactionManager);
-		PlayerManagerTest.this.manager.startJsonWriteIntersept();
 		ObjPersistenceSupport objPersistenceSupport = ((IPlayerManagerImplementor)this.manager).getObjPersistenceSupport();
 		
 		transactionTemplate.execute(new TransactionCallback<Object>() {
 
 			@Override
 			public Object doInTransaction(TransactionStatus arg0) {
+				PlayerManagerTest.this.manager.startJsonWriteIntersept();
 				//SchemaExport
 				
 				//Configuration hbConfiguration = PlayerManagerTest.this.localSessionFactoryBean.getConfiguration();
@@ -1042,7 +1046,7 @@ public class PlayerManagerTest {
 		BufferedReader brExpected = 
 			new BufferedReader(
 				new InputStreamReader(
-					classLoader.getResourceAsStream("jsonplayback/"+PlayerManagerTest.class.getName()+".detailACompIdList10Test_result_expected.json")
+					classLoader.getResourceAsStream(this.getResourceFolder()+"/"+PlayerManagerTest.class.getName()+".detailACompIdList10Test_result_expected.json")
 				)
 			);
 		BufferedReader brGenerated = 
@@ -1070,12 +1074,12 @@ public class PlayerManagerTest {
 		Session ss = this.sessionFactory.openSession();
 		String generatedFileResult = "target/"+PlayerManagerTest.class.getName()+".detailACompIdListDummyOwner10Test_result_generated.json";
 		TransactionTemplate transactionTemplate = new TransactionTemplate(this.transactionManager);
-		PlayerManagerTest.this.manager.startJsonWriteIntersept();
 		ObjPersistenceSupport objPersistenceSupport = ((IPlayerManagerImplementor)this.manager).getObjPersistenceSupport();
 		transactionTemplate.execute(new TransactionCallback<Object>() {
 
 			@Override
 			public Object doInTransaction(TransactionStatus arg0) {
+				PlayerManagerTest.this.manager.startJsonWriteIntersept();
 				//SchemaExport
 				
 				//Configuration hbConfiguration = PlayerManagerTest.this.localSessionFactoryBean.getConfiguration();
@@ -1136,7 +1140,7 @@ public class PlayerManagerTest {
 		BufferedReader brExpected = 
 			new BufferedReader(
 				new InputStreamReader(
-					classLoader.getResourceAsStream("jsonplayback/"+PlayerManagerTest.class.getName()+".detailACompIdListDummyOwner10Test_result_expected.json")
+					classLoader.getResourceAsStream(this.getResourceFolder()+"/"+PlayerManagerTest.class.getName()+".detailACompIdListDummyOwner10Test_result_expected.json")
 				)
 			);
 		BufferedReader brGenerated = 
@@ -1234,7 +1238,7 @@ public class PlayerManagerTest {
 		BufferedReader brExpected = 
 			new BufferedReader(
 				new InputStreamReader(
-					classLoader.getResourceAsStream("jsonplayback/"+PlayerManagerTest.class.getName()+".detailACompCompListDummyOwner10Test_result_expected.json")
+					classLoader.getResourceAsStream(this.getResourceFolder()+"/"+PlayerManagerTest.class.getName()+".detailACompCompListDummyOwner10Test_result_expected.json")
 				)
 			);
 		BufferedReader brGenerated = 
@@ -1330,7 +1334,7 @@ public class PlayerManagerTest {
 		BufferedReader brExpected = 
 			new BufferedReader(
 				new InputStreamReader(
-					classLoader.getResourceAsStream("jsonplayback/"+PlayerManagerTest.class.getName()+".detailACompCompList10Test_result_expected.json")
+					classLoader.getResourceAsStream(this.getResourceFolder()+"/"+PlayerManagerTest.class.getName()+".detailACompCompList10Test_result_expected.json")
 				)
 			);
 		BufferedReader brGenerated = 
@@ -1359,12 +1363,12 @@ public class PlayerManagerTest {
 		Session ss = this.sessionFactory.openSession();
 		String generatedFileResult = "target/"+PlayerManagerTest.class.getName()+".masterBList10BizarreTest_result_generated.json";
 		TransactionTemplate transactionTemplate = new TransactionTemplate(this.transactionManager);
-		PlayerManagerTest.this.manager.startJsonWriteIntersept();
 		ObjPersistenceSupport objPersistenceSupport = ((IPlayerManagerImplementor)this.manager).getObjPersistenceSupport();
 		transactionTemplate.execute(new TransactionCallback<Object>() {
 
 			@Override
 			public Object doInTransaction(TransactionStatus arg0) {
+				PlayerManagerTest.this.manager.startJsonWriteIntersept();
 				//SchemaExport
 				
 				//Configuration hbConfiguration = PlayerManagerTest.this.localSessionFactoryBean.getConfiguration();
@@ -1431,7 +1435,7 @@ public class PlayerManagerTest {
 		BufferedReader brExpected = 
 			new BufferedReader(
 				new InputStreamReader(
-					classLoader.getResourceAsStream("jsonplayback/"+PlayerManagerTest.class.getName()+".masterBList10BizarreTest_result_expected.json")
+					classLoader.getResourceAsStream(this.getResourceFolder()+"/"+PlayerManagerTest.class.getName()+".masterBList10BizarreTest_result_expected.json")
 				)
 			);
 		BufferedReader brGenerated = 
@@ -1453,8 +1457,6 @@ public class PlayerManagerTest {
 			Assert.assertThat("Line " + lineCount++, strLineGenerated, equalTo(strLineExpected));
 		}
 	}
-	
-	
 	
 	@Test
 	public void masterLazyPrpOverSizedTest() throws Exception {
@@ -1585,7 +1587,7 @@ public class PlayerManagerTest {
 			BufferedReader brExpected = 
 				new BufferedReader(
 					new InputStreamReader(
-						classLoader.getResourceAsStream("jsonplayback/"+PlayerManagerTest.class.getName()+".masterLazyPrpOverSizedTest_result_expected.json")
+						classLoader.getResourceAsStream(this.getResourceFolder()+"/"+PlayerManagerTest.class.getName()+".masterLazyPrpOverSizedTest_result_expected.json")
 					)
 				);
 			BufferedReader brGenerated = 
@@ -1681,7 +1683,7 @@ public class PlayerManagerTest {
 		BufferedReader brExpected = 
 			new BufferedReader(
 				new InputStreamReader(
-					classLoader.getResourceAsStream("jsonplayback/"+PlayerManagerTest.class.getName()+".masterADetailATest_result_expected.json")
+					classLoader.getResourceAsStream(this.getResourceFolder()+"/"+PlayerManagerTest.class.getName()+".masterADetailATest_result_expected.json")
 				)
 			);
 		BufferedReader brGenerated = 
@@ -1788,7 +1790,7 @@ public class PlayerManagerTest {
 		BufferedReader brExpected = 
 			new BufferedReader(
 				new InputStreamReader(
-					classLoader.getResourceAsStream("jsonplayback/"+PlayerManagerTest.class.getName()+".masterAWrapperTest_result_expected.json")
+					classLoader.getResourceAsStream(this.getResourceFolder()+"/"+PlayerManagerTest.class.getName()+".masterAWrapperTest_result_expected.json")
 				)
 			);
 		BufferedReader brGenerated = 
@@ -1877,7 +1879,7 @@ public class PlayerManagerTest {
 		BufferedReader brExpected = 
 			new BufferedReader(
 				new InputStreamReader(
-					classLoader.getResourceAsStream("jsonplayback/"+PlayerManagerTest.class.getName()+".detailAWithoutMasterBTest_result_expected.json")
+					classLoader.getResourceAsStream(this.getResourceFolder()+"/"+PlayerManagerTest.class.getName()+".detailAWithoutMasterBTest_result_expected.json")
 				)
 			);
 		BufferedReader brGenerated = 
@@ -1937,7 +1939,7 @@ public class PlayerManagerTest {
 										.clone()
 										.configSerialiseBySignatureAllRelationship(true));
 				
-				SignatureBean signatureBean = PlayerManagerTest.this.manager.deserializeSignature("eyJjbGF6ek5hbWUiOiJvcmcuanNvbnBsYXliYWNrLnBsYXllci5oaWJlcm5hdGUuZW50aXRpZXMuTWFzdGVyQUVudCIsImlzQ29sbCI6dHJ1ZSwicHJvcGVydHlOYW1lIjoiZGV0YWlsQUVudENvbCIsInJhd0tleVZhbHVlcyI6WyIxIl0sInJhd0tleVR5cGVOYW1lcyI6WyJqYXZhLmxhbmcuSW50ZWdlciJdfQ");
+				SignatureBean signatureBean = PlayerManagerTest.this.manager.deserializeSignature(PlayerManagerTest.this.getMasterAEntDetailAColKey0Sign());
 				Collection<DetailAEnt> detailAEntCol = PlayerManagerTest.this.manager.getBySignature(signatureBean);
 				PlayerSnapshot<Collection<DetailAEnt>> playerSnapshot = PlayerManagerTest.this.manager.createPlayerSnapshot(detailAEntCol);
 				
@@ -1970,7 +1972,7 @@ public class PlayerManagerTest {
 		BufferedReader brExpected = 
 			new BufferedReader(
 				new InputStreamReader(
-					classLoader.getResourceAsStream("jsonplayback/"+PlayerManagerTest.class.getName()+".detailABySigTest_result_expected.json")
+					classLoader.getResourceAsStream(this.getResourceFolder()+"/"+PlayerManagerTest.class.getName()+".detailABySigTest_result_expected.json")
 				)
 			);
 		BufferedReader brGenerated = 
@@ -2031,7 +2033,7 @@ public class PlayerManagerTest {
 										.clone()
 										.configSerialiseBySignatureAllRelationship(true));
 				
-				SignatureBean signatureBean = PlayerManagerTest.this.manager.deserializeSignature("eyJjbGF6ek5hbWUiOiJvcmcuanNvbnBsYXliYWNrLnBsYXllci5oaWJlcm5hdGUuZW50aXRpZXMuTWFzdGVyQUVudCIsImlzQ29sbCI6dHJ1ZSwicHJvcGVydHlOYW1lIjoiZGV0YWlsQUVudENvbCIsInJhd0tleVZhbHVlcyI6WyIxIl0sInJhd0tleVR5cGVOYW1lcyI6WyJqYXZhLmxhbmcuSW50ZWdlciJdfQ");
+				SignatureBean signatureBean = PlayerManagerTest.this.manager.deserializeSignature(PlayerManagerTest.this.getMasterAEntDetailAColKey0Sign());
 				Collection<DetailAEnt> detailAEntCol = PlayerManagerTest.this.manager.getBySignature(signatureBean);
 				ArrayList<DetailAEnt> detailAEntCuttedCol = new ArrayList<>();
 				detailAEntCuttedCol.add(new ArrayList<>(detailAEntCol).get(0));
@@ -2067,7 +2069,7 @@ public class PlayerManagerTest {
 		BufferedReader brExpected = 
 			new BufferedReader(
 				new InputStreamReader(
-					classLoader.getResourceAsStream("jsonplayback/"+PlayerManagerTest.class.getName()+".detailAFirstSecontTest_result_expected.json")
+					classLoader.getResourceAsStream(this.getResourceFolder()+"/"+PlayerManagerTest.class.getName()+".detailAFirstSecontTest_result_expected.json")
 				)
 			);
 		BufferedReader brGenerated = 
@@ -2127,7 +2129,7 @@ public class PlayerManagerTest {
 										.clone()
 										.configSerialiseBySignatureAllRelationship(true));
 				
-				SignatureBean signatureBean = PlayerManagerTest.this.manager.deserializeSignature("eyJjbGF6ek5hbWUiOiJvcmcuanNvbnBsYXliYWNrLnBsYXllci5oaWJlcm5hdGUuZW50aXRpZXMuTWFzdGVyQUVudCIsImlzQ29sbCI6dHJ1ZSwicHJvcGVydHlOYW1lIjoiZGV0YWlsQUVudENvbCIsInJhd0tleVZhbHVlcyI6WyIxIl0sInJhd0tleVR5cGVOYW1lcyI6WyJqYXZhLmxhbmcuSW50ZWdlciJdfQ");
+				SignatureBean signatureBean = PlayerManagerTest.this.manager.deserializeSignature(PlayerManagerTest.this.getMasterAEntDetailAColKey0Sign());
 				Collection<DetailAEnt> detailAEntCol = PlayerManagerTest.this.manager.getBySignature(signatureBean);
 				ArrayList<DetailAEnt> detailAEntCuttedCol = new ArrayList<>();
 				detailAEntCuttedCol.add(new ArrayList<>(detailAEntCol).get(1));
@@ -2163,7 +2165,7 @@ public class PlayerManagerTest {
 		BufferedReader brExpected = 
 			new BufferedReader(
 				new InputStreamReader(
-					classLoader.getResourceAsStream("jsonplayback/"+PlayerManagerTest.class.getName()+".detailASecontThirdTest_result_expected.json")
+					classLoader.getResourceAsStream(this.getResourceFolder()+"/"+PlayerManagerTest.class.getName()+".detailASecontThirdTest_result_expected.json")
 				)
 			);
 		BufferedReader brGenerated = 
@@ -2252,7 +2254,7 @@ public class PlayerManagerTest {
 		BufferedReader brExpected = 
 			new BufferedReader(
 				new InputStreamReader(
-					classLoader.getResourceAsStream("jsonplayback/"+PlayerManagerTest.class.getName()+".masterBTest_result_expected.json")
+					classLoader.getResourceAsStream(this.getResourceFolder()+"/"+PlayerManagerTest.class.getName()+".masterBTest_result_expected.json")
 				)
 			);
 		BufferedReader brGenerated = 
@@ -2281,16 +2283,15 @@ public class PlayerManagerTest {
 //		for (String keyCS : availableCharsetsMap.keySet()) {
 //			System.out.println(">>>>>>>: "+keyCS+"= "+ availableCharsetsMap.get(keyCS).displayName());
 //		}
-		
 		Session ss = this.sessionFactory.openSession();
 		String generatedFileResult = "target/"+PlayerManagerTest.class.getName()+".detailABySigTest_result_generated.json";
 			
 		TransactionTemplate transactionTemplate = new TransactionTemplate(this.transactionManager);
-		PlayerManagerTest.this.manager.startJsonWriteIntersept();
 		transactionTemplate.execute(new TransactionCallback<Object>() {
 
 			@Override
 			public Object doInTransaction(TransactionStatus arg0) {
+				PlayerManagerTest.this.manager.startJsonWriteIntersept();
 				//SchemaExport
 				
 				//Configuration hbConfiguration = PlayerManagerTest.this.localSessionFactoryBean.getConfiguration();
@@ -2298,22 +2299,22 @@ public class PlayerManagerTest {
 				SqlLogInspetor sqlLogInspetor = new SqlLogInspetor();
 				sqlLogInspetor.enable();
 								
-				SignatureBean signatureBean = PlayerManagerTest.this.manager.deserializeSignature("eyJjbGF6ek5hbWUiOiJvcmcuanNvbnBsYXliYWNrLnBsYXllci5oaWJlcm5hdGUuZW50aXRpZXMuTWFzdGVyQkVudCIsInJhd0tleVZhbHVlcyI6WyIxIiwiMSJdLCJyYXdLZXlUeXBlTmFtZXMiOlsiamF2YS5sYW5nLkludGVnZXIiLCJqYXZhLmxhbmcuSW50ZWdlciJdfQ");
+				SignatureBean signatureBean = PlayerManagerTest.this.manager.deserializeSignature(PlayerManagerTest.this.getMasterBEntKey1c1Sign());
 				MasterBEnt masterBEnt = PlayerManagerTest.this.manager.getBySignature(signatureBean);
 				
-				signatureBean = PlayerManagerTest.this.manager.deserializeSignature("eyJjbGF6ek5hbWUiOiJvcmcuanNvbnBsYXliYWNrLnBsYXllci5oaWJlcm5hdGUuZW50aXRpZXMuTWFzdGVyQUVudCIsImlzQ29sbCI6dHJ1ZSwicHJvcGVydHlOYW1lIjoiZGV0YWlsQUVudENvbCIsInJhd0tleVZhbHVlcyI6WyIxIl0sInJhd0tleVR5cGVOYW1lcyI6WyJqYXZhLmxhbmcuSW50ZWdlciJdfQ");
+				signatureBean = PlayerManagerTest.this.manager.deserializeSignature(PlayerManagerTest.this.getMasterAEntDetailAColKey0Sign());
 				Collection<DetailAEnt> detailAEntCol = PlayerManagerTest.this.manager.getBySignature(signatureBean);
 				
-				signatureBean = PlayerManagerTest.this.manager.deserializeSignature("eyJjbGF6ek5hbWUiOiJvcmcuanNvbnBsYXliYWNrLnBsYXllci5oaWJlcm5hdGUuZW50aXRpZXMuTWFzdGVyQkVudCIsImlzQ29tcCI6dHJ1ZSwicHJvcGVydHlOYW1lIjoibWFzdGVyQkNvbXAiLCJyYXdLZXlWYWx1ZXMiOlsiMSIsIjEiXSwicmF3S2V5VHlwZU5hbWVzIjpbImphdmEubGFuZy5JbnRlZ2VyIiwiamF2YS5sYW5nLkludGVnZXIiXX0");
+				signatureBean = PlayerManagerTest.this.manager.deserializeSignature(PlayerManagerTest.this.getMasterBEntMasterBCompKey1c1Sign());
 				MasterBComp masterBComp = PlayerManagerTest.this.manager.getBySignature(signatureBean);
 
-				signatureBean = PlayerManagerTest.this.manager.deserializeSignature("eyJjbGF6ek5hbWUiOiJvcmcuanNvbnBsYXliYWNrLnBsYXllci5oaWJlcm5hdGUuZW50aXRpZXMuTWFzdGVyQkVudCIsImlzQ29sbCI6dHJ1ZSwicHJvcGVydHlOYW1lIjoibWFzdGVyQkNvbXAuZGV0YWlsQUVudENvbCIsInJhd0tleVZhbHVlcyI6WyIxIiwiMSJdLCJyYXdLZXlUeXBlTmFtZXMiOlsiamF2YS5sYW5nLkludGVnZXIiLCJqYXZhLmxhbmcuSW50ZWdlciJdfQ");
+				signatureBean = PlayerManagerTest.this.manager.deserializeSignature(PlayerManagerTest.this.getMasterBEntMasterBCompDetailAEntColKey1c1Sign());
 				Collection<DetailAEnt> compDetailAEntCol = PlayerManagerTest.this.manager.getBySignature(signatureBean);
 
-				signatureBean = PlayerManagerTest.this.manager.deserializeSignature("eyJjbGF6ek5hbWUiOiJvcmcuanNvbnBsYXliYWNrLnBsYXllci5oaWJlcm5hdGUuZW50aXRpZXMuTWFzdGVyQkVudCIsImlzQ29tcCI6dHJ1ZSwicHJvcGVydHlOYW1lIjoibWFzdGVyQkNvbXAubWFzdGVyQkNvbXBDb21wIiwicmF3S2V5VmFsdWVzIjpbIjEiLCIxIl0sInJhd0tleVR5cGVOYW1lcyI6WyJqYXZhLmxhbmcuSW50ZWdlciIsImphdmEubGFuZy5JbnRlZ2VyIl19");
+				signatureBean = PlayerManagerTest.this.manager.deserializeSignature(PlayerManagerTest.this.getMasterBEntMasterBCompMasterBCompCompKey1c1Sign());
 				MasterBCompComp masterBCompComp = PlayerManagerTest.this.manager.getBySignature(signatureBean);				
 				
-				signatureBean = PlayerManagerTest.this.manager.deserializeSignature("eyJjbGF6ek5hbWUiOiJvcmcuanNvbnBsYXliYWNrLnBsYXllci5oaWJlcm5hdGUuZW50aXRpZXMuTWFzdGVyQkVudCIsImlzQ29sbCI6dHJ1ZSwicHJvcGVydHlOYW1lIjoibWFzdGVyQkNvbXAubWFzdGVyQkNvbXBDb21wLmRldGFpbEFFbnRDb2wiLCJyYXdLZXlWYWx1ZXMiOlsiMSIsIjEiXSwicmF3S2V5VHlwZU5hbWVzIjpbImphdmEubGFuZy5JbnRlZ2VyIiwiamF2YS5sYW5nLkludGVnZXIiXX0");
+				signatureBean = PlayerManagerTest.this.manager.deserializeSignature(PlayerManagerTest.this.getMasterBEntMasterBCompMasterBCompCompDetailAEntColKey1c1Sign());
 				Collection<DetailAEnt> compCompDetailAEntCol = PlayerManagerTest.this.manager.getBySignature(signatureBean);
 				
 				
@@ -2334,4 +2335,118 @@ public class PlayerManagerTest {
 		PlayerManagerTest.this.manager.stopJsonWriteIntersept();
 	}
 //eyJjbGF6ek5hbWUiOiJici5nb3Yuc2VycHJvLndlYmFuYWxpc2UuanNIYlN1cGVyU3luYy5lbnRpdGllcy5NYXN0ZXJCRW50IiwiaXNDb21wIjp0cnVlLCJwcm9wZXJ0eU5hbWUiOiJtYXN0ZXJCQ29tcCIsInJhd0tleVZhbHVlcyI6WyIxIiwiMSJdLCJyYXdLZXlUeXBlTmFtZXMiOlsiamF2YS5sYW5nLkludGVnZXIiLCJqYXZhLmxhbmcuSW50ZWdlciJdfQ
+	
+	
+	private String getMasterAEntDetailAColKey0Sign() {
+		if (PlayerManagerDefault.getObjPersistenceModeStatic() == ObjPersistenceMode.HB3) {
+			return "eyJjbGF6ek5hbWUiOiJvcmcuanNvbnBsYXliYWNrLnBsYXllci5oaWJlcm5hdGUuZW50aXRpZXMuTWFzdGVyQUVudCIsImlzQ29sbCI6dHJ1ZSwicHJvcGVydHlOYW1lIjoiZGV0YWlsQUVudENvbCIsInN0cmluZ2lmaWVkT2JqZWN0SWQiOiJ7XCJyYXdLZXlWYWx1ZXNcIjpbXCIwXCJdLFwicmF3S2V5VHlwZU5hbWVzXCI6W1wiamF2YS5sYW5nLkludGVnZXJcIl19In0";
+		} else if (PlayerManagerDefault.getObjPersistenceModeStatic() == ObjPersistenceMode.HB4) {
+			return "eyJjbGF6ek5hbWUiOiJvcmcuanNvbnBsYXliYWNrLnBsYXllci5oaWJlcm5hdGUuZW50aXRpZXMuTWFzdGVyQUVudCIsImlzQ29sbCI6dHJ1ZSwicHJvcGVydHlOYW1lIjoiZGV0YWlsQUVudENvbCIsInN0cmluZ2lmaWVkT2JqZWN0SWQiOiJ7XCJyYXdLZXlWYWx1ZXNcIjpbXCIwXCJdLFwicmF3S2V5VHlwZU5hbWVzXCI6W1wiamF2YS5sYW5nLkludGVnZXJcIl19In0";
+		} else if (PlayerManagerDefault.getObjPersistenceModeStatic() == ObjPersistenceMode.HB5) {
+			return "eyJjbGF6ek5hbWUiOiJvcmcuanNvbnBsYXliYWNrLnBsYXllci5oaWJlcm5hdGUuZW50aXRpZXMuTWFzdGVyQUVudCIsImlzQ29sbCI6dHJ1ZSwicHJvcGVydHlOYW1lIjoiZGV0YWlsQUVudENvbCIsInN0cmluZ2lmaWVkT2JqZWN0SWQiOiJ7XCJyYXdLZXlWYWx1ZXNcIjpbXCIwXCJdLFwicmF3S2V5VHlwZU5hbWVzXCI6W1wiamF2YS5sYW5nLkludGVnZXJcIl19In0";
+		} else if (PlayerManagerDefault.getObjPersistenceModeStatic() == ObjPersistenceMode.JPA) {
+			return "eyJjbGF6ek5hbWUiOiJvcmcuanNvbnBsYXliYWNrLnBsYXllci5oaWJlcm5hdGUuZW50aXRpZXMuTWFzdGVyQUVudCIsImlzQ29sbCI6dHJ1ZSwicHJvcGVydHlOYW1lIjoiZGV0YWlsQUVudENvbCIsInN0cmluZ2lmaWVkT2JqZWN0SWQiOiJ7XCJpZFwiOjB9In0";
+		} else if (PlayerManagerDefault.getObjPersistenceModeStatic() == ObjPersistenceMode.CUSTOMIZED_PERSISTENCE) {
+			return "eyJjbGF6ek5hbWUiOiJvcmcuanNvbnBsYXliYWNrLnBsYXllci5oaWJlcm5hdGUuZW50aXRpZXMuTWFzdGVyQUVudCIsImlzQ29sbCI6dHJ1ZSwicHJvcGVydHlOYW1lIjoiZGV0YWlsQUVudENvbCIsInN0cmluZ2lmaWVkT2JqZWN0SWQiOiJ7XCJpZFwiOjB9In0" + ObjPersistenceMode.CUSTOMIZED_PERSISTENCE;
+		} else {
+			throw new RuntimeException("This should not happen");
+		}
+	}
+
+	private String getMasterBEntKey1c1Sign() {
+		if (PlayerManagerDefault.getObjPersistenceModeStatic() == ObjPersistenceMode.HB3) {
+			return "eyJjbGF6ek5hbWUiOiJvcmcuanNvbnBsYXliYWNrLnBsYXllci5oaWJlcm5hdGUuZW50aXRpZXMuTWFzdGVyQkVudCIsInN0cmluZ2lmaWVkT2JqZWN0SWQiOiJ7XCJyYXdLZXlWYWx1ZXNcIjpbXCIxXCIsXCIxXCJdLFwicmF3S2V5VHlwZU5hbWVzXCI6W1wiamF2YS5sYW5nLkludGVnZXJcIixcImphdmEubGFuZy5JbnRlZ2VyXCJdfSJ9";
+		} else if (PlayerManagerDefault.getObjPersistenceModeStatic() == ObjPersistenceMode.HB4) {
+			return "eyJjbGF6ek5hbWUiOiJvcmcuanNvbnBsYXliYWNrLnBsYXllci5oaWJlcm5hdGUuZW50aXRpZXMuTWFzdGVyQkVudCIsInN0cmluZ2lmaWVkT2JqZWN0SWQiOiJ7XCJyYXdLZXlWYWx1ZXNcIjpbXCIxXCIsXCIxXCJdLFwicmF3S2V5VHlwZU5hbWVzXCI6W1wiamF2YS5sYW5nLkludGVnZXJcIixcImphdmEubGFuZy5JbnRlZ2VyXCJdfSJ9";
+		} else if (PlayerManagerDefault.getObjPersistenceModeStatic() == ObjPersistenceMode.HB5) {
+			return "eyJjbGF6ek5hbWUiOiJvcmcuanNvbnBsYXliYWNrLnBsYXllci5oaWJlcm5hdGUuZW50aXRpZXMuTWFzdGVyQkVudCIsInN0cmluZ2lmaWVkT2JqZWN0SWQiOiJ7XCJyYXdLZXlWYWx1ZXNcIjpbXCIxXCIsXCIxXCJdLFwicmF3S2V5VHlwZU5hbWVzXCI6W1wiamF2YS5sYW5nLkludGVnZXJcIixcImphdmEubGFuZy5JbnRlZ2VyXCJdfSJ9";
+		} else if (PlayerManagerDefault.getObjPersistenceModeStatic() == ObjPersistenceMode.JPA) {
+			return "eyJjbGF6ek5hbWUiOiJvcmcuanNvbnBsYXliYWNrLnBsYXllci5oaWJlcm5hdGUuZW50aXRpZXMuTWFzdGVyQkVudCIsInN0cmluZ2lmaWVkT2JqZWN0SWQiOiJ7XCJjb21wSWRcIjp7XCJpZEFcIjoxLFwiaWRCXCI6MX19In0";
+		} else if (PlayerManagerDefault.getObjPersistenceModeStatic() == ObjPersistenceMode.CUSTOMIZED_PERSISTENCE) {
+			return "eyJjbGF6ek5hbWUiOiJvcmcuanNvbnBsYXliYWNrLnBsYXllci5oaWJlcm5hdGUuZW50aXRpZXMuTWFzdGVyQkVudCIsInN0cmluZ2lmaWVkT2JqZWN0SWQiOiJ7XCJjb21wSWRcIjp7XCJpZEFcIjoxLFwiaWRCXCI6MX19In0"+ ObjPersistenceMode.CUSTOMIZED_PERSISTENCE;
+		} else {
+			throw new RuntimeException("This should not happen");
+		}
+	}
+
+	private String getMasterBEntMasterBCompKey1c1Sign() {
+		if (PlayerManagerDefault.getObjPersistenceModeStatic() == ObjPersistenceMode.HB3) {
+			return "eyJjbGF6ek5hbWUiOiJvcmcuanNvbnBsYXliYWNrLnBsYXllci5oaWJlcm5hdGUuZW50aXRpZXMuTWFzdGVyQkVudCIsImlzQ29tcCI6dHJ1ZSwicHJvcGVydHlOYW1lIjoibWFzdGVyQkNvbXAiLCJzdHJpbmdpZmllZE9iamVjdElkIjoie1wicmF3S2V5VmFsdWVzXCI6W1wiMVwiLFwiMVwiXSxcInJhd0tleVR5cGVOYW1lc1wiOltcImphdmEubGFuZy5JbnRlZ2VyXCIsXCJqYXZhLmxhbmcuSW50ZWdlclwiXX0ifQ";
+		} else if (PlayerManagerDefault.getObjPersistenceModeStatic() == ObjPersistenceMode.HB4) {
+			return "eyJjbGF6ek5hbWUiOiJvcmcuanNvbnBsYXliYWNrLnBsYXllci5oaWJlcm5hdGUuZW50aXRpZXMuTWFzdGVyQkVudCIsImlzQ29tcCI6dHJ1ZSwicHJvcGVydHlOYW1lIjoibWFzdGVyQkNvbXAiLCJzdHJpbmdpZmllZE9iamVjdElkIjoie1wicmF3S2V5VmFsdWVzXCI6W1wiMVwiLFwiMVwiXSxcInJhd0tleVR5cGVOYW1lc1wiOltcImphdmEubGFuZy5JbnRlZ2VyXCIsXCJqYXZhLmxhbmcuSW50ZWdlclwiXX0ifQ";
+		} else if (PlayerManagerDefault.getObjPersistenceModeStatic() == ObjPersistenceMode.HB5) {
+			return "eyJjbGF6ek5hbWUiOiJvcmcuanNvbnBsYXliYWNrLnBsYXllci5oaWJlcm5hdGUuZW50aXRpZXMuTWFzdGVyQkVudCIsImlzQ29tcCI6dHJ1ZSwicHJvcGVydHlOYW1lIjoibWFzdGVyQkNvbXAiLCJzdHJpbmdpZmllZE9iamVjdElkIjoie1wicmF3S2V5VmFsdWVzXCI6W1wiMVwiLFwiMVwiXSxcInJhd0tleVR5cGVOYW1lc1wiOltcImphdmEubGFuZy5JbnRlZ2VyXCIsXCJqYXZhLmxhbmcuSW50ZWdlclwiXX0ifQ";
+		} else if (PlayerManagerDefault.getObjPersistenceModeStatic() == ObjPersistenceMode.JPA) {
+			return "eyJjbGF6ek5hbWUiOiJvcmcuanNvbnBsYXliYWNrLnBsYXllci5oaWJlcm5hdGUuZW50aXRpZXMuTWFzdGVyQkVudCIsImlzQ29tcCI6dHJ1ZSwicHJvcGVydHlOYW1lIjoibWFzdGVyQkNvbXAiLCJzdHJpbmdpZmllZE9iamVjdElkIjoie1wiY29tcElkXCI6e1wiaWRBXCI6MSxcImlkQlwiOjF9fSJ9";	
+		} else if (PlayerManagerDefault.getObjPersistenceModeStatic() == ObjPersistenceMode.CUSTOMIZED_PERSISTENCE) {
+			return "eyJjbGF6ek5hbWUiOiJvcmcuanNvbnBsYXliYWNrLnBsYXllci5oaWJlcm5hdGUuZW50aXRpZXMuTWFzdGVyQkVudCIsImlzQ29tcCI6dHJ1ZSwicHJvcGVydHlOYW1lIjoibWFzdGVyQkNvbXAiLCJzdHJpbmdpZmllZE9iamVjdElkIjoie1wiY29tcElkXCI6e1wiaWRBXCI6MSxcImlkQlwiOjF9fSJ9" + ObjPersistenceMode.CUSTOMIZED_PERSISTENCE;
+		} else {
+			throw new RuntimeException("This should not happen");
+		}
+	}
+
+	private String getMasterBEntMasterBCompDetailAEntColKey1c1Sign() {
+		if (PlayerManagerDefault.getObjPersistenceModeStatic() == ObjPersistenceMode.HB3) {
+			return "eyJjbGF6ek5hbWUiOiJvcmcuanNvbnBsYXliYWNrLnBsYXllci5oaWJlcm5hdGUuZW50aXRpZXMuTWFzdGVyQkVudCIsImlzQ29sbCI6dHJ1ZSwicHJvcGVydHlOYW1lIjoibWFzdGVyQkNvbXAuZGV0YWlsQUVudENvbCIsInN0cmluZ2lmaWVkT2JqZWN0SWQiOiJ7XCJyYXdLZXlWYWx1ZXNcIjpbXCIxXCIsXCIxXCJdLFwicmF3S2V5VHlwZU5hbWVzXCI6W1wiamF2YS5sYW5nLkludGVnZXJcIixcImphdmEubGFuZy5JbnRlZ2VyXCJdfSJ9";
+		} else if (PlayerManagerDefault.getObjPersistenceModeStatic() == ObjPersistenceMode.HB4) {
+			return "eyJjbGF6ek5hbWUiOiJvcmcuanNvbnBsYXliYWNrLnBsYXllci5oaWJlcm5hdGUuZW50aXRpZXMuTWFzdGVyQkVudCIsImlzQ29sbCI6dHJ1ZSwicHJvcGVydHlOYW1lIjoibWFzdGVyQkNvbXAuZGV0YWlsQUVudENvbCIsInN0cmluZ2lmaWVkT2JqZWN0SWQiOiJ7XCJyYXdLZXlWYWx1ZXNcIjpbXCIxXCIsXCIxXCJdLFwicmF3S2V5VHlwZU5hbWVzXCI6W1wiamF2YS5sYW5nLkludGVnZXJcIixcImphdmEubGFuZy5JbnRlZ2VyXCJdfSJ9";
+		} else if (PlayerManagerDefault.getObjPersistenceModeStatic() == ObjPersistenceMode.HB5) {
+			return "eyJjbGF6ek5hbWUiOiJvcmcuanNvbnBsYXliYWNrLnBsYXllci5oaWJlcm5hdGUuZW50aXRpZXMuTWFzdGVyQkVudCIsImlzQ29sbCI6dHJ1ZSwicHJvcGVydHlOYW1lIjoibWFzdGVyQkNvbXAuZGV0YWlsQUVudENvbCIsInN0cmluZ2lmaWVkT2JqZWN0SWQiOiJ7XCJyYXdLZXlWYWx1ZXNcIjpbXCIxXCIsXCIxXCJdLFwicmF3S2V5VHlwZU5hbWVzXCI6W1wiamF2YS5sYW5nLkludGVnZXJcIixcImphdmEubGFuZy5JbnRlZ2VyXCJdfSJ9";
+		} else if (PlayerManagerDefault.getObjPersistenceModeStatic() == ObjPersistenceMode.JPA) {			
+			return "eyJjbGF6ek5hbWUiOiJvcmcuanNvbnBsYXliYWNrLnBsYXllci5oaWJlcm5hdGUuZW50aXRpZXMuTWFzdGVyQkVudCIsImlzQ29sbCI6dHJ1ZSwicHJvcGVydHlOYW1lIjoibWFzdGVyQkNvbXAuZGV0YWlsQUVudENvbCIsInN0cmluZ2lmaWVkT2JqZWN0SWQiOiJ7XCJjb21wSWRcIjp7XCJpZEFcIjoxLFwiaWRCXCI6MX19In0";
+		} else if (PlayerManagerDefault.getObjPersistenceModeStatic() == ObjPersistenceMode.CUSTOMIZED_PERSISTENCE) {
+			return "eyJjbGF6ek5hbWUiOiJvcmcuanNvbnBsYXliYWNrLnBsYXllci5oaWJlcm5hdGUuZW50aXRpZXMuTWFzdGVyQkVudCIsImlzQ29sbCI6dHJ1ZSwicHJvcGVydHlOYW1lIjoibWFzdGVyQkNvbXAuZGV0YWlsQUVudENvbCIsInN0cmluZ2lmaWVkT2JqZWN0SWQiOiJ7XCJjb21wSWRcIjp7XCJpZEFcIjoxLFwiaWRCXCI6MX19In0" + ObjPersistenceMode.CUSTOMIZED_PERSISTENCE;
+		} else {
+			throw new RuntimeException("This should not happen");
+		}
+	}
+
+	private String getMasterBEntMasterBCompMasterBCompCompKey1c1Sign() {
+		if (PlayerManagerDefault.getObjPersistenceModeStatic() == ObjPersistenceMode.HB3) {
+			return "eyJjbGF6ek5hbWUiOiJvcmcuanNvbnBsYXliYWNrLnBsYXllci5oaWJlcm5hdGUuZW50aXRpZXMuTWFzdGVyQkVudCIsImlzQ29tcCI6dHJ1ZSwicHJvcGVydHlOYW1lIjoibWFzdGVyQkNvbXAubWFzdGVyQkNvbXBDb21wIiwic3RyaW5naWZpZWRPYmplY3RJZCI6IntcInJhd0tleVZhbHVlc1wiOltcIjFcIixcIjFcIl0sXCJyYXdLZXlUeXBlTmFtZXNcIjpbXCJqYXZhLmxhbmcuSW50ZWdlclwiLFwiamF2YS5sYW5nLkludGVnZXJcIl19In0";
+		} else if (PlayerManagerDefault.getObjPersistenceModeStatic() == ObjPersistenceMode.HB4) {
+			return "eyJjbGF6ek5hbWUiOiJvcmcuanNvbnBsYXliYWNrLnBsYXllci5oaWJlcm5hdGUuZW50aXRpZXMuTWFzdGVyQkVudCIsImlzQ29tcCI6dHJ1ZSwicHJvcGVydHlOYW1lIjoibWFzdGVyQkNvbXAubWFzdGVyQkNvbXBDb21wIiwic3RyaW5naWZpZWRPYmplY3RJZCI6IntcInJhd0tleVZhbHVlc1wiOltcIjFcIixcIjFcIl0sXCJyYXdLZXlUeXBlTmFtZXNcIjpbXCJqYXZhLmxhbmcuSW50ZWdlclwiLFwiamF2YS5sYW5nLkludGVnZXJcIl19In0";
+		} else if (PlayerManagerDefault.getObjPersistenceModeStatic() == ObjPersistenceMode.HB5) {
+			return "eyJjbGF6ek5hbWUiOiJvcmcuanNvbnBsYXliYWNrLnBsYXllci5oaWJlcm5hdGUuZW50aXRpZXMuTWFzdGVyQkVudCIsImlzQ29tcCI6dHJ1ZSwicHJvcGVydHlOYW1lIjoibWFzdGVyQkNvbXAubWFzdGVyQkNvbXBDb21wIiwic3RyaW5naWZpZWRPYmplY3RJZCI6IntcInJhd0tleVZhbHVlc1wiOltcIjFcIixcIjFcIl0sXCJyYXdLZXlUeXBlTmFtZXNcIjpbXCJqYXZhLmxhbmcuSW50ZWdlclwiLFwiamF2YS5sYW5nLkludGVnZXJcIl19In0";
+		} else if (PlayerManagerDefault.getObjPersistenceModeStatic() == ObjPersistenceMode.JPA) {
+			return "eyJjbGF6ek5hbWUiOiJvcmcuanNvbnBsYXliYWNrLnBsYXllci5oaWJlcm5hdGUuZW50aXRpZXMuTWFzdGVyQkVudCIsImlzQ29tcCI6dHJ1ZSwicHJvcGVydHlOYW1lIjoibWFzdGVyQkNvbXAubWFzdGVyQkNvbXBDb21wIiwic3RyaW5naWZpZWRPYmplY3RJZCI6IntcImNvbXBJZFwiOntcImlkQVwiOjEsXCJpZEJcIjoxfX0ifQ";
+		} else if (PlayerManagerDefault.getObjPersistenceModeStatic() == ObjPersistenceMode.CUSTOMIZED_PERSISTENCE) {
+			return "eyJjbGF6ek5hbWUiOiJvcmcuanNvbnBsYXliYWNrLnBsYXllci5oaWJlcm5hdGUuZW50aXRpZXMuTWFzdGVyQkVudCIsImlzQ29tcCI6dHJ1ZSwicHJvcGVydHlOYW1lIjoibWFzdGVyQkNvbXAubWFzdGVyQkNvbXBDb21wIiwic3RyaW5naWZpZWRPYmplY3RJZCI6IntcImNvbXBJZFwiOntcImlkQVwiOjEsXCJpZEJcIjoxfX0ifQ"+ ObjPersistenceMode.CUSTOMIZED_PERSISTENCE;
+		} else {
+			throw new RuntimeException("This should not happen");
+		}	
+	}
+
+	private String getMasterBEntMasterBCompMasterBCompCompDetailAEntColKey1c1Sign() {
+		if (PlayerManagerDefault.getObjPersistenceModeStatic() == ObjPersistenceMode.HB3) {
+			return "eyJjbGF6ek5hbWUiOiJvcmcuanNvbnBsYXliYWNrLnBsYXllci5oaWJlcm5hdGUuZW50aXRpZXMuTWFzdGVyQkVudCIsImlzQ29sbCI6dHJ1ZSwicHJvcGVydHlOYW1lIjoibWFzdGVyQkNvbXAubWFzdGVyQkNvbXBDb21wLmRldGFpbEFFbnRDb2wiLCJzdHJpbmdpZmllZE9iamVjdElkIjoie1wicmF3S2V5VmFsdWVzXCI6W1wiMVwiLFwiMVwiXSxcInJhd0tleVR5cGVOYW1lc1wiOltcImphdmEubGFuZy5JbnRlZ2VyXCIsXCJqYXZhLmxhbmcuSW50ZWdlclwiXX0ifQ";
+		} else if (PlayerManagerDefault.getObjPersistenceModeStatic() == ObjPersistenceMode.HB4) {
+			return "eyJjbGF6ek5hbWUiOiJvcmcuanNvbnBsYXliYWNrLnBsYXllci5oaWJlcm5hdGUuZW50aXRpZXMuTWFzdGVyQkVudCIsImlzQ29sbCI6dHJ1ZSwicHJvcGVydHlOYW1lIjoibWFzdGVyQkNvbXAubWFzdGVyQkNvbXBDb21wLmRldGFpbEFFbnRDb2wiLCJzdHJpbmdpZmllZE9iamVjdElkIjoie1wicmF3S2V5VmFsdWVzXCI6W1wiMVwiLFwiMVwiXSxcInJhd0tleVR5cGVOYW1lc1wiOltcImphdmEubGFuZy5JbnRlZ2VyXCIsXCJqYXZhLmxhbmcuSW50ZWdlclwiXX0ifQ";
+		} else if (PlayerManagerDefault.getObjPersistenceModeStatic() == ObjPersistenceMode.HB5) {
+			return "eyJjbGF6ek5hbWUiOiJvcmcuanNvbnBsYXliYWNrLnBsYXllci5oaWJlcm5hdGUuZW50aXRpZXMuTWFzdGVyQkVudCIsImlzQ29sbCI6dHJ1ZSwicHJvcGVydHlOYW1lIjoibWFzdGVyQkNvbXAubWFzdGVyQkNvbXBDb21wLmRldGFpbEFFbnRDb2wiLCJzdHJpbmdpZmllZE9iamVjdElkIjoie1wicmF3S2V5VmFsdWVzXCI6W1wiMVwiLFwiMVwiXSxcInJhd0tleVR5cGVOYW1lc1wiOltcImphdmEubGFuZy5JbnRlZ2VyXCIsXCJqYXZhLmxhbmcuSW50ZWdlclwiXX0ifQ";
+		} else if (PlayerManagerDefault.getObjPersistenceModeStatic() == ObjPersistenceMode.JPA) {
+			return "eyJjbGF6ek5hbWUiOiJvcmcuanNvbnBsYXliYWNrLnBsYXllci5oaWJlcm5hdGUuZW50aXRpZXMuTWFzdGVyQkVudCIsImlzQ29sbCI6dHJ1ZSwicHJvcGVydHlOYW1lIjoibWFzdGVyQkNvbXAubWFzdGVyQkNvbXBDb21wLmRldGFpbEFFbnRDb2wiLCJzdHJpbmdpZmllZE9iamVjdElkIjoie1wiY29tcElkXCI6e1wiaWRBXCI6MSxcImlkQlwiOjF9fSJ9";
+		} else if (PlayerManagerDefault.getObjPersistenceModeStatic() == ObjPersistenceMode.CUSTOMIZED_PERSISTENCE) {
+			return "eyJjbGF6ek5hbWUiOiJvcmcuanNvbnBsYXliYWNrLnBsYXllci5oaWJlcm5hdGUuZW50aXRpZXMuTWFzdGVyQkVudCIsImlzQ29sbCI6dHJ1ZSwicHJvcGVydHlOYW1lIjoibWFzdGVyQkNvbXAubWFzdGVyQkNvbXBDb21wLmRldGFpbEFFbnRDb2wiLCJzdHJpbmdpZmllZE9iamVjdElkIjoie1wiY29tcElkXCI6e1wiaWRBXCI6MSxcImlkQlwiOjF9fSJ9" + ObjPersistenceMode.CUSTOMIZED_PERSISTENCE;
+		} else {
+			throw new RuntimeException("This should not happen");
+		}
+	}
+	
+	private String getResourceFolder() {
+		if (PlayerManagerDefault.getObjPersistenceModeStatic() == ObjPersistenceMode.HB3) {
+			return "jsonplayback/hb3";
+		} else if (PlayerManagerDefault.getObjPersistenceModeStatic() == ObjPersistenceMode.HB4) {
+			return "jsonplayback/hb3";
+		} else if (PlayerManagerDefault.getObjPersistenceModeStatic() == ObjPersistenceMode.HB5) {
+			return "jsonplayback/hb3";
+		} else if (PlayerManagerDefault.getObjPersistenceModeStatic() == ObjPersistenceMode.JPA) {
+			return "jsonplayback/jpa";
+		} else if (PlayerManagerDefault.getObjPersistenceModeStatic() == ObjPersistenceMode.CUSTOMIZED_PERSISTENCE) {
+			return "jsonplayback/customized-persistence";
+		} else {
+			throw new RuntimeException("This should not happen");
+		}
+		
+	}
 }

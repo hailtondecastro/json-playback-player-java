@@ -16,6 +16,7 @@ import org.jsonplayback.player.IPlayerConfig;
 import org.jsonplayback.player.IPlayerManager;
 import org.jsonplayback.player.ObjPersistenceMode;
 import org.jsonplayback.player.PlayerSnapshot;
+import org.jsonplayback.player.SignatureBean;
 import org.jsonplayback.player.hibernate.entities.DetailAEnt;
 import org.jsonplayback.player.hibernate.entities.MasterAEnt;
 import org.jsonplayback.player.hibernate.entities.MasterBEnt;
@@ -25,6 +26,7 @@ import org.jsonplayback.player.implementation.PlayerBeanSerializerModifier;
 import org.jsonplayback.player.implementation.PlayerConfig;
 import org.jsonplayback.player.implementation.PlayerManagerDefault;
 import org.jsonplayback.player.implementation.PlayerSnapshotSerializer;
+import org.jsonplayback.player.spring.context.annotation.OnCustomizedPersistence;
 import org.jsonplayback.player.spring.context.annotation.OnHibernate3;
 import org.jsonplayback.player.spring.context.annotation.OnHibernate4;
 import org.jsonplayback.player.spring.context.annotation.OnHibernate5;
@@ -111,7 +113,7 @@ public class TestServiceConfigBase {
     @SuppressWarnings("deprecation")
 	@Bean("localSessionFactoryBean3")
 	@Conditional(OnHibernate3.class)
-    public Object getSessionFactoryBean3() {
+    public Object getSessionFactoryBeanHb3() {
     //public LocalSessionFactoryBean getSessionFactoryBean3() {
     	JDBCDataSource dataSource = new JDBCDataSource();
     	dataSource.setURL("jdbc:hsqldb:mem:js-hb-supersync?hsqldb.sqllog=3");
@@ -129,9 +131,9 @@ public class TestServiceConfigBase {
 			localSessionFactoryBean,
 			new Object[]{
 				new String[]{
-					"jsonplayback/MasterAEnt.hbm.xml",
-					"jsonplayback/MasterBEnt.hbm.xml",
-					"jsonplayback/DetailAEnt.hbm.xml"
+					"jsonplayback"+"/MasterAEnt.hbm.xml",
+					"jsonplayback"+"/MasterBEnt.hbm.xml",
+					"jsonplayback"+"/DetailAEnt.hbm.xml"
 				}
 			}
 		);
@@ -164,7 +166,7 @@ public class TestServiceConfigBase {
  
     @Bean("localSessionFactoryBean4")
 	@Conditional(OnHibernate4.class)
-    public Object getSessionFactoryBean4() {
+    public Object getSessionFactoryBeanHb4() {
     //public org.springframework.orm.hibernate4.LocalSessionFactoryBean getSessionFactoryBean4() {
     	JDBCDataSource dataSource = new JDBCDataSource();
     	dataSource.setURL("jdbc:hsqldb:mem:js-hb-supersync?hsqldb.sqllog=3");
@@ -241,7 +243,31 @@ public class TestServiceConfigBase {
 
     @Bean("localSessionFactoryBeanJpa")
 	@Conditional(OnJpa.class)
-    public org.springframework.orm.hibernate5.LocalSessionFactoryBean getSessionFactoryBean6() {
+    public org.springframework.orm.hibernate5.LocalSessionFactoryBean getSessionFactoryBeanJpa() {
+    	
+    	JDBCDataSource dataSource = new JDBCDataSource();
+    	dataSource.setURL("jdbc:hsqldb:mem:js-hb-supersync?hsqldb.sqllog=3");
+    	//CustomLocalSessionFactoryBean customLocalSessionFactoryBean = new CustomLocalSessionFactoryBean();
+    	org.springframework.orm.hibernate5.LocalSessionFactoryBean localSessionFactoryBean = new org.springframework.orm.hibernate5.LocalSessionFactoryBean();
+    	localSessionFactoryBean.setDataSource(dataSource);
+    	localSessionFactoryBean.setAnnotatedClasses(new Class<?>[]{
+    		MasterAEnt.class,
+    		MasterBEnt.class,
+    		DetailAEnt.class
+    	});
+    	Properties hbProperties = new Properties();
+    	hbProperties.setProperty("hibernate.dialect", "org.hibernate.dialect.HSQLDialect");
+    	//hbProperties.setProperty("hibernate.hbm2ddl.auto", "create-drop");
+    	hbProperties.setProperty("format_sql", "true");
+    	localSessionFactoryBean.setHibernateProperties(hbProperties);
+    	localSessionFactoryBean.setDataSource(dataSource);
+    	
+    	return localSessionFactoryBean;
+    }
+    
+    @Bean("localSessionFactoryBeanCustomizedPersistence")
+	@Conditional(OnCustomizedPersistence.class)
+    public org.springframework.orm.hibernate5.LocalSessionFactoryBean getSessionFactoryBeanCustomizedPersistence() {
     	
     	JDBCDataSource dataSource = new JDBCDataSource();
     	dataSource.setURL("jdbc:hsqldb:mem:js-hb-supersync?hsqldb.sqllog=3");
@@ -264,8 +290,18 @@ public class TestServiceConfigBase {
     }
     
     @Bean
+    @Conditional(OnHibernate3.class)
+    public PlatformTransactionManager transactionManagerHb3(SessionFactory sessionFactory) {
+    	return (PlatformTransactionManager) ReflectionUtil.instanciteByReflection(
+    		"org.springframework.orm.hibernate3.HibernateTransactionManager",
+    		new String[]{"org.hibernate.SessionFactory"}, 
+    		new Object[]{sessionFactory});
+    	//return new org.springframework.orm.hibernate3.HibernateTransactionManager(sessionFactory);
+    }
+    
+    @Bean
     @Conditional(OnHibernate4.class)
-    public PlatformTransactionManager transactionManager4(SessionFactory sessionFactory) {
+    public PlatformTransactionManager transactionManagerHb4(SessionFactory sessionFactory) {
     	return (PlatformTransactionManager) ReflectionUtil.instanciteByReflection(
         		"org.springframework.orm.hibernate4.HibernateTransactionManager",
         		new String[]{"org.hibernate.SessionFactory"}, 
@@ -274,25 +310,20 @@ public class TestServiceConfigBase {
     }
     
     @Bean
-    @Conditional(OnHibernate3.class)
-    public PlatformTransactionManager transactionManager3(SessionFactory sessionFactory) {
-    	return (PlatformTransactionManager) ReflectionUtil.instanciteByReflection(
-    		"org.springframework.orm.hibernate3.HibernateTransactionManager",
-    		new String[]{"org.hibernate.SessionFactory"}, 
-    		new Object[]{sessionFactory});
-    	//return new org.springframework.orm.hibernate3.HibernateTransactionManager(sessionFactory);
-    }
-
-    
-    @Bean
     @Conditional(OnHibernate5.class)
-    public PlatformTransactionManager transactionManager5(SessionFactory sessionFactory) {
+    public PlatformTransactionManager transactionManagerHb5(SessionFactory sessionFactory) {
     	return new org.springframework.orm.hibernate5.HibernateTransactionManager(sessionFactory);
     }
     
     @Bean
     @Conditional(OnJpa.class)
-    public PlatformTransactionManager transactionManager6(SessionFactory sessionFactory) {
+    public PlatformTransactionManager transactionManagerJpa(SessionFactory sessionFactory) {
+    	return new org.springframework.orm.hibernate5.HibernateTransactionManager(sessionFactory);
+    }
+    
+    @Bean
+    @Conditional(OnCustomizedPersistence.class)
+    public PlatformTransactionManager transactionManagerCustomizedPersistence(SessionFactory sessionFactory) {
     	return new org.springframework.orm.hibernate5.HibernateTransactionManager(sessionFactory);
     }
     
@@ -327,11 +358,17 @@ public class TestServiceConfigBase {
 					new JpaSupport() {
 						@Override
 						public EntityManager getCurrentEntityManager() {
-							return ((SessionFactory) applicationContext.getBean("localSessionFactoryBeanJpa")).getCurrentSession();
+							return (EntityManager) ((SessionFactory) applicationContext.getBean("localSessionFactoryBeanJpa")).getCurrentSession();
 						}
 					});					
-		} else if (PlayerManagerDefault.getObjPersistenceModeStatic() == ObjPersistenceMode.CUSTOMIZED) {
-			throw new RuntimeException("Not supported yet: ObjPersistenceMode.CUSTOMIZED");						
+		} else if (PlayerManagerDefault.getObjPersistenceModeStatic() == ObjPersistenceMode.CUSTOMIZED_PERSISTENCE) {
+			return new PlayerConfig().configObjPersistenceSupport(
+					new JpaSupport() {
+						@Override
+						public EntityManager getCurrentEntityManager() {
+							return (EntityManager) ((SessionFactory) applicationContext.getBean("localSessionFactoryBeanCustomizedPersistence")).getCurrentSession();
+						}
+					});					
 		} else {
 			throw new RuntimeException("This should not happen. PlayerManagerDefault.getObjPersistenceModeStatic(): " + PlayerManagerDefault.getObjPersistenceModeStatic());
 		}
@@ -339,7 +376,26 @@ public class TestServiceConfigBase {
 	
 	@Bean
 	public IPlayerManager getManager(@Autowired IPlayerConfig config) {
-		return new PlayerManagerDefault().configure(config);
+		if (PlayerManagerDefault.getObjPersistenceModeStatic() == ObjPersistenceMode.HB3) {
+			return new PlayerManagerDefault().configure(config);			
+		} else if (PlayerManagerDefault.getObjPersistenceModeStatic() == ObjPersistenceMode.HB4) {
+			return new PlayerManagerDefault().configure(config);						
+		} else if (PlayerManagerDefault.getObjPersistenceModeStatic() == ObjPersistenceMode.HB5) {
+			return new PlayerManagerDefault().configure(config);						
+		} else if (PlayerManagerDefault.getObjPersistenceModeStatic() == ObjPersistenceMode.JPA) {
+			return new PlayerManagerDefault().configure(config);					
+		} else if (PlayerManagerDefault.getObjPersistenceModeStatic() == ObjPersistenceMode.CUSTOMIZED_PERSISTENCE) {
+			return new PlayerManagerDefault(){
+				public SignatureBean deserializeSignature(String signatureStr) {
+					return super.deserializeSignature(signatureStr.substring(0, signatureStr.length() - ObjPersistenceMode.CUSTOMIZED_PERSISTENCE.toString().length()));
+				};
+				public String serializeSignature(SignatureBean signatureBean) {
+					return super.serializeSignature(signatureBean)  + ObjPersistenceMode.CUSTOMIZED_PERSISTENCE.toString();					
+				};
+			}.configure(config);
+		} else {
+			throw new RuntimeException("This should not happen. PlayerManagerDefault.getObjPersistenceModeStatic(): " + PlayerManagerDefault.getObjPersistenceModeStatic());
+		}		
 	}
 	
 	@Bean
