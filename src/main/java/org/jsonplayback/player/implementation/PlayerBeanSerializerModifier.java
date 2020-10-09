@@ -7,9 +7,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.jsonplayback.player.IPlayerManager;
-import org.jsonplayback.player.PlayerMetadatas;
 import org.jsonplayback.player.LazyProperty;
+import org.jsonplayback.player.PlayerMetadatas;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -25,10 +24,10 @@ import com.fasterxml.jackson.databind.type.CollectionType;
 public class PlayerBeanSerializerModifier extends BeanSerializerModifier {
 
 	private static Logger logger = LoggerFactory.getLogger(PlayerBeanSerializerModifier.class);
-	private IPlayerManagerImplementor managerImplementor;
+	IPlayerManagersHolderImplementor managersHolder;
 
-	public PlayerBeanSerializerModifier configManager(IPlayerManagerImplementor manager) {
-		this.managerImplementor = manager;
+	public PlayerBeanSerializerModifier configManagerHolder(IPlayerManagersHolderImplementor managersHolder) {
+		this.managersHolder = managersHolder;
 		return this;
 	}
 
@@ -42,17 +41,17 @@ public class PlayerBeanSerializerModifier extends BeanSerializerModifier {
 		}
 
 		Class beanClass = beanDesc.getType().getRawClass();
-		boolean beanClassIsPersistent = this.managerImplementor.isPersistentClass(beanClass);
+		boolean beanClassIsPersistent = this.managersHolder.getStartedManagerImplementor().isPersistentClass(beanClass);
 		String playerObjectIdName = null;
 		if (beanClassIsPersistent) {
-			playerObjectIdName = this.managerImplementor.getPlayerObjectIdName(beanClass);			
+			playerObjectIdName = this.managersHolder.getStartedManagerImplementor().getPlayerObjectIdName(beanClass);			
 		}
 		
 		for (int i = 0; i < beanProperties.size(); i++) {
 			BeanPropertyWriter beanPropertyWriter = beanProperties.get(i);
 			BeanPropertyDefinition prpDef = prpDefsMap.get(beanPropertyWriter.getName());
 			Class prpClass = beanPropertyWriter.getType().getRawClass();
-			boolean isPersistent = this.managerImplementor.isPersistentClass(prpClass);
+			boolean isPersistent = this.managersHolder.getStartedManagerImplementor().isPersistentClass(prpClass);
 			boolean isPlayerObjectId = false;
 			boolean isMetadatasPlayerObjectId = false;
 
@@ -68,7 +67,7 @@ public class PlayerBeanSerializerModifier extends BeanSerializerModifier {
 			}
 
 			BeanPropertyWriter newBeanPropertyWriter = null;
-			if (this.managerImplementor.isPersistentClass(beanClass) || this.managerImplementor.isComponent(beanClass)) {
+			if (this.managersHolder.getStartedManagerImplementor().isPersistentClass(beanClass) || this.managersHolder.getStartedManagerImplementor().isComponent(beanClass)) {
 				LazyProperty lazyProperty = beanPropertyWriter.getAnnotation(LazyProperty.class);
 				if (lazyProperty != null) {
 					if ((beanPropertyWriter.getType().getRawClass().isArray()
@@ -77,32 +76,32 @@ public class PlayerBeanSerializerModifier extends BeanSerializerModifier {
 							|| String.class.isAssignableFrom(beanPropertyWriter.getType().getRawClass())
 							|| Clob.class.isAssignableFrom(beanPropertyWriter.getType().getRawClass())) {								
 					newBeanPropertyWriter = new PlayerBeanPropertyWriter(beanPropertyWriter)
-							.configManager(managerImplementor)
+							.configManagerHolder(this.managersHolder)
 								.loadBeanPropertyDefinition(prpDef)
 								.loadLazyProperty(lazyProperty);
 					}
-				} else if (this.managerImplementor.isComponent(beanClass)) {
+				} else if (this.managersHolder.getStartedManagerImplementor().isComponent(beanClass)) {
 					newBeanPropertyWriter = new PlayerBeanPropertyWriter(beanPropertyWriter)
-							.configManager(managerImplementor)
+							.configManagerHolder(this.managersHolder)
 //							.loadComponentOwnerClass(beanClass)
 							.loadBeanPropertyDefinition(prpDef).loadIsPlayerObjectId(isPlayerObjectId)
 							.loadIsPersistent(isPersistent)
 							.loadIsMetadatasPlayerObjectId(isMetadatasPlayerObjectId);
-				} else if (this.managerImplementor.getObjPersistenceSupport().isCollectionRelationship(beanClass, prpDef.getInternalName())) {
+				} else if (this.managersHolder.getStartedManagerImplementor().getObjPersistenceSupport().isCollectionRelationship(beanClass, prpDef.getInternalName())) {
 					newBeanPropertyWriter = new PlayerBeanPropertyWriter(beanPropertyWriter)
-							.configManager(managerImplementor).loadRelationshipOwnerClass(beanClass)
+							.configManagerHolder(this.managersHolder).loadRelationshipOwnerClass(beanClass)
 							.loadBeanPropertyDefinition(prpDef).loadIsPersistent(isPersistent)
 							.loadIsPlayerObjectId(isPlayerObjectId)
 							.loadIsMetadatasPlayerObjectId(isMetadatasPlayerObjectId);
 //					throw new RuntimeException("ISSO TA ERRADO. beanPropertyWriter.getName()?!?!?!");
 				} else {
-					newBeanPropertyWriter = new PlayerBeanPropertyWriter(beanPropertyWriter).configManager(managerImplementor)
+					newBeanPropertyWriter = new PlayerBeanPropertyWriter(beanPropertyWriter).configManagerHolder(this.managersHolder)
 							.loadBeanPropertyDefinition(prpDef).loadIsPersistent(isPersistent)
 							.loadIsPlayerObjectId(isPlayerObjectId)
 							.loadIsMetadatasPlayerObjectId(isMetadatasPlayerObjectId);
 				}
 			} else {
-				newBeanPropertyWriter = new PlayerBeanPropertyWriter(beanPropertyWriter).configManager(managerImplementor)
+				newBeanPropertyWriter = new PlayerBeanPropertyWriter(beanPropertyWriter).configManagerHolder(this.managersHolder)
 						.loadBeanPropertyDefinition(prpDef).loadIsPersistent(isPersistent)
 						.loadIsPlayerObjectId(isPlayerObjectId)
 						.loadIsMetadatasPlayerObjectId(isMetadatasPlayerObjectId);
@@ -130,7 +129,7 @@ public class PlayerBeanSerializerModifier extends BeanSerializerModifier {
 			JsonSerializer<?> serializer) {
 		if (serializer instanceof BeanSerializer) {
 			JsonSerializer<?> newJsonSerializer = super.modifySerializer(config, beanDesc,
-					new PlayerJsonSerializer(serializer).configManager(this.managerImplementor));
+					new PlayerJsonSerializer(serializer).configManagersHolder(this.managersHolder));
 			if (logger.isTraceEnabled()) {
 				logger.trace(MessageFormat.format("modifySerializer():\n" + " old JsonSerializer=''{0}''\n"
 						+ " new JsonSerializer=''{1}''\n", serializer, newJsonSerializer));
@@ -149,7 +148,7 @@ public class PlayerBeanSerializerModifier extends BeanSerializerModifier {
 	public JsonSerializer<?> modifyCollectionSerializer(SerializationConfig config, CollectionType valueType,
 			BeanDescription beanDesc, JsonSerializer<?> serializer) {
 		JsonSerializer<?> newJsonSerializer = super.modifySerializer(config, beanDesc,
-				new PlayerJsonSerializer(serializer).configManager(this.managerImplementor));
+				new PlayerJsonSerializer(serializer).configManagersHolder(this.managersHolder));
 		if (logger.isTraceEnabled()) {
 			logger.trace(MessageFormat.format("modifyCollectionSerializer():\n" + " old JsonSerializer=''{0}''\n"
 					+ " new JsonSerializer=''{1}''\n", serializer, newJsonSerializer));

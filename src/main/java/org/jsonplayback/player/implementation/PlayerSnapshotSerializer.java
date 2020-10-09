@@ -16,10 +16,10 @@ public class PlayerSnapshotSerializer extends JsonSerializer<PlayerSnapshot> {
 		
 	}
 	
-	private IPlayerManager manager;
+	private IPlayerManagersHolderImplementor managersHolder;
 	
-	public PlayerSnapshotSerializer configManager(IPlayerManager manager) {
-		this.manager = manager;
+	public PlayerSnapshotSerializer  configManagerHolder(IPlayerManagersHolderImplementor managersHolder) {
+		this.managersHolder = managersHolder;
 		return this;
 	}
 	
@@ -28,7 +28,7 @@ public class PlayerSnapshotSerializer extends JsonSerializer<PlayerSnapshot> {
 	public void serialize(PlayerSnapshot value, JsonGenerator gen, SerializerProvider serializers)
 			throws IOException, JsonProcessingException {
 		try {
-			this.manager.startJsonWriteIntersept();
+			value.getManager().startJsonWriteIntersept();
 
 			final JsonSerializer<Object> defaultJsonSerializer = serializers.findValueSerializer(Object.class);
 			
@@ -37,7 +37,7 @@ public class PlayerSnapshotSerializer extends JsonSerializer<PlayerSnapshot> {
 			serializers.findValueSerializer(value.getWrappedSnapshot().getClass()).serialize(value.getWrappedSnapshot(), gen, serializers);
 			gen.writeEndObject();
 		} finally {
-			this.manager.stopJsonWriteIntersept();
+			value.getManager().stopJsonWriteIntersept();
 		}
 	}
 }

@@ -4,7 +4,6 @@ import java.util.Properties;
 
 import javax.annotation.PostConstruct;
 import javax.persistence.EntityManager;
-import javax.transaction.NotSupportedException;
 
 import org.hibernate.SessionFactory;
 import org.hsqldb.jdbc.JDBCDataSource;
@@ -20,11 +19,11 @@ import org.jsonplayback.player.SignatureBean;
 import org.jsonplayback.player.hibernate.entities.DetailAEnt;
 import org.jsonplayback.player.hibernate.entities.MasterAEnt;
 import org.jsonplayback.player.hibernate.entities.MasterBEnt;
-import org.jsonplayback.player.implementation.IPlayerManagerImplementor;
-import org.jsonplayback.player.implementation.PlayerBasicClassIntrospector;
+import org.jsonplayback.player.implementation.IPlayerManagersHolderImplementor;
 import org.jsonplayback.player.implementation.PlayerBeanSerializerModifier;
 import org.jsonplayback.player.implementation.PlayerConfig;
 import org.jsonplayback.player.implementation.PlayerManagerDefault;
+import org.jsonplayback.player.implementation.PlayerManagersHolderDefault;
 import org.jsonplayback.player.implementation.PlayerSnapshotSerializer;
 import org.jsonplayback.player.spring.context.annotation.OnCustomizedPersistence;
 import org.jsonplayback.player.spring.context.annotation.OnHibernate3;
@@ -55,7 +54,6 @@ import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.FilterType;
 import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
-import org.springframework.orm.jpa.LocalEntityManagerFactoryBean;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
@@ -399,8 +397,15 @@ public class TestServiceConfigBase {
 	}
 	
 	@Bean
-	public PlayerSnapshotSerializer getPlayerSnapshotSerializer(@Autowired IPlayerManager manager) {
-		PlayerSnapshotSerializer serializer = new PlayerSnapshotSerializer().configManager(manager);
+	public IPlayerManagersHolderImplementor getManagersHolder(@Autowired IPlayerManager manager) {
+		IPlayerManagersHolderImplementor managersHolderImplementor = new PlayerManagersHolderDefault();
+		managersHolderImplementor.addManager(manager);
+		return managersHolderImplementor;
+	}
+	
+	@Bean
+	public PlayerSnapshotSerializer getPlayerSnapshotSerializer(@Autowired IPlayerManagersHolderImplementor managersHolder) {
+		PlayerSnapshotSerializer serializer = new PlayerSnapshotSerializer().configManagerHolder(managersHolder);
 		return serializer;
 	}
 	
@@ -413,21 +418,21 @@ public class TestServiceConfigBase {
 	 */
 	@Bean
 	public PlayerBeanSerializerModifier getPlayerBeanSerializerModifier(
-			@Autowired IPlayerManagerImplementor manager, 
+			@Autowired IPlayerManagersHolderImplementor managersHolder, 
 			@Autowired PlayerSnapshotSerializer playerSnapshotSerializer, 
 			@Autowired Jackson2ObjectMapperBuilder builder,
 			@Autowired JsonComponentModule module,
 			@Autowired MappingJackson2HttpMessageConverter mappingJackson2HttpMessageConverter
 //			@Autowired ObjectMapper mapperNovo
 			) {
-		PlayerBeanSerializerModifier modifier = new PlayerBeanSerializerModifier().configManager(manager);
+		PlayerBeanSerializerModifier modifier = new PlayerBeanSerializerModifier().configManagerHolder(managersHolder);
 		//jsonComponentModule.addSerializer(PlayerSnapshot.class, playerSnapshotSerializer);
 		//mapper.registerModule(jsonComponentModule);
 		module.addSerializer(PlayerSnapshot.class, playerSnapshotSerializer);
 		module.setSerializerModifier(modifier);
 		ObjectMapper mapperOriginal = mappingJackson2HttpMessageConverter.getObjectMapper();
 		ObjectMapper mapperNovo = builder.build();
-		mapperNovo.setConfig(mapperNovo.getSerializationConfig().with(manager.getConfig().getBasicClassIntrospector()));
+		mapperNovo.setConfig(mapperNovo.getSerializationConfig().with(managersHolder.getClassIntrospertor()));
 		mapperNovo.enable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
 		mapperNovo.enable(SerializationFeature.WRITE_DATE_KEYS_AS_TIMESTAMPS);
 		if (mapperOriginal != mapperNovo) {
@@ -437,7 +442,9 @@ public class TestServiceConfigBase {
 			logger.warn("(mappingJackson2HttpMessageConverter.getObjectMapper() != mapperNovo) apos org.springframework.http.converter.json.Jackson2ObjectMapperBuilder.build()");
 		}
 		mappingJackson2HttpMessageConverter.setObjectMapper(mapperNovo);
-		manager.getConfig().configObjectMapper(mapperNovo);
+		for (IPlayerManager manager : managersHolder.managers()) {
+			manager.getConfig().configObjectMapper(mapperNovo);			
+		}
 		
 		return modifier;
 	}

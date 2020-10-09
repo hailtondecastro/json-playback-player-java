@@ -3,9 +3,8 @@ package org.jsonplayback.player.implementation;
 import java.util.Stack;
 
 import org.hibernate.proxy.HibernateProxy;
-import org.jsonplayback.player.IPlayerManager;
-import org.jsonplayback.player.PlayerMetadatas;
 import org.jsonplayback.player.LazyProperty;
+import org.jsonplayback.player.PlayerMetadatas;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -20,7 +19,7 @@ import com.fasterxml.jackson.databind.ser.impl.PropertySerializerMap;
 public class PlayerBeanPropertyWriter extends BeanPropertyWriter {
 	private static Logger logger = LoggerFactory.getLogger(PlayerBeanPropertyWriter.class);
 
-	private IPlayerManagerImplementor playerManager;
+	private IPlayerManagersHolderImplementor managersHolder;
 
 //	private Class<?> componentOwnerClass = null;
 	private Class<?> relationshipOwnerClass = null;
@@ -110,8 +109,8 @@ public class PlayerBeanPropertyWriter extends BeanPropertyWriter {
 		return this;
 	}
 
-	public PlayerBeanPropertyWriter configManager(IPlayerManagerImplementor manager) {
-		this.playerManager = manager;
+	public PlayerBeanPropertyWriter configManagerHolder(IPlayerManagersHolderImplementor managersHolder) {
+		this.managersHolder = managersHolder;
 		return this;
 	}
 
@@ -136,12 +135,12 @@ public class PlayerBeanPropertyWriter extends BeanPropertyWriter {
 	public void serializeAsField(Object bean, JsonGenerator gen, SerializerProvider prov) throws Exception {
 
 		try {
-			if (this.playerManager.isStarted()) {
+			if (this.managersHolder.thereIsStartedManager()) {
 				if (!this.isMetadatasPlayerObjectId) {
-					this.playerManager.getPlayerBeanPropertyWriterStepStack().push(this);
+					this.managersHolder.getStartedManagerImplementor().getPlayerBeanPropertyWriterStepStack().push(this);
 				} else {
 					PlayerMetadatas metadatas = (PlayerMetadatas) bean;
-					this.playerManager.getPlayerBeanPropertyWriterStepStack()
+					this.managersHolder.getStartedManagerImplementor().getPlayerBeanPropertyWriterStepStack()
 							.push(metadatas.getOriginalPlayerObjectIdPropertyWriter());
 				}
 			}
@@ -160,11 +159,11 @@ public class PlayerBeanPropertyWriter extends BeanPropertyWriter {
 					delegateSerializer = prov.findValueSerializer(this.getPropertyType());					
 				}
 				if (!(this.getSerializer() instanceof PlayerJsonSerializer)) {
-					super._serializer = new PlayerJsonSerializer(delegateSerializer).configManager(this.playerManager);
+					super._serializer = new PlayerJsonSerializer(delegateSerializer).configManagersHolder(this.managersHolder);
 				}
 			}
 
-			if (this.playerManager.isStarted()) {
+			if (this.managersHolder.thereIsStartedManager()) {
 				if (!this.isMetadatasPlayerObjectId) {
 					super.serializeAsField(bean, gen, prov);					
 				} else {
@@ -205,8 +204,8 @@ public class PlayerBeanPropertyWriter extends BeanPropertyWriter {
 			}	
 		} finally {
 			this.getCurrOwnerStackTL().get().pop();
-			if (this.playerManager.isStarted()) {
-				PlayerBeanPropertyWriter propertyWriterPop = this.playerManager.getPlayerBeanPropertyWriterStepStack().pop();
+			if (this.managersHolder.thereIsStartedManager()) {
+				PlayerBeanPropertyWriter propertyWriterPop = this.managersHolder.getStartedManagerImplementor().getPlayerBeanPropertyWriterStepStack().pop();
 				if (!this.isMetadatasPlayerObjectId) {
 					if (propertyWriterPop != this) {
 						throw new RuntimeException("This should not happen");
@@ -244,8 +243,8 @@ public class PlayerBeanPropertyWriter extends BeanPropertyWriter {
 	public void findFieldPlayerObjectIdentifierValue(Object bean, SerializerProvider prov, PlayerMetadatas backendMetadatas)
 			throws Exception {
 		try {
-			if (this.playerManager.isStarted()) {
-				this.playerManager.getPlayerBeanPropertyWriterStepStack().push(this);
+			if (this.managersHolder.thereIsStartedManager()) {
+				this.managersHolder.getStartedManagerImplementor().getPlayerBeanPropertyWriterStepStack().push(this);
 			}
 			this.getCurrOwnerStackTL().get().push(bean);
 
@@ -257,8 +256,8 @@ public class PlayerBeanPropertyWriter extends BeanPropertyWriter {
 			backendMetadatas.setOriginalPlayerObjectIdOwner(bean);
 		} finally {
 			this.getCurrOwnerStackTL().get().pop();
-			if (this.playerManager.isStarted()) {
-				PlayerBeanPropertyWriter propertyWriterPop = this.playerManager.getPlayerBeanPropertyWriterStepStack().pop();
+			if (this.managersHolder.thereIsStartedManager()) {
+				PlayerBeanPropertyWriter propertyWriterPop = this.managersHolder.getStartedManagerImplementor().getPlayerBeanPropertyWriterStepStack().pop();
 				if (propertyWriterPop != this) {
 					throw new RuntimeException("This should not happen");
 				}
