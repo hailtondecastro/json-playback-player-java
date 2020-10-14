@@ -1,4 +1,4 @@
-# js-playback-backend-hibernate
+# json-playback-player-java
 Framework for integrate entity object graph operations (field, collections modifications, etc) between backend and frontend.
 
 ### Source control, developer and build/ci environment.
