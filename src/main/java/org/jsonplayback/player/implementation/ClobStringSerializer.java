@@ -17,8 +17,8 @@ public class ClobStringSerializer extends JsonSerializer<Clob> {
 	public void serialize(Clob value, JsonGenerator gen, SerializerProvider serializers)
 			throws IOException, JsonProcessingException {
 		try {
-			Reader r = value.getCharacterStream();
 			if (value != null) {			
+				Reader r = value.getCharacterStream();
 				CharBuffer cbuffer = CharBuffer.allocate(10);
 				int lastReadedCount = 0;
 				StringBuilder sb = new StringBuilder();

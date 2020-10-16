@@ -128,8 +128,9 @@ public class PlayerBeanSerializerModifier extends BeanSerializerModifier {
 	public JsonSerializer<?> modifySerializer(SerializationConfig config, BeanDescription beanDesc,
 			JsonSerializer<?> serializer) {
 		if (serializer instanceof BeanSerializer) {
+			@SuppressWarnings("unchecked")
 			JsonSerializer<?> newJsonSerializer = super.modifySerializer(config, beanDesc,
-					new PlayerJsonSerializer(serializer).configManagersHolder(this.managersHolder));
+					new PlayerJsonSerializer((JsonSerializer<Object>) serializer).configManagersHolder(this.managersHolder));
 			if (logger.isTraceEnabled()) {
 				logger.trace(MessageFormat.format("modifySerializer():\n" + " old JsonSerializer=''{0}''\n"
 						+ " new JsonSerializer=''{1}''\n", serializer, newJsonSerializer));
@@ -147,8 +148,9 @@ public class PlayerBeanSerializerModifier extends BeanSerializerModifier {
 	@Override
 	public JsonSerializer<?> modifyCollectionSerializer(SerializationConfig config, CollectionType valueType,
 			BeanDescription beanDesc, JsonSerializer<?> serializer) {
+		@SuppressWarnings("unchecked")
 		JsonSerializer<?> newJsonSerializer = super.modifySerializer(config, beanDesc,
-				new PlayerJsonSerializer(serializer).configManagersHolder(this.managersHolder));
+				new PlayerJsonSerializer((JsonSerializer<Object>) serializer).configManagersHolder(this.managersHolder));
 		if (logger.isTraceEnabled()) {
 			logger.trace(MessageFormat.format("modifyCollectionSerializer():\n" + " old JsonSerializer=''{0}''\n"
 					+ " new JsonSerializer=''{1}''\n", serializer, newJsonSerializer));

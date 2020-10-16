@@ -27,7 +27,7 @@ public interface IPlayerManager {
 	<T> T getBySignature(SignatureBean signature);
 
 //	@SuppressWarnings("rawtypes")
-//	boolean isNeverSigned(Class clazz);
+//	boolean isNeverSigned(Class<?> clazz);
 
 	Object getPlayerObjectId(Object object);
 
@@ -47,7 +47,7 @@ public interface IPlayerManager {
 
 	boolean isStarted();
 
-//	boolean isPersistentClassOrComponent(Class clazz);
+//	boolean isPersistentClassOrComponent(Class<?> clazz);
 
 	/**
 	 * Sobreescreve a configuracao temporariamente. Eh thead safe e nao afeta as
@@ -71,13 +71,10 @@ public interface IPlayerManager {
 	 */
 	IPlayerManager init();
 
-	IReplayable prepareReplayable(Tape tape);
-
-
 	IPlayerManager cloneWithNewConfiguration(IPlayerConfig newConfig);
 	
 	<O> IPlayerManager registerComponentOwner(O owner, Function<O, ?> propertyFunc);
-	<O, T> IPlayerManager registerComponentOwner(Class<O> ownerClass, T targetOwned, Function<O, T> propertyFunc);
+	<O, T> IPlayerManager registerComponentOwner(Class<O> ownerClass, T targetOwned, Function<O, T> propertyFunc);	
 	ObjPersistenceMode getObjPersistenceMode();
 }
 /*gerando conflito*/

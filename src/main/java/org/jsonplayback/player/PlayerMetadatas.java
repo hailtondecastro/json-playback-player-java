@@ -17,6 +17,13 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  *
  */
 public class PlayerMetadatas implements Cloneable {
+	@JsonIgnore
+	private IPlayerManager manager;
+	public PlayerMetadatas(IPlayerManager manager) {
+		super();
+		this.manager = manager;
+	}
+
 	@JsonProperty("$iAmPlayerMetadatas$")
 	@JsonInclude(Include.NON_DEFAULT)
 	private Boolean iAmPlayerMetadatas = true;
@@ -155,8 +162,8 @@ public class PlayerMetadatas implements Cloneable {
 		}
 	}
 	
-	protected PlayerMetadatas clone() {
-		PlayerMetadatas metadatasClone = new PlayerMetadatas();
+	protected PlayerMetadatas clone() { 
+		PlayerMetadatas metadatasClone = this.manager.getConfig().getMetadataInstantiator().apply(this.manager);
 		metadatasClone.iAmPlayerMetadatas           = this.iAmPlayerMetadatas          ;       
 		metadatasClone.id                                = this.id                               ;      
 		metadatasClone.idRef                             = this.idRef                            ;      

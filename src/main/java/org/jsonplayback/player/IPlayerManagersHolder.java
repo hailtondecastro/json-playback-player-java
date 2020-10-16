@@ -14,4 +14,5 @@ public interface IPlayerManagersHolder {
 	void removeManager(IPlayerManager manager);
 	IPlayerManager getStartedManager();
 	boolean thereIsStartedManager();
+	IReplayable prepareReplayable(Tape tape);
 }

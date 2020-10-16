@@ -25,13 +25,13 @@ public class ReflectionNamesDiscovery {
     private static final Logger logger = LoggerFactory
             .getLogger(ReflectionNamesDiscovery.class);
 
-    private static transient WeakReference<ConcurrentHashMap<Class, Object>> proxyInstancesMapWR;
+    private static transient WeakReference<ConcurrentHashMap<Class<?>, Object>> proxyInstancesMapWR;
     
     private static <T> T getProxyInstance(Class<T> targetClass) {
-        ConcurrentHashMap<Class, Object> proxyInstancesMap = null;
+        ConcurrentHashMap<Class<?>, Object> proxyInstancesMap = null;
         if (proxyInstancesMapWR == null || proxyInstancesMapWR.get() == null) {
-            proxyInstancesMap = new ConcurrentHashMap<Class, Object>();
-            proxyInstancesMapWR = new WeakReference<ConcurrentHashMap<Class, Object>>(proxyInstancesMap);
+            proxyInstancesMap = new ConcurrentHashMap<Class<?>, Object>();
+            proxyInstancesMapWR = new WeakReference<ConcurrentHashMap<Class<?>, Object>>(proxyInstancesMap);
         } else {
             proxyInstancesMap = proxyInstancesMapWR.get();
         }
@@ -40,7 +40,7 @@ public class ReflectionNamesDiscovery {
             if (!targetClass.isInterface())
             	factory.setSuperclass(targetClass);
             else
-            	factory.setInterfaces(new Class[]{ targetClass });
+            	factory.setInterfaces(new Class<?>[]{ targetClass });
             factory.setFilter(methodFilter);
             Proxy proxy;
             try {

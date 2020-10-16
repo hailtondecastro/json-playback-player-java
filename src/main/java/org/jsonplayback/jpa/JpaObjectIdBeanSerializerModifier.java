@@ -36,10 +36,11 @@ public class JpaObjectIdBeanSerializerModifier extends BeanSerializerModifier {
 		}
 
 		Class beanClass = beanDesc.getType().getRawClass();
-		boolean beanClassIsPersistent = this.manager.isPersistentClass(beanClass);
+		Class unwrappedBeanClass = this.manager.getConfig().getObjPersistenceSupport().unwrappRealType(beanClass);
+		boolean beanClassIsPersistent = this.manager.isPersistentClass(unwrappedBeanClass);
 		String playerObjectIdName = null;
 		if (beanClassIsPersistent) {
-			playerObjectIdName = this.manager.getPlayerObjectIdName(beanClass);			
+			playerObjectIdName = this.manager.getPlayerObjectIdName(unwrappedBeanClass);			
 		}
 		
 		for (int i = 0; i < beanProperties.size(); i++) {

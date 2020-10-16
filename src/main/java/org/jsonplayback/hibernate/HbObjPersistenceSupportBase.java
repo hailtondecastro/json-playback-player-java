@@ -347,11 +347,15 @@ public abstract class HbObjPersistenceSupportBase implements ObjPersistenceSuppo
 	public boolean isComponent(Class<?> componentClass) {
 		return this.compositiesSet.contains(componentClass);
 	}
+	
+	protected ObjectMapper mapperForObjId;
 
 	@Override
 	public void init(IPlayerManagerImplementor playerManagerImplementor) {
 		this.associationAndCompositiesMap.clear();
 		this.collectAssociationAndCompositiesMap();
+		
+		this.mapperForObjId = new ObjectMapper();
 	}
 //
 //	@Override
@@ -369,7 +373,7 @@ public abstract class HbObjPersistenceSupportBase implements ObjPersistenceSuppo
 //			AssociationAndComponentPathKey aacKey = new AssociationAndComponentPathKey(clazz, fieldName);
 //			compositeType = this.associationAndCompositiesMap.get(aacKey).getCompType();
 //			if (compositeType == null) {
-//				throw new RuntimeException("Class is not mapped and is not a know CompositeType: " + clazz);
+//				throw new RuntimeException("Class<?> is not mapped and is not a know CompositeType: " + clazz);
 //			}
 //		}
 //		Type prpType = null;
@@ -659,9 +663,39 @@ public abstract class HbObjPersistenceSupportBase implements ObjPersistenceSuppo
 		hbObjectIdForStringify.setRawKeyTypeNames(rawTypeList.toArray(hbObjectIdForStringify.getRawKeyTypeNames()));
 		
 		try {
-			return manager.getConfig().getObjectMapper().writeValueAsString(hbObjectIdForStringify);
+			return this.mapperForObjId.writeValueAsString(hbObjectIdForStringify);
 		} catch (JsonProcessingException e) {
 			throw new RuntimeException("This should not happen. ", e);
 		}
+	}
+	
+	@SuppressWarnings("rawtypes")
+	@Override
+	public Class<?> unwrappRealType(Object possibleWrapperValue) {
+		return this.unwrappRealType(possibleWrapperValue.getClass());
+	}
+	
+	@SuppressWarnings("rawtypes")
+	@Override
+	public Class<?> unwrappRealType(Class<?> possibleWrapperType) {
+		if (HibernateProxy.class.isAssignableFrom(possibleWrapperType)) {
+			return possibleWrapperType.getSuperclass();						
+		} else {
+			return possibleWrapperType;
+		}
+	}
+	
+	@Override
+	public Set<Class<?>> allManagedTypes() {
+		Set<Class<?>> result = new LinkedHashSet<>();
+		for (String typeStr : this.persistentClasses.keySet()) {
+			try {
+				result.add(Class.forName(typeStr));
+			} catch (ClassNotFoundException e) {
+				throw new RuntimeException("This should not happen", e);
+			}
+		}
+		result.addAll(this.compositiesSet);
+		return result;
 	}
 }

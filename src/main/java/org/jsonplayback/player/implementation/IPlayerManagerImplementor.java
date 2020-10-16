@@ -5,7 +5,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Stack;
 
-import org.hibernate.proxy.HibernateProxy;
 import org.jsonplayback.player.IPlayerManager;
 import org.jsonplayback.player.IdentityRefKey;
 import org.jsonplayback.player.ObjPersistenceSupport;
@@ -15,9 +14,10 @@ import org.jsonplayback.player.SignatureBean;
 public interface IPlayerManagerImplementor extends IPlayerManager {
 	SignatureBean generateLazySignature(Collection<?> persistentCollection);
 
-	SignatureBean generateLazySignature(Object notLoadObject);
+	//SignatureBean generateLazySignature(Object notLoadObject);
 
-	SignatureBean generateSignature(Object alreadyLoadObject);
+	//SignatureBean generateSignature(Object alreadyLoadObject);
+	SignatureBean generateSignature(Object value);
 	
 	Long getCurrId();
 
@@ -36,7 +36,7 @@ public interface IPlayerManagerImplementor extends IPlayerManager {
 	
 	boolean isComponent(Class<?> componentClass);
 	
-	boolean isPersistentClass(Class clazz);
+	boolean isPersistentClass(Class<?> clazz);
 
 	Stack<PlayerBeanPropertyWriter> getPlayerBeanPropertyWriterStepStack();
 
@@ -65,4 +65,12 @@ public interface IPlayerManagerImplementor extends IPlayerManager {
 	List<OwnerAndProperty> getRegisteredComponentOwnerList(Object instance);
 	
 	public ObjPersistenceSupport getObjPersistenceSupport();
+	
+	boolean isManagerOfSignature(String signature);
+	
+	boolean isManagerOfType(String typeNameOrAlias);
+	
+	boolean isManagerOfType(Class<?> type);
+	
+	Class<?> resolveType(String typeNameOrAlias);
 }

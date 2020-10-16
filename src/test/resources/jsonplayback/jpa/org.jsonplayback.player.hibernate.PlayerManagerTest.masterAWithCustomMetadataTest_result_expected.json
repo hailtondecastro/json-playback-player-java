@@ -2,8 +2,8 @@
   "wrappedSnapshot" : {
     "$metadatas$" : {
       "$iAmPlayerMetadatas$" : true,
-      "$id$" : 1,
-      "$signature$" : "eyJjbGF6ek5hbWUiOiJvcmcuanNvbnBsYXliYWNrLnBsYXllci5oaWJlcm5hdGUuZW50aXRpZXMuTWFzdGVyQUVudCIsInN0cmluZ2lmaWVkT2JqZWN0SWQiOiJ7XCJpZFwiOjF9In0",
+      "$customized-metadata-id-name$" : 1,
+      "$signature$" : "manager01.eyJjbGF6ek5hbWUiOiJvcmcuanNvbnBsYXliYWNrLnBsYXllci5oaWJlcm5hdGUuZW50aXRpZXMuTWFzdGVyQUVudCIsInN0cmluZ2lmaWVkT2JqZWN0SWQiOiJ7XCJpZFwiOjF9In0",
       "$playerObjectId$" : 1
     },
     "id" : 1,
@@ -17,12 +17,13 @@
     "detailAEntCol" : {
       "$metadatas$" : {
         "$iAmPlayerMetadatas$" : true,
-        "$signature$" : "eyJjbGF6ek5hbWUiOiJvcmcuanNvbnBsYXliYWNrLnBsYXllci5oaWJlcm5hdGUuZW50aXRpZXMuTWFzdGVyQUVudCIsImlzQ29sbCI6dHJ1ZSwicHJvcGVydHlOYW1lIjoiZGV0YWlsQUVudENvbCIsInN0cmluZ2lmaWVkT2JqZWN0SWQiOiJ7XCJpZFwiOjF9In0",
+        "$signature$" : "manager01.eyJjbGF6ek5hbWUiOiJvcmcuanNvbnBsYXliYWNrLnBsYXllci5oaWJlcm5hdGUuZW50aXRpZXMuTWFzdGVyQUVudCIsImlzQ29sbCI6dHJ1ZSwicHJvcGVydHlOYW1lIjoiZGV0YWlsQUVudENvbCIsInN0cmluZ2lmaWVkT2JqZWN0SWQiOiJ7XCJpZFwiOjF9In0",
         "$isLazyUninitialized$" : true,
         "$isAssociative$" : true
       }
     },
     "blobLazyA" : "TWFzdGVyQUVudF9SRUcwMV9CbG9iTGF6eUE=",
+    "blobLazyB" : "TWFzdGVyQUVudF9SRUcwMV9CbG9iTGF6eUI=",
     "clobLazyA" : "MasterAEnt_REG01_ClobLazyB",
     "clobLazyB" : "MasterAEnt_REG01_ClobLazyB"
   }

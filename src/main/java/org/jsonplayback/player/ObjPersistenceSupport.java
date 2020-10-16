@@ -1,5 +1,7 @@
 package org.jsonplayback.player;
 
+import java.util.Set;
+
 import org.jsonplayback.hibernate.CollectionStyle;
 import org.jsonplayback.player.implementation.AssociationAndComponentPath;
 import org.jsonplayback.player.implementation.AssociationAndComponentTrackInfo;
@@ -31,11 +33,15 @@ public interface ObjPersistenceSupport {
 //	<R> CriteriaCompat<R> createCriteria(Session session, Class<R> clazz);
 //	<R> CriteriaCompat<R> createCriteria(EntityManager em, Class<R> clazz);
 	void processNewInstantiate(Class<?> instType, Object instValue);
-	String getPlayerObjectIdPrpName(Class clazz);
+	String getPlayerObjectIdPrpName(Class<?> clazz);
 	
 	void persistenceRemove(Object entity);
 	void persistencePersist(Object entity);
 	
 	String stringfyObjectId(IPlayerManager manager, Object owner);
-	Object parseObjectId(IPlayerManager manager, Class ownerClass, String stringifiedObjectId);
+	Object parseObjectId(IPlayerManager manager, Class<?> ownerClass, String stringifiedObjectId);
+	
+	Class<?> unwrappRealType(Object possibleWrappedValue);
+	Set<Class<?>> allManagedTypes();
+	Class<?> unwrappRealType(Class<?> possibleWrapperType);	
 }

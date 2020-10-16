@@ -1,7 +1,5 @@
 package org.jsonplayback.player.implementation;
 
-import java.util.Set;
-
 import org.jsonplayback.player.IPlayerManagersHolder;
 
 import com.fasterxml.jackson.databind.introspect.BasicClassIntrospector;
@@ -15,4 +13,7 @@ import com.fasterxml.jackson.databind.introspect.BasicClassIntrospector;
 public interface IPlayerManagersHolderImplementor extends IPlayerManagersHolder {
 	IPlayerManagerImplementor getStartedManagerImplementor();
 	BasicClassIntrospector getClassIntrospertor();
+	IPlayerManagerImplementor resolveManagerBySignature(String signature);
+	IPlayerManagerImplementor resolveManagerByType(String typeNameOrAlias);
+	IPlayerManagerImplementor resolveManagerByType(Class<?> type);
 }

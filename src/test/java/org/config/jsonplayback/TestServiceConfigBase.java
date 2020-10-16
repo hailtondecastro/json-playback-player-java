@@ -19,6 +19,8 @@ import org.jsonplayback.player.SignatureBean;
 import org.jsonplayback.player.hibernate.entities.DetailAEnt;
 import org.jsonplayback.player.hibernate.entities.MasterAEnt;
 import org.jsonplayback.player.hibernate.entities.MasterBEnt;
+import org.jsonplayback.player.hibernate.nonentities.DetailAWrapper;
+import org.jsonplayback.player.hibernate.nonentities.MasterAWrapper;
 import org.jsonplayback.player.implementation.IPlayerManagersHolderImplementor;
 import org.jsonplayback.player.implementation.PlayerBeanSerializerModifier;
 import org.jsonplayback.player.implementation.PlayerConfig;
@@ -327,8 +329,13 @@ public class TestServiceConfigBase {
     
 	@Bean
 	public IPlayerConfig getConfig(@Autowired SessionFactory sessionFactory, @Autowired ApplicationContext applicationContext) {
+		IPlayerConfig config = 
+				new PlayerConfig()
+					.configManagerId("manager01")
+					.registerAddictionalManagedType(MasterAWrapper.class)
+					.registerAddictionalManagedType(DetailAWrapper.class);
 		if (PlayerManagerDefault.getObjPersistenceModeStatic() == ObjPersistenceMode.HB3) {
-			return new PlayerConfig().configObjPersistenceSupport(
+			config = config.configObjPersistenceSupport(
 					new Hb3Support() {						
 						@Override
 						public SessionFactory getSessionFactory() {
@@ -336,15 +343,15 @@ public class TestServiceConfigBase {
 						}
 					});			
 		} else if (PlayerManagerDefault.getObjPersistenceModeStatic() == ObjPersistenceMode.HB4) {
-			return new PlayerConfig().configObjPersistenceSupport(
+			config = config.configObjPersistenceSupport(
 					new Hb4Support() {						
 						@Override
 						public SessionFactory getSessionFactory() {
 							return (SessionFactory) applicationContext.getBean("localSessionFactoryBean4");
 						}
-					});						
+					});					
 		} else if (PlayerManagerDefault.getObjPersistenceModeStatic() == ObjPersistenceMode.HB5) {
-			return new PlayerConfig().configObjPersistenceSupport(
+			config = config.configObjPersistenceSupport(
 					new Hb5Support() {						
 						@Override
 						public SessionFactory getSessionFactory() {
@@ -352,15 +359,15 @@ public class TestServiceConfigBase {
 						}
 					});						
 		} else if (PlayerManagerDefault.getObjPersistenceModeStatic() == ObjPersistenceMode.JPA) {
-			return new PlayerConfig().configObjPersistenceSupport(
+			config = config.configObjPersistenceSupport(
 					new JpaSupport() {
 						@Override
 						public EntityManager getCurrentEntityManager() {
 							return (EntityManager) ((SessionFactory) applicationContext.getBean("localSessionFactoryBeanJpa")).getCurrentSession();
 						}
-					});					
+					});				
 		} else if (PlayerManagerDefault.getObjPersistenceModeStatic() == ObjPersistenceMode.CUSTOMIZED_PERSISTENCE) {
-			return new PlayerConfig().configObjPersistenceSupport(
+			config = config.configObjPersistenceSupport(
 					new JpaSupport() {
 						@Override
 						public EntityManager getCurrentEntityManager() {
@@ -370,6 +377,8 @@ public class TestServiceConfigBase {
 		} else {
 			throw new RuntimeException("This should not happen. PlayerManagerDefault.getObjPersistenceModeStatic(): " + PlayerManagerDefault.getObjPersistenceModeStatic());
 		}
+		
+		return config;
 	}
 	
 	@Bean

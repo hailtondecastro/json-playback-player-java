@@ -2,7 +2,6 @@ package org.jsonplayback.player.implementation;
 
 import java.util.Stack;
 
-import org.hibernate.proxy.HibernateProxy;
 import org.jsonplayback.player.LazyProperty;
 import org.jsonplayback.player.PlayerMetadatas;
 import org.slf4j.Logger;
@@ -223,24 +222,28 @@ public class PlayerBeanPropertyWriter extends BeanPropertyWriter {
 	@Override
 	public Class<?> getPropertyType() {
 		Class originalClass = super.getPropertyType();
-		if (originalClass != null && HibernateProxy.class.isAssignableFrom(originalClass)) {
-			return originalClass.getSuperclass();
-		} else {
-			return super.getPropertyType();
-		}
-	}
-
-	@Override
-	public JavaType getType() {
-		JavaType originalClass = super.getType();
-		if (originalClass != null && HibernateProxy.class.isAssignableFrom(originalClass.getRawClass())) {
-			return originalClass.getSuperClass();
+		IPlayerManagerImplementor manager = this.managersHolder.resolveManagerByType(originalClass);
+		if (manager != null) {
+			return manager.getConfig().getObjPersistenceSupport().unwrappRealType(originalClass);			
 		} else {
 			return originalClass;
 		}
 	}
 
-	public void findFieldPlayerObjectIdentifierValue(Object bean, SerializerProvider prov, PlayerMetadatas backendMetadatas)
+	@Override
+	public JavaType getType() {		
+		JavaType originalClass = super.getType();
+		IPlayerManagerImplementor manager = this.managersHolder.resolveManagerByType(originalClass.getRawClass());
+		if(manager != null) {
+			Class<?> unwrappedType = manager.getConfig().getObjPersistenceSupport().unwrappRealType(originalClass.getRawClass());
+			JavaType unwrappedTypeJackon = manager.getConfig().getObjectMapper().getTypeFactory().constructType(unwrappedType);
+			return unwrappedTypeJackon;			
+		} else {
+			return originalClass;
+		}
+	}
+
+	public void findFieldPlayerObjectIdentifierValue(Object bean, SerializerProvider prov, PlayerMetadatas playerMetadatas)
 			throws Exception {
 		try {
 			if (this.managersHolder.thereIsStartedManager()) {
@@ -251,9 +254,9 @@ public class PlayerBeanPropertyWriter extends BeanPropertyWriter {
 			// inlined 'get()'
 			final Object value = (_accessorMethod == null) ? _field.get(bean) : _accessorMethod.invoke(bean);
 
-			backendMetadatas.setPlayerObjectId(value);
-			backendMetadatas.setOriginalPlayerObjectIdPropertyWriter(this);
-			backendMetadatas.setOriginalPlayerObjectIdOwner(bean);
+			playerMetadatas.setPlayerObjectId(value);
+			playerMetadatas.setOriginalPlayerObjectIdPropertyWriter(this);
+			playerMetadatas.setOriginalPlayerObjectIdOwner(bean);
 		} finally {
 			this.getCurrOwnerStackTL().get().pop();
 			if (this.managersHolder.thereIsStartedManager()) {

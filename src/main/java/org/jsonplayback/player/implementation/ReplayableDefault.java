@@ -1,27 +1,16 @@
 package org.jsonplayback.player.implementation;
 
-import java.beans.PropertyDescriptor;
 import java.io.IOException;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.function.Function;
 
-import org.apache.commons.beanutils.PropertyUtils;
-import org.hibernate.Session;
-import org.hibernate.metadata.ClassMetadata;
-import org.hibernate.type.BagType;
-import org.hibernate.type.CollectionType;
-import org.hibernate.type.ListType;
-import org.hibernate.type.SetType;
-import org.hibernate.type.Type;
 import org.jsonplayback.player.ChangeActionEventArgs;
 import org.jsonplayback.player.IChangeActionListener;
 import org.jsonplayback.player.IFluentChangeListener;
-import org.jsonplayback.player.IPlayerManager;
 import org.jsonplayback.player.IReplayable;
 import org.jsonplayback.player.Tape;
 import org.jsonplayback.player.TapeAction;
@@ -29,27 +18,26 @@ import org.jsonplayback.player.util.ReflectionNamesDiscovery;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.deser.SettableBeanProperty;
 
 public class ReplayableDefault implements IReplayable {
 	private static Logger logger = LoggerFactory.getLogger(ReplayableDefault.class);
 	
 	private static class ClassPropertyKey {
-		private Class entityClass;
+		private Class<?> entityClass;
 		private String propertyName;
 
-		public ClassPropertyKey(Class entityClass, String propertyName) {
+		public ClassPropertyKey(Class<?> entityClass, String propertyName) {
 			super();
 			this.entityClass = entityClass;
 			this.propertyName = propertyName;
 		}
 
-		public Class getEntityClass() {
+		public Class<?> getEntityClass() {
 			return entityClass;
 		}
 
-		public void setEntityClass(Class entityClass) {
+		public void setEntityClass(Class<?> entityClass) {
 			this.entityClass = entityClass;
 		}
 
@@ -79,15 +67,15 @@ public class ReplayableDefault implements IReplayable {
 	}
 
 	private HashMap<ClassPropertyKey, List<IChangeActionListener>> listenersByPrpsMap = new HashMap<>();
-	private HashMap<Class, List<IChangeActionListener>> listenersByClassMap = new HashMap<>();
+	private HashMap<Class<?>, List<IChangeActionListener>> listenersByClassMap = new HashMap<>();
 	private ArrayList<IChangeActionListener> listenersList = new ArrayList<>();
 	private Tape tape = null;
 	private boolean replayed = false;
 
-	private IPlayerManagerImplementor manager;
+	private IPlayerManagersHolderImplementor managersHolder;
 	
-	public ReplayableDefault configManager(IPlayerManagerImplementor manager) {
-		this.manager = manager;
+	public ReplayableDefault configManager(IPlayerManagersHolderImplementor managersHolder) {
+		this.managersHolder = managersHolder;
 		return this;
 	}
 
@@ -158,15 +146,17 @@ public class ReplayableDefault implements IReplayable {
 	
 	private void preProcessPlayBack(Tape tape, HashMap<Long, Object> creationRefMap) {
 		//Session ss = this.getSessionFactory().getCurrentSession();
-		ObjectMapper objectMapper = this.manager.getConfig().getObjectMapper();
-		Collection collection = null;
+		//ObjectMapper objectMapper = this.managersHolder.getConfig().getObjectMapper();
+		Collection<Object> collection = null;
 		if (logger.isTraceEnabled()) {
 			logger.trace(MessageFormat.format("preProcessPlayBack(). tape before pre processing:\n{0}", tape));
 		}
 		for (TapeAction actionItem : this.tape.getActions()) {
 			TapeActionDefault action = (TapeActionDefault) actionItem;
 			action.setTapeOwner(this.tape);
-			Collection resolvedCollection = action.resolveColletion(objectMapper, this.manager, creationRefMap);
+			//IPlayerManagerImplementor manager = this.managersHolder.resolveManagerBySignature(action.getOwnerSignatureStr());
+			
+			Collection<Object> resolvedCollection = action.resolveColletion(managersHolder, creationRefMap);
 			switch (action.getActionType()) {
 			case CREATE:
 				if (action.getOwnerCreationId() == null) {
@@ -175,9 +165,9 @@ public class ReplayableDefault implements IReplayable {
 				if (action.getOwnerSignatureStr() != null) {
 					throw new RuntimeException(MessageFormat.format("originalSignatureStr can not be null\naction:\n{0}", action));
 				}
-				Object ownerValue = action.resolveOwnerValue(this.manager, creationRefMap);
-				
-				this.manager.getObjPersistenceSupport().processNewInstantiate(action.getResolvedOwnerPlayerType(), ownerValue);
+				Object ownerValue = action.resolveOwnerValue(managersHolder, creationRefMap);
+				IPlayerManagerImplementor manager = action.resolveOwnerManager(managersHolder, creationRefMap);
+				manager.getObjPersistenceSupport().processNewInstantiate(action.getResolvedOwnerPlayerType(), ownerValue);
 				
 				break;
 			case SAVE:
@@ -202,14 +192,14 @@ public class ReplayableDefault implements IReplayable {
 				if (action.getFieldName() == null) {
 					throw new RuntimeException(MessageFormat.format("fieldName can not be not null\naction:\n{0}", action));
 				}
-				collection = (Collection) resolvedCollection;
+				collection = (Collection<Object>) resolvedCollection;
 				
 				break;
 			case COLLECTION_REMOVE:
 				if (action.getFieldName() == null) {
 					throw new RuntimeException(MessageFormat.format("fieldName can not be not null\naction:\n{0}", action));
 				}
-				collection = (Collection) resolvedCollection;
+				collection = (Collection<Object>) resolvedCollection;
 				
 				break;
 			case SET_FIELD:
@@ -237,28 +227,29 @@ public class ReplayableDefault implements IReplayable {
 		List<IChangeActionListener> actionListenersList = null;
 		HashMap<Long, Object> creationRefMap = new HashMap<>();
 		//Session ss = this.getSessionFactory().getCurrentSession();
-		ObjectMapper objectMapper = this.manager.getConfig().getObjectMapper();
+		//ObjectMapper objectMapper = this.manager.getConfig().getObjectMapper();
 		
 		this.preProcessPlayBack(this.tape, creationRefMap);
 		
 		for (TapeAction actionItem : this.tape.getActions()) {
+			IPlayerManagerImplementor manager = null;
 			TapeActionDefault action = (TapeActionDefault) actionItem;
 			// before events
-			Object resolvedOwnerValue = action.resolveOwnerValue(this.manager, creationRefMap);
-			String resolvedJavaPropertyName = action.resolveJavaPropertyName(objectMapper, this.manager, creationRefMap);
+			Object resolvedOwnerValue = action.resolveOwnerValue(this.managersHolder, creationRefMap);
+			String resolvedJavaPropertyName = action.resolveJavaPropertyName(this.managersHolder, creationRefMap);
 			@SuppressWarnings("rawtypes")
-			Collection resolvedCollection = action.resolveColletion(objectMapper, this.manager, creationRefMap);
-			Object resolvedSettedValue = action.resolveSettedValue(objectMapper, this.manager, creationRefMap);
+			Collection resolvedCollection = action.resolveColletion(this.managersHolder, creationRefMap);
+			Object resolvedSettedValue = action.resolveSettedValue(this.managersHolder, creationRefMap);
 			
 			ChangeActionEventArgs<Object> actionEventArgs = new ChangeActionEventArgs<Object>(
 					resolvedOwnerValue, resolvedSettedValue, resolvedJavaPropertyName, resolvedCollection,
 					action.getActionType());
 			
 			if (action.getFieldName() != null) {
-				ClassPropertyKey classPropertyKey = new ClassPropertyKey(action.resolveOwnerPlayerType(this.manager, creationRefMap),
+				ClassPropertyKey classPropertyKey = new ClassPropertyKey(action.resolveOwnerPlayerType(this.managersHolder, creationRefMap),
 						resolvedJavaPropertyName);
 				
-				actionListenersList = this.listenersByClassMap.get(action.resolveOwnerPlayerType(this.manager, creationRefMap));
+				actionListenersList = this.listenersByClassMap.get(action.resolveOwnerPlayerType(this.managersHolder, creationRefMap));
 				if (actionListenersList != null) {
 					for (IChangeActionListener actionListenerItem : actionListenersList) {
 						if (logger.isTraceEnabled()) {
@@ -288,7 +279,7 @@ public class ReplayableDefault implements IReplayable {
 					}
 				}
 			} else {
-				actionListenersList = this.listenersByClassMap.get(action.resolveOwnerPlayerType(this.manager, creationRefMap));
+				actionListenersList = this.listenersByClassMap.get(action.resolveOwnerPlayerType(this.managersHolder, creationRefMap));
 				if (actionListenersList != null) {
 					for (IChangeActionListener actionListenerItem : actionListenersList) {
 						if (logger.isTraceEnabled()) {
@@ -317,24 +308,26 @@ public class ReplayableDefault implements IReplayable {
 				//nada: feito no preprocessamento		
 				break;
 			case SAVE:
-				this.manager.getConfig().getObjPersistenceSupport().persistencePersist(resolvedOwnerValue);
+				manager = action.resolveOwnerManager(this.managersHolder, creationRefMap);
+				manager.getConfig().getObjPersistenceSupport().persistencePersist(resolvedOwnerValue);
 				break;
 			case DELETE:
-				this.manager.getConfig().getObjPersistenceSupport().persistenceRemove(resolvedOwnerValue);
+				manager = action.resolveOwnerManager(this.managersHolder, creationRefMap);
+				manager.getConfig().getObjPersistenceSupport().persistenceRemove(resolvedOwnerValue);
 				break;
 			case COLLECTION_ADD:
-				collection = (Collection) resolvedCollection;
+				collection = (Collection<Object>) resolvedCollection;
 				collection.add(resolvedSettedValue);
 				
 				break;
 			case COLLECTION_REMOVE:
-				collection = (Collection) resolvedCollection;
+				collection = (Collection<Object>) resolvedCollection;
 				collection.remove(resolvedSettedValue);
 				
 				break;
 			case SET_FIELD:
 				try {
-					SettableBeanProperty settableBeanProperty = action.resolveBeanDeserializer(objectMapper, this.manager, creationRefMap).findProperty(action.getFieldName()); 
+					SettableBeanProperty settableBeanProperty = action.resolveBeanDeserializer(this.managersHolder, creationRefMap).findProperty(action.getFieldName()); 
 					settableBeanProperty.set(resolvedOwnerValue, resolvedSettedValue);
 				} catch (IOException e) {
 					throw new RuntimeException(MessageFormat.format("This should not happen.\naction:\n{0}", action));
@@ -346,7 +339,7 @@ public class ReplayableDefault implements IReplayable {
 
 			// after events
 			if (action.getFieldName() != null) {
-				ClassPropertyKey classPropertyKey = new ClassPropertyKey(action.resolveOwnerPlayerType(this.manager, creationRefMap),
+				ClassPropertyKey classPropertyKey = new ClassPropertyKey(action.resolveOwnerPlayerType(this.managersHolder, creationRefMap),
 						resolvedJavaPropertyName);
 
 				actionListenersList = this.listenersByPrpsMap.get(classPropertyKey);
@@ -359,7 +352,7 @@ public class ReplayableDefault implements IReplayable {
 					}
 				}
 
-				actionListenersList = this.listenersByClassMap.get(action.resolveOwnerPlayerType(this.manager, creationRefMap));
+				actionListenersList = this.listenersByClassMap.get(action.resolveOwnerPlayerType(this.managersHolder, creationRefMap));
 				if (actionListenersList != null) {
 					for (IChangeActionListener actionListenerItem : actionListenersList) {
 						if (logger.isTraceEnabled()) {
@@ -379,7 +372,7 @@ public class ReplayableDefault implements IReplayable {
 					}
 				}
 			} else {
-				actionListenersList = this.listenersByClassMap.get(action.resolveOwnerPlayerType(this.manager, creationRefMap));
+				actionListenersList = this.listenersByClassMap.get(action.resolveOwnerPlayerType(this.managersHolder, creationRefMap));
 				if (actionListenersList != null) {
 					for (IChangeActionListener actionListenerItem : actionListenersList) {
 						if (logger.isTraceEnabled()) {

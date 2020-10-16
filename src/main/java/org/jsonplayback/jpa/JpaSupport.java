@@ -531,7 +531,7 @@ public abstract class JpaSupport implements ObjPersistenceSupport {
 	}
 
 	@Override
-	public Object parseObjectId(IPlayerManager manager, Class ownerClass, String stringifiedObjectId) {
+	public Object parseObjectId(IPlayerManager manager, Class<?> ownerClass, String stringifiedObjectId) {
 		Object owner = null;
 		try {
 			owner = this.mapperForObjId.readValue(stringifiedObjectId, ownerClass);
@@ -552,5 +552,32 @@ public abstract class JpaSupport implements ObjPersistenceSupport {
 		} catch (JsonProcessingException e) {
 			throw new RuntimeException("This should not happen.", e);
 		}
+	}
+	
+	@Override
+	public Class<?> unwrappRealType(Object possibleWrapperValue) {
+		return this.unwrappRealType(possibleWrapperValue.getClass());
+	}
+	
+	@Override
+	public Class unwrappRealType(Class<?> possibleWrapperType) {
+		if (this.isPersistentClass(possibleWrapperType)) {
+			return possibleWrapperType;
+		} else if (possibleWrapperType.getSuperclass() != null
+				&& this.isPersistentClass(possibleWrapperType.getSuperclass())) {
+			return possibleWrapperType.getSuperclass();
+		} else {
+			return possibleWrapperType;
+		}
+	}
+	
+	@Override
+	public Set<Class<?>> allManagedTypes() {
+		Set<Class<?>> result = new LinkedHashSet<>();
+		for (String typeStr : this.persistentClasses.keySet()) {
+			result.add(this.persistentClasses.get(typeStr).getJavaType());
+		}
+		result.addAll(this.compositiesSet);
+		return result;
 	}
 }
