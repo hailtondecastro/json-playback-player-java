@@ -40,34 +40,43 @@ public class PlayerBeanSerializerModifier extends BeanSerializerModifier {
 			prpDefsMap.put(beanPropertyDefinition.getName(), beanPropertyDefinition);
 		}
 
-		Class beanClass = beanDesc.getType().getRawClass();
-		boolean beanClassIsPersistent = this.managersHolder.getStartedManagerImplementor().isPersistentClass(beanClass);
-		String playerObjectIdName = null;
-		if (beanClassIsPersistent) {
-			playerObjectIdName = this.managersHolder.getStartedManagerImplementor().getPlayerObjectIdName(beanClass);			
-		}
 		
+		boolean beanClassIsPersistent = false;
+		String playerObjectIdName = null;
+		Class beanClass = beanDesc.getType().getRawClass();
+		IPlayerManagerImplementor manager = this.managersHolder.resolveManagerByType(beanClass);
+		if (manager != null) {
+			beanClassIsPersistent = manager.isPersistentClass(beanClass);
+			
+			if (beanClassIsPersistent) {
+				playerObjectIdName = this.managersHolder.getStartedManagerImplementor().getPlayerObjectIdName(beanClass);			
+			}
+		}
 		for (int i = 0; i < beanProperties.size(); i++) {
 			BeanPropertyWriter beanPropertyWriter = beanProperties.get(i);
 			BeanPropertyDefinition prpDef = prpDefsMap.get(beanPropertyWriter.getName());
 			Class prpClass = beanPropertyWriter.getType().getRawClass();
-			boolean isPersistent = this.managersHolder.getStartedManagerImplementor().isPersistentClass(prpClass);
+			boolean isPersistent = false;
+			if (manager != null) {
+				isPersistent = manager.isPersistentClass(prpClass);
+			}
 			boolean isPlayerObjectId = false;
 			boolean isMetadatasPlayerObjectId = false;
-
+			
 			if (beanClassIsPersistent) {
 				if (playerObjectIdName.equals(prpDef.getInternalName())) {
 					isPlayerObjectId = true;
 				}
 			}
-
+			
 			if (prpDef.getAccessor().getDeclaringClass().equals(PlayerMetadatas.class)
 					&& prpDef.getInternalName().equals("playerObjectId")) {
 				isMetadatasPlayerObjectId = true;
 			}
-
+			
 			BeanPropertyWriter newBeanPropertyWriter = null;
-			if (this.managersHolder.getStartedManagerImplementor().isPersistentClass(beanClass) || this.managersHolder.getStartedManagerImplementor().isComponent(beanClass)) {
+			if ((manager != null && manager.isPersistentClass(beanClass))
+					|| (manager != null && manager.isComponent(beanClass))) {
 				LazyProperty lazyProperty = beanPropertyWriter.getAnnotation(LazyProperty.class);
 				if (lazyProperty != null) {
 					if ((beanPropertyWriter.getType().getRawClass().isArray()
@@ -75,19 +84,19 @@ public class PlayerBeanSerializerModifier extends BeanSerializerModifier {
 							|| Blob.class.isAssignableFrom(beanPropertyWriter.getType().getRawClass())
 							|| String.class.isAssignableFrom(beanPropertyWriter.getType().getRawClass())
 							|| Clob.class.isAssignableFrom(beanPropertyWriter.getType().getRawClass())) {								
-					newBeanPropertyWriter = new PlayerBeanPropertyWriter(beanPropertyWriter)
-							.configManagerHolder(this.managersHolder)
+						newBeanPropertyWriter = new PlayerBeanPropertyWriter(beanPropertyWriter)
+								.configManagerHolder(this.managersHolder)
 								.loadBeanPropertyDefinition(prpDef)
 								.loadLazyProperty(lazyProperty);
 					}
-				} else if (this.managersHolder.getStartedManagerImplementor().isComponent(beanClass)) {
+				} else if (manager != null && manager.isComponent(beanClass)) {
 					newBeanPropertyWriter = new PlayerBeanPropertyWriter(beanPropertyWriter)
 							.configManagerHolder(this.managersHolder)
 //							.loadComponentOwnerClass(beanClass)
 							.loadBeanPropertyDefinition(prpDef).loadIsPlayerObjectId(isPlayerObjectId)
 							.loadIsPersistent(isPersistent)
 							.loadIsMetadatasPlayerObjectId(isMetadatasPlayerObjectId);
-				} else if (this.managersHolder.getStartedManagerImplementor().getObjPersistenceSupport().isCollectionRelationship(beanClass, prpDef.getInternalName())) {
+				} else if (manager != null && manager.getObjPersistenceSupport().isCollectionRelationship(beanClass, prpDef.getInternalName())) {
 					newBeanPropertyWriter = new PlayerBeanPropertyWriter(beanPropertyWriter)
 							.configManagerHolder(this.managersHolder).loadRelationshipOwnerClass(beanClass)
 							.loadBeanPropertyDefinition(prpDef).loadIsPersistent(isPersistent)

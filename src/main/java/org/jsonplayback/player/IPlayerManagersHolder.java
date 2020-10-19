@@ -15,4 +15,5 @@ public interface IPlayerManagersHolder {
 	IPlayerManager getStartedManager();
 	boolean thereIsStartedManager();
 	IReplayable prepareReplayable(Tape tape);
+	IPlayerManager resolveManagerBySignature(String signature);
 }

@@ -2,6 +2,7 @@ package org.jsonplayback.player.implementation;
 
 import java.text.MessageFormat;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Set;
 
 import org.jsonplayback.player.IPlayerManager;
@@ -170,5 +171,10 @@ public class PlayerManagersHolderDefault implements IPlayerManagersHolderImpleme
 			}
 		}
 		return managerResult;
+	}
+
+	@Override
+	public Set<IPlayerManagerImplementor> managersImplementor() {
+		return new LinkedHashSet<>(this.managersSet);
 	}
 }

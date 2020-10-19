@@ -123,19 +123,23 @@ public class PlayerManagerDefault implements IPlayerManagerImplementor {
 
 	@Override
 	public IPlayerManager init() {
-		if (logger.isDebugEnabled()) {
-			logger.debug("init()");
-		}
-		this.getObjPersistenceSupport().init(this);
-		this.loadManagedTypes();
-		if (this.config.getManagerId().contains("" + this.config.getManagerIdSignaturePrefixFlag())) {
-			throw new RuntimeException("Manager id ("
-					+ this.config.getManagerId()
-					+ ") can not contains ManagerIdSignaturePrefixFlag ("
-					+ this.config.getManagerIdSignaturePrefixFlag()+")");
-		}
-		this.initialed = true;
-		return this;
+		synchronized (this) {
+			if (!this.initialed) {
+				if (logger.isDebugEnabled()) {
+					logger.debug("init()");
+				}
+				this.getObjPersistenceSupport().init(this);
+				this.loadManagedTypes();
+				if (this.config.getManagerId().contains("" + this.config.getManagerIdSignaturePrefixFlag())) {
+					throw new RuntimeException("Manager id ("
+							+ this.config.getManagerId()
+							+ ") can not contains ManagerIdSignaturePrefixFlag ("
+							+ this.config.getManagerIdSignaturePrefixFlag()+")");
+				}
+				this.initialed = true;
+			}
+			return this;
+		}		
 	}
 	
 	private void loadManagedTypes() {
@@ -523,15 +527,7 @@ public class PlayerManagerDefault implements IPlayerManagerImplementor {
 		if (logger.isTraceEnabled()) {
 			logger.trace("startSuperSync()");
 		}
-		if (!this.initialed) { // pode parecer desnecessario mas evita o overead
-								// de obtencao de lock no synchronized logo
-								// abaixo.
-			synchronized (this) {
-				if (!this.initialed) {
-					this.init();
-				}
-			}
-		}
+		this.validateInited();
 		if (this.registeredComponentOwnersTL.get() == null) {
 			this.registeredComponentOwnersTL.set(new HashMap<>());
 		}
@@ -929,6 +925,7 @@ public class PlayerManagerDefault implements IPlayerManagerImplementor {
 	
 	@Override
 	public List<OwnerAndProperty> getRegisteredComponentOwnerList(Object instance) {
+		this.validateInited();
 		ArrayList<OwnerAndProperty> resultList = new ArrayList<>();
 		OwnerAndProperty currOwnerAndProperty = null;
 		IdentityRefKey currIdentityRefKey = new IdentityRefKey(instance);
@@ -960,6 +957,7 @@ public class PlayerManagerDefault implements IPlayerManagerImplementor {
 
 	@Override
 	public boolean isManagerOfSignature(String signature) {
+		this.validateInited();
 		int indexOfFlag = signature.indexOf(this.config.getManagerIdSignaturePrefixFlag());
 		if (indexOfFlag >= 0) {
 			String possibleId = signature.substring(0, indexOfFlag);
@@ -972,17 +970,26 @@ public class PlayerManagerDefault implements IPlayerManagerImplementor {
 	private Map<String, Class<?>> managedTypeMap;
 	@Override
 	public boolean isManagerOfType(String typeNameOrAlias) {
+		this.validateInited();
 		return this.managedTypeMap.containsKey(typeNameOrAlias);
 	}
 
 	@Override
 	public boolean isManagerOfType(Class<?> type) {
+		this.validateInited();
 		Class<?> unwrappedType = this.config.getObjPersistenceSupport().unwrappRealType(type);
 		return this.isManagerOfType(unwrappedType.getName());
 	}
 
 	@Override
 	public Class<?> resolveType(String typeNameOrAlias) {
+		this.validateInited();
 		return this.managedTypeMap.get(typeNameOrAlias);
+	}
+	
+	private void validateInited() {
+		if (!this.initialed) {
+			throw new RuntimeException("Manager is not inited. Call IPlayerManager.init()");	
+		}
 	}
 }
