@@ -57,7 +57,10 @@ import org.springframework.context.annotation.FilterType;
 import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
+import org.springframework.transaction.support.TransactionCallback;
+import org.springframework.transaction.support.TransactionTemplate;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
@@ -382,17 +385,18 @@ public class TestServiceConfigBase {
 	}
 	
 	@Bean
-	public IPlayerManager getManager(@Autowired IPlayerConfig config) {
+	public IPlayerManager getManager(@Autowired IPlayerConfig config, PlatformTransactionManager transactionManager) {
+		IPlayerManager manager = null;
 		if (PlayerManagerDefault.getObjPersistenceModeStatic() == ObjPersistenceMode.HB3) {
-			return new PlayerManagerDefault().configure(config);			
+			manager = new PlayerManagerDefault().configure(config);			
 		} else if (PlayerManagerDefault.getObjPersistenceModeStatic() == ObjPersistenceMode.HB4) {
-			return new PlayerManagerDefault().configure(config);						
+			manager = new PlayerManagerDefault().configure(config);						
 		} else if (PlayerManagerDefault.getObjPersistenceModeStatic() == ObjPersistenceMode.HB5) {
-			return new PlayerManagerDefault().configure(config);						
+			manager = new PlayerManagerDefault().configure(config);						
 		} else if (PlayerManagerDefault.getObjPersistenceModeStatic() == ObjPersistenceMode.JPA) {
-			return new PlayerManagerDefault().configure(config);					
+			manager = new PlayerManagerDefault().configure(config);					
 		} else if (PlayerManagerDefault.getObjPersistenceModeStatic() == ObjPersistenceMode.CUSTOMIZED_PERSISTENCE) {
-			return new PlayerManagerDefault(){
+			manager = new PlayerManagerDefault(){
 				public SignatureBean deserializeSignature(String signatureStr) {
 					return super.deserializeSignature(signatureStr.substring(0, signatureStr.length() - ObjPersistenceMode.CUSTOMIZED_PERSISTENCE.toString().length()));
 				};
@@ -402,7 +406,16 @@ public class TestServiceConfigBase {
 			}.configure(config);
 		} else {
 			throw new RuntimeException("This should not happen. PlayerManagerDefault.getObjPersistenceModeStatic(): " + PlayerManagerDefault.getObjPersistenceModeStatic());
-		}		
+		}	
+		TransactionTemplate transactionTemplate = new TransactionTemplate(transactionManager);
+		final IPlayerManager managerFinal = manager;
+		manager = (IPlayerManager) transactionTemplate.execute(new TransactionCallback<Object>() {
+			@Override
+			public Object doInTransaction(TransactionStatus arg0) {
+				return managerFinal.init();
+			}
+		});
+		return manager;
 	}
 	
 	@Bean

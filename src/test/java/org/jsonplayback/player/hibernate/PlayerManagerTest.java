@@ -80,6 +80,7 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.JsonGenerationException;
 import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 @ContextConfiguration(classes=TestServiceConfigBase.class)
 @RunWith(JpbSpringJUnit4ClassRunner.class)
@@ -2445,6 +2446,67 @@ public class PlayerManagerTest {
 			
 		});
 		PlayerManagerTest.this.manager.stopJsonWriteIntersept();
+	}
+//eyJjbGF6ek5hbWUiOiJici5nb3Yuc2VycHJvLndlYmFuYWxpc2UuanNIYlN1cGVyU3luYy5lbnRpdGllcy5NYXN0ZXJCRW50IiwiaXNDb21wIjp0cnVlLCJwcm9wZXJ0eU5hbWUiOiJtYXN0ZXJCQ29tcCIsInJhd0tleVZhbHVlcyI6WyIxIiwiMSJdLCJyYXdLZXlUeXBlTmFtZXMiOlsiamF2YS5sYW5nLkludGVnZXIiLCJqYXZhLmxhbmcuSW50ZWdlciJdfQ
+	
+	@Test
+	public void nonStartedmanagerTest() throws Exception {
+		Session ss = this.sessionFactory.openSession();
+		String generatedFileResult = "target/"+PlayerManagerTest.class.getName()+".nonStartedmanagerTest_result_generated.json";
+		FileOutputStream fos;
+		
+		try {
+			fos = new FileOutputStream(generatedFileResult);
+			ObjectMapper objectMapper = PlayerManagerTest
+				.this
+					.manager
+						.getConfig()
+							.getObjectMapper();
+			objectMapper
+				.writerWithDefaultPrettyPrinter()
+					.writeValue(
+							fos, 
+							new Object() {
+								private String fooField = "barvalue";
+								@SuppressWarnings("unused")
+								public String getFooField() {
+									return fooField;
+								}
+								@SuppressWarnings("unused")
+								public void setFooField(String fooField) {
+									this.fooField = fooField;
+								}
+							}
+					);
+		} catch (Exception e) {
+			throw new RuntimeException("Unexpected", e);
+		}
+		
+		ClassLoader classLoader = getClass().getClassLoader();
+		BufferedReader brExpected = 
+			new BufferedReader(
+				new InputStreamReader(
+					classLoader.getResourceAsStream(this.getResourceFolder()+"/"+PlayerManagerTest.class.getName()+".nonStartedmanagerTest_result_expected.json")
+				)
+			);
+		BufferedReader brGenerated = 
+			new BufferedReader(
+				new InputStreamReader(
+					new FileInputStream(generatedFileResult)
+				)
+			);
+		
+		String strLineExpected;
+		String strLineGenerated;
+		int lineCount = 1;
+		while ((strLineExpected = brExpected.readLine()) != null)   {
+			strLineExpected = strLineExpected.trim();
+			strLineGenerated = brGenerated.readLine();
+			if (strLineGenerated != null) {
+				strLineGenerated = strLineGenerated.trim();
+			}
+			Assert.assertThat("Line " + lineCount++, strLineGenerated, equalTo(strLineExpected));
+		}
 	}
 //eyJjbGF6ek5hbWUiOiJici5nb3Yuc2VycHJvLndlYmFuYWxpc2UuanNIYlN1cGVyU3luYy5lbnRpdGllcy5NYXN0ZXJCRW50IiwiaXNDb21wIjp0cnVlLCJwcm9wZXJ0eU5hbWUiOiJtYXN0ZXJCQ29tcCIsInJhd0tleVZhbHVlcyI6WyIxIiwiMSJdLCJyYXdLZXlUeXBlTmFtZXMiOlsiamF2YS5sYW5nLkludGVnZXIiLCJqYXZhLmxhbmcuSW50ZWdlciJdfQ
 	
