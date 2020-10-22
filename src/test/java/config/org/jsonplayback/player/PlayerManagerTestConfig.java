@@ -1,4 +1,4 @@
-package org.config.jsonplayback;
+package config.org.jsonplayback.player;
 
 import java.util.Properties;
 
@@ -14,6 +14,7 @@ import org.jsonplayback.jpa.JpaSupport;
 import org.jsonplayback.player.IPlayerConfig;
 import org.jsonplayback.player.IPlayerManager;
 import org.jsonplayback.player.ObjPersistenceMode;
+import org.jsonplayback.player.PlayerManagerTest;
 import org.jsonplayback.player.PlayerSnapshot;
 import org.jsonplayback.player.SignatureBean;
 import org.jsonplayback.player.hibernate.entities.DetailAEnt;
@@ -98,7 +99,7 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 		@ComponentScan.Filter(type = FilterType.CUSTOM, classes = TypeExcludeFilter.class),
 		@ComponentScan.Filter(type = FilterType.CUSTOM, classes = AutoConfigurationExcludeFilter.class) })
 @PropertySource("test-environment.properties")
-public class TestServiceConfigBase {
+public class PlayerManagerTestConfig {
 	
 	static {
 	}
@@ -109,7 +110,7 @@ public class TestServiceConfigBase {
     //protected ObjPersistenceMode objPersistenceMode;
 	
 	@SuppressWarnings("unused")
-	private static final Logger logger = LoggerFactory.getLogger(TestServiceConfigBase.class);
+	private static final Logger logger = LoggerFactory.getLogger(PlayerManagerTestConfig.class);
 	
     @PostConstruct
 	public void init() {
@@ -143,9 +144,9 @@ public class TestServiceConfigBase {
 			localSessionFactoryBean,
 			new Object[]{
 				new String[]{
-					"jsonplayback"+"/MasterAEnt.hbm.xml",
-					"jsonplayback"+"/MasterBEnt.hbm.xml",
-					"jsonplayback"+"/DetailAEnt.hbm.xml"
+					PlayerManagerTest.class.getPackage().getName().replaceAll("\\.", "/")+"/"+"MasterAEnt.hbm.xml",
+					PlayerManagerTest.class.getPackage().getName().replaceAll("\\.", "/")+"/"+"MasterBEnt.hbm.xml",
+					PlayerManagerTest.class.getPackage().getName().replaceAll("\\.", "/")+"/"+"/DetailAEnt.hbm.xml"
 				}
 			}
 		);

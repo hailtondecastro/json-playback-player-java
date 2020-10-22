@@ -29,17 +29,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.TimeZone;
 
-import org.config.jsonplayback.TestServiceConfigBase;
 import org.hibernate.HibernateException;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.tool.hbm2ddl.SchemaExport;
-import org.jsonplayback.player.IPlayerManager;
-import org.jsonplayback.player.ObjPersistenceMode;
-import org.jsonplayback.player.ObjPersistenceSupport;
-import org.jsonplayback.player.PlayerMetadatas;
-import org.jsonplayback.player.PlayerSnapshot;
-import org.jsonplayback.player.SignatureBean;
 import org.jsonplayback.player.hibernate.HibernateJpaCompat;
 import org.jsonplayback.player.hibernate.OrderCompat;
 import org.jsonplayback.player.hibernate.entities.DetailAComp;
@@ -68,10 +61,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
-import org.springframework.context.annotation.PropertySource;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestExecutionListeners;
-import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.support.DependencyInjectionTestExecutionListener;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionStatus;
@@ -85,7 +76,9 @@ import com.fasterxml.jackson.core.JsonGenerationException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-@ContextConfiguration(classes=TestServiceConfigBase.class)
+import config.org.jsonplayback.player.PlayerManagerTestConfig;
+
+@ContextConfiguration(classes=PlayerManagerTestConfig.class)
 @RunWith(JpbSpringJUnit4ClassRunner.class)
 @TestExecutionListeners(listeners={DependencyInjectionTestExecutionListener.class})
 public class PlayerManagerTest {
@@ -605,7 +598,7 @@ public class PlayerManagerTest {
 		BufferedReader brExpected = 
 			new BufferedReader(
 				new InputStreamReader(
-					classLoader.getResourceAsStream(this.getResourceFolder()+"/"+PlayerManagerTest.class.getName()+".masterATest_result_expected.json")
+					classLoader.getResourceAsStream(PlayerManagerTest.class.getPackage().getName().replaceAll("\\.", "/")+"/"+this.getResourceFolder()+"/"+ PlayerManagerTest.class.getSimpleName()+ ".masterATest_result_expected.json")
 				)
 			);
 		BufferedReader brGenerated = 
@@ -712,7 +705,7 @@ public class PlayerManagerTest {
 		BufferedReader brExpected = 
 			new BufferedReader(
 				new InputStreamReader(
-					classLoader.getResourceAsStream(this.getResourceFolder()+"/"+PlayerManagerTest.class.getName()+".masterAWithCustomMetadataTest_result_expected.json")
+					classLoader.getResourceAsStream(PlayerManagerTest.class.getPackage().getName().replaceAll("\\.", "/")+"/"+this.getResourceFolder()+"/"+ PlayerManagerTest.class.getSimpleName()+".masterAWithCustomMetadataTest_result_expected.json")
 				)
 			);
 		BufferedReader brGenerated = 
@@ -809,8 +802,7 @@ public class PlayerManagerTest {
 
 			ClassLoader classLoader = getClass().getClassLoader();
 			BufferedReader brExpected = new BufferedReader(
-					new InputStreamReader(classLoader.getResourceAsStream(this.getResourceFolder() + "/"
-							+ PlayerManagerTest.class.getName() + ".masterABlobLazyBNullTest_result_expected.json")));
+					new InputStreamReader(classLoader.getResourceAsStream(PlayerManagerTest.class.getPackage().getName().replaceAll("\\.", "/")+"/"+this.getResourceFolder()+"/"+ PlayerManagerTest.class.getSimpleName()+ ".masterABlobLazyBNullTest_result_expected.json")));
 			BufferedReader brGenerated = new BufferedReader(
 					new InputStreamReader(new FileInputStream(generatedFileResult)));
 
@@ -891,7 +883,7 @@ public class PlayerManagerTest {
 			BufferedReader brExpected = 
 					new BufferedReader(
 							new InputStreamReader(
-									classLoader.getResourceAsStream(this.getResourceFolder()+"/"+PlayerManagerTest.class.getName()+".masterAList1000Test_result_expected.json")
+									classLoader.getResourceAsStream(PlayerManagerTest.class.getPackage().getName().replaceAll("\\.", "/")+"/"+this.getResourceFolder()+"/"+ PlayerManagerTest.class.getSimpleName()+".masterAList1000Test_result_expected.json")
 									)
 							);
 			BufferedReader brGenerated = 
@@ -980,7 +972,7 @@ public class PlayerManagerTest {
 		BufferedReader brExpected = 
 			new BufferedReader(
 				new InputStreamReader(
-					classLoader.getResourceAsStream(this.getResourceFolder()+"/"+PlayerManagerTest.class.getName()+".masterAListFirstTwiceTest_result_expected.json")
+					classLoader.getResourceAsStream(PlayerManagerTest.class.getPackage().getName().replaceAll("\\.", "/")+"/"+this.getResourceFolder()+"/"+ PlayerManagerTest.class.getSimpleName()+".masterAListFirstTwiceTest_result_expected.json")
 				)
 			);
 		BufferedReader brGenerated = 
@@ -1067,7 +1059,7 @@ public class PlayerManagerTest {
 		BufferedReader brExpected = 
 			new BufferedReader(
 				new InputStreamReader(
-					classLoader.getResourceAsStream(this.getResourceFolder()+"/"+PlayerManagerTest.class.getName()+".masterBList10Test_result_expected.json")
+					classLoader.getResourceAsStream(PlayerManagerTest.class.getPackage().getName().replaceAll("\\.", "/")+"/"+this.getResourceFolder()+"/"+ PlayerManagerTest.class.getSimpleName()+".masterBList10Test_result_expected.json")
 				)
 			);
 		BufferedReader brGenerated = 
@@ -1162,7 +1154,7 @@ public class PlayerManagerTest {
 		BufferedReader brExpected = 
 			new BufferedReader(
 				new InputStreamReader(
-					classLoader.getResourceAsStream(this.getResourceFolder()+"/"+PlayerManagerTest.class.getName()+".detailACompIdList10Test_result_expected.json")
+					classLoader.getResourceAsStream(PlayerManagerTest.class.getPackage().getName().replaceAll("\\.", "/")+"/"+this.getResourceFolder()+"/"+ PlayerManagerTest.class.getSimpleName()+".detailACompIdList10Test_result_expected.json")
 				)
 			);
 		BufferedReader brGenerated = 
@@ -1256,7 +1248,7 @@ public class PlayerManagerTest {
 		BufferedReader brExpected = 
 			new BufferedReader(
 				new InputStreamReader(
-					classLoader.getResourceAsStream(this.getResourceFolder()+"/"+PlayerManagerTest.class.getName()+".detailACompIdListDummyOwner10Test_result_expected.json")
+					classLoader.getResourceAsStream(PlayerManagerTest.class.getPackage().getName().replaceAll("\\.", "/")+"/"+this.getResourceFolder()+"/"+ PlayerManagerTest.class.getSimpleName()+".detailACompIdListDummyOwner10Test_result_expected.json")
 				)
 			);
 		BufferedReader brGenerated = 
@@ -1354,7 +1346,7 @@ public class PlayerManagerTest {
 		BufferedReader brExpected = 
 			new BufferedReader(
 				new InputStreamReader(
-					classLoader.getResourceAsStream(this.getResourceFolder()+"/"+PlayerManagerTest.class.getName()+".detailACompCompListDummyOwner10Test_result_expected.json")
+					classLoader.getResourceAsStream(PlayerManagerTest.class.getPackage().getName().replaceAll("\\.", "/")+"/"+this.getResourceFolder()+"/"+ PlayerManagerTest.class.getSimpleName()+".detailACompCompListDummyOwner10Test_result_expected.json")
 				)
 			);
 		BufferedReader brGenerated = 
@@ -1450,7 +1442,7 @@ public class PlayerManagerTest {
 		BufferedReader brExpected = 
 			new BufferedReader(
 				new InputStreamReader(
-					classLoader.getResourceAsStream(this.getResourceFolder()+"/"+PlayerManagerTest.class.getName()+".detailACompCompList10Test_result_expected.json")
+					classLoader.getResourceAsStream(PlayerManagerTest.class.getPackage().getName().replaceAll("\\.", "/")+"/"+this.getResourceFolder()+"/"+ PlayerManagerTest.class.getSimpleName()+".detailACompCompList10Test_result_expected.json")
 				)
 			);
 		BufferedReader brGenerated = 
@@ -1551,7 +1543,7 @@ public class PlayerManagerTest {
 		BufferedReader brExpected = 
 			new BufferedReader(
 				new InputStreamReader(
-					classLoader.getResourceAsStream(this.getResourceFolder()+"/"+PlayerManagerTest.class.getName()+".masterBList10BizarreTest_result_expected.json")
+					classLoader.getResourceAsStream(PlayerManagerTest.class.getPackage().getName().replaceAll("\\.", "/")+"/"+this.getResourceFolder()+"/"+ PlayerManagerTest.class.getSimpleName()+".masterBList10BizarreTest_result_expected.json")
 				)
 			);
 		BufferedReader brGenerated = 
@@ -1703,7 +1695,7 @@ public class PlayerManagerTest {
 			BufferedReader brExpected = 
 				new BufferedReader(
 					new InputStreamReader(
-						classLoader.getResourceAsStream(this.getResourceFolder()+"/"+PlayerManagerTest.class.getName()+".masterLazyPrpOverSizedTest_result_expected.json")
+						classLoader.getResourceAsStream(PlayerManagerTest.class.getPackage().getName().replaceAll("\\.", "/")+"/"+this.getResourceFolder()+"/"+ PlayerManagerTest.class.getSimpleName()+".masterLazyPrpOverSizedTest_result_expected.json")
 					)
 				);
 			BufferedReader brGenerated = 
@@ -1799,7 +1791,7 @@ public class PlayerManagerTest {
 		BufferedReader brExpected = 
 			new BufferedReader(
 				new InputStreamReader(
-					classLoader.getResourceAsStream(this.getResourceFolder()+"/"+PlayerManagerTest.class.getName()+".masterADetailATest_result_expected.json")
+					classLoader.getResourceAsStream(PlayerManagerTest.class.getPackage().getName().replaceAll("\\.", "/")+"/"+this.getResourceFolder()+"/"+ PlayerManagerTest.class.getSimpleName()+".masterADetailATest_result_expected.json")
 				)
 			);
 		BufferedReader brGenerated = 
@@ -1906,7 +1898,7 @@ public class PlayerManagerTest {
 		BufferedReader brExpected = 
 			new BufferedReader(
 				new InputStreamReader(
-					classLoader.getResourceAsStream(this.getResourceFolder()+"/"+PlayerManagerTest.class.getName()+".masterAWrapperTest_result_expected.json")
+					classLoader.getResourceAsStream(PlayerManagerTest.class.getPackage().getName().replaceAll("\\.", "/")+"/"+this.getResourceFolder()+"/"+ PlayerManagerTest.class.getSimpleName()+".masterAWrapperTest_result_expected.json")
 				)
 			);
 		BufferedReader brGenerated = 
@@ -1995,7 +1987,7 @@ public class PlayerManagerTest {
 		BufferedReader brExpected = 
 			new BufferedReader(
 				new InputStreamReader(
-					classLoader.getResourceAsStream(this.getResourceFolder()+"/"+PlayerManagerTest.class.getName()+".detailAWithoutMasterBTest_result_expected.json")
+					classLoader.getResourceAsStream(PlayerManagerTest.class.getPackage().getName().replaceAll("\\.", "/")+"/"+this.getResourceFolder()+"/"+ PlayerManagerTest.class.getSimpleName()+".detailAWithoutMasterBTest_result_expected.json")
 				)
 			);
 		BufferedReader brGenerated = 
@@ -2088,7 +2080,7 @@ public class PlayerManagerTest {
 		BufferedReader brExpected = 
 			new BufferedReader(
 				new InputStreamReader(
-					classLoader.getResourceAsStream(this.getResourceFolder()+"/"+PlayerManagerTest.class.getName()+".detailABySigTest_result_expected.json")
+					classLoader.getResourceAsStream(PlayerManagerTest.class.getPackage().getName().replaceAll("\\.", "/")+"/"+this.getResourceFolder()+"/"+ PlayerManagerTest.class.getSimpleName()+".detailABySigTest_result_expected.json")
 				)
 			);
 		BufferedReader brGenerated = 
@@ -2185,7 +2177,7 @@ public class PlayerManagerTest {
 		BufferedReader brExpected = 
 			new BufferedReader(
 				new InputStreamReader(
-					classLoader.getResourceAsStream(this.getResourceFolder()+"/"+PlayerManagerTest.class.getName()+".detailAFirstSecontTest_result_expected.json")
+					classLoader.getResourceAsStream(PlayerManagerTest.class.getPackage().getName().replaceAll("\\.", "/")+"/"+this.getResourceFolder()+"/"+ PlayerManagerTest.class.getSimpleName()+".detailAFirstSecontTest_result_expected.json")
 				)
 			);
 		BufferedReader brGenerated = 
@@ -2281,7 +2273,7 @@ public class PlayerManagerTest {
 		BufferedReader brExpected = 
 			new BufferedReader(
 				new InputStreamReader(
-					classLoader.getResourceAsStream(this.getResourceFolder()+"/"+PlayerManagerTest.class.getName()+".detailASecontThirdTest_result_expected.json")
+					classLoader.getResourceAsStream(PlayerManagerTest.class.getPackage().getName().replaceAll("\\.", "/")+"/"+this.getResourceFolder()+"/"+ PlayerManagerTest.class.getSimpleName()+".detailASecontThirdTest_result_expected.json")
 				)
 			);
 		BufferedReader brGenerated = 
@@ -2370,7 +2362,7 @@ public class PlayerManagerTest {
 		BufferedReader brExpected = 
 			new BufferedReader(
 				new InputStreamReader(
-					classLoader.getResourceAsStream(this.getResourceFolder()+"/"+PlayerManagerTest.class.getName()+".masterBTest_result_expected.json")
+					classLoader.getResourceAsStream(PlayerManagerTest.class.getPackage().getName().replaceAll("\\.", "/")+"/"+this.getResourceFolder()+"/"+ PlayerManagerTest.class.getSimpleName()+".masterBTest_result_expected.json")
 				)
 			);
 		BufferedReader brGenerated = 
@@ -2489,7 +2481,7 @@ public class PlayerManagerTest {
 		BufferedReader brExpected = 
 			new BufferedReader(
 				new InputStreamReader(
-					classLoader.getResourceAsStream(this.getResourceFolder()+"/"+PlayerManagerTest.class.getName()+".nonStartedmanagerTest_result_expected.json")
+					classLoader.getResourceAsStream(PlayerManagerTest.class.getPackage().getName().replaceAll("\\.", "/")+"/"+this.getResourceFolder()+"/"+ PlayerManagerTest.class.getSimpleName()+".nonStartedmanagerTest_result_expected.json")
 				)
 			);
 		BufferedReader brGenerated = 
@@ -2612,15 +2604,15 @@ public class PlayerManagerTest {
 	
 	private String getResourceFolder() {
 		if (this.manager.getConfig().getObjPersistenceMode() == ObjPersistenceMode.HB3) {
-			return "jsonplayback/hb3";
+			return "hb3";
 		} else if (this.manager.getConfig().getObjPersistenceMode() == ObjPersistenceMode.HB4) {
-			return "jsonplayback/hb3";
+			return "hb3";
 		} else if (this.manager.getConfig().getObjPersistenceMode() == ObjPersistenceMode.HB5) {
-			return "jsonplayback/hb3";
+			return "hb3";
 		} else if (this.manager.getConfig().getObjPersistenceMode() == ObjPersistenceMode.JPA) {
-			return "jsonplayback/jpa";
+			return "jpa";
 		} else if (this.manager.getConfig().getObjPersistenceMode() == ObjPersistenceMode.CUSTOMIZED_PERSISTENCE) {
-			return "jsonplayback/customized-persistence";
+			return "customized-persistence";
 		} else {
 			throw new RuntimeException("This should not happen");
 		}
