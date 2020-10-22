@@ -61,8 +61,8 @@ Framework for integrate entity object graph operations (field, collections modif
   $ git config --global user.signingkey 2AAD7BC5340A5AD35E0EB1117B34C45B030EAE3F
   $ # Show GPG key
   $ gpg --armor --export 7B34C45B030EAE3F
-  $ # Reassinando os commit ate o master
-  $ cd <repositorio>
+  $ gpg --armor --export 2AAD7BC5340A5AD35E0EB1117B34C45B030EAE3F > /C/git/github.com/hailton-github.com.gpg.pub 
+  $ gpg --armor --export-secret-key 2AAD7BC5340A5AD35E0EB1117B34C45B030EAE3F > /C/git/github.com/hailton-github.com.gpg
   $ # do it for every git clone:
   $ git config --local user.name hailtondecastro
   $ git config --local user.email hailtondecastro@gmail.com
@@ -72,6 +72,23 @@ Framework for integrate entity object graph operations (field, collections modif
   $ git rebase --exec 'git commit --amend --no-edit -n --no-verify -S'
   $ # Run this and submit the content to [Add new GPG keys](https://github.com/settings/gpg/new):
   $ gpg --armor --export 2AAD7BC5340A5AD35E0EB1117B34C45B030EAE3F
+  $ # BEGIN: if using eclipse + windows
+  $ export GNUPGHOME="$APPDATA/gnupg"
+  $ export GNUPGHOME=$( echo "$GNUPGHOME" | sed -e 's/\\/\//g' )
+  $ export GNUPGHOME=$( echo "$GNUPGHOME" | sed -e 's/^\([A-Z]\):/\/\1/g' )
+  $ echo "$GNUPGHOME"
+  $ gpg --list-secret-keys --keyid-format LONG
+  $ # If get error below delete gnupg_spawn_agent_sentinel.lock:
+  $ #   gpg: invalid size of lockfile '/C/Users/63315947368/AppData/Roaming/gnupg/gnupg_spawn_agent_sentinel.lock'
+  $ #   gpg: cannot read lockfile
+  $ #   $ rm $GNUPGHOME/gnupg_spawn_agent_sentinel.lock
+  $ gpg --import /C/git/github.com/hailton-github.com.gpg.pub
+  $ # If get error below delete pubring.kbx.lock:
+  $ #   gpg: invalid size of lockfile '/C/Users/63315947368/AppData/Roaming/gnupg/pubring.kbx.lock'
+  $ #   gpg: cannot read lockfile
+  $ #   $ rm $GNUPGHOME/pubring.kbx.lock
+  $ gpg --import --allow-secret-key-import /C/git/github.com/hailton-github.com.gpg
+  $ # END: if using eclipse + windows
   ```
   Skipping a build on travis: put [skip travis] on comment. ref.: [Customizing the Build - Travis CI](https://docs.travis-ci.com/user/customizing-the-build/#skipping-a-build).  
   Maven Deploy on central.sonatype.org with travis: Override the "deploy" tag and push it.
@@ -165,7 +182,7 @@ Framework for integrate entity object graph operations (field, collections modif
 							</execution>
 						</executions>
 					</plugin>
-  ```
+  ```  
   Commit and push 'travis.gpg' and 'travis.gpg.pub'.  
   References:
   - [Requirements](https://central.sonatype.org/pages/requirements.html)
