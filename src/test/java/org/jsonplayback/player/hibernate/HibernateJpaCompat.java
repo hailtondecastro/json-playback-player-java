@@ -19,7 +19,7 @@ public class HibernateJpaCompat {
 		return new CriteriaCompatBase<>(session, clazz);
 	}
 
-	Connection getConnection(Session session, EntityManager em) {
+	public Connection getConnection(Session session, EntityManager em) {
 		if (session != null) {
 			final AtomicReference<Connection> connRef = new AtomicReference<>();
 			session.doWork(connection -> {

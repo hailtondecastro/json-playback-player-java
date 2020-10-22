@@ -1,4 +1,4 @@
-package org.jsonplayback.player.hibernate;
+package org.jsonplayback.player;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.not;
@@ -40,6 +40,8 @@ import org.jsonplayback.player.ObjPersistenceSupport;
 import org.jsonplayback.player.PlayerMetadatas;
 import org.jsonplayback.player.PlayerSnapshot;
 import org.jsonplayback.player.SignatureBean;
+import org.jsonplayback.player.hibernate.HibernateJpaCompat;
+import org.jsonplayback.player.hibernate.OrderCompat;
 import org.jsonplayback.player.hibernate.entities.DetailAComp;
 import org.jsonplayback.player.hibernate.entities.DetailACompComp;
 import org.jsonplayback.player.hibernate.entities.DetailACompId;
