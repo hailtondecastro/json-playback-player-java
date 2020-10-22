@@ -96,6 +96,7 @@ public class PlayerManagerDefault implements IPlayerManagerImplementor {
 			logger.debug(MessageFormat.format("configure.  config:\n{0}", config));
 		}
 		this.config = config;
+		this.validateObjPersistenceMode();
 		
 		if (this.config.getObjPersistenceMode().equals(ObjPersistenceMode.HB3)) {
 			this.objPersistenceSupport = config.getObjPersistenceSupport();
@@ -111,7 +112,7 @@ public class PlayerManagerDefault implements IPlayerManagerImplementor {
 			throw new RuntimeException(
 				"Object Persistent mode not supported: " +
 				this.config.getObjPersistenceMode() +
-				". Colaborate, help us to support this hibernate version.");
+				". Colaborate, help us to support this hibernate version. config:\n" + config);
 		}
 		return this;
 	}
@@ -191,11 +192,11 @@ public class PlayerManagerDefault implements IPlayerManagerImplementor {
 		try {
 			objectMapper.writeValue(writer, signatureBeanJson);
 		} catch (JsonGenerationException e) {
-			throw new RuntimeException("Isso nao deveria acontencer!", e);
+			throw new RuntimeException("This should not happen", e);
 		} catch (JsonMappingException e) {
-			throw new RuntimeException("Isso nao deveria acontencer!", e);
+			throw new RuntimeException("This should not happen", e);
 		} catch (IOException e) {
-			throw new RuntimeException("Isso nao deveria acontencer!", e);
+			throw new RuntimeException("This should not happen", e);
 		}
 		String resultStr = writer.toString();
 		if (this.config.getSignatureCrypto() != null) {
@@ -559,6 +560,12 @@ public class PlayerManagerDefault implements IPlayerManagerImplementor {
 		this.registeredComponentOwnersTL.set(new HashMap<>());
 	}
 
+	private void validateObjPersistenceMode() {
+		if (this.config.getObjPersistenceMode() == null) {
+			throw new RuntimeException("objPersistenceMode can not be null. config:\n" + this.config);
+		}
+	}
+	
 	private void validateStarted() {
 		if (this.currIdTL.get() == null) {
 			throw new RuntimeException("Not started");

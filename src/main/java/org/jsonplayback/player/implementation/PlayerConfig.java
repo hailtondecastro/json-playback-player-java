@@ -218,6 +218,7 @@ public class PlayerConfig implements IPlayerConfig, Cloneable {
 			//thisAsMap.put("neverSignedClasses", this.getNeverSignedClasses());
 			thisAsMap.put("playerMetadatasName", this.getPlayerMetadatasName());
 			thisAsMap.put("nonLazybleClasses", this.getNonLazybleClasses());
+			thisAsMap.put("objPersistenceMode", this.getObjPersistenceMode());
 			return objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(thisAsMap);
 		} catch (JsonProcessingException e) {
 			throw new RuntimeException("This should not happen", e);
