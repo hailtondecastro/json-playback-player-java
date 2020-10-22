@@ -12,6 +12,7 @@ import java.util.function.Function;
 import org.jsonplayback.player.IGetBySignatureListener;
 import org.jsonplayback.player.IPlayerConfig;
 import org.jsonplayback.player.IPlayerManager;
+import org.jsonplayback.player.ObjPersistenceMode;
 import org.jsonplayback.player.ObjPersistenceSupport;
 import org.jsonplayback.player.PlayerMetadatas;
 import org.jsonplayback.player.SignatureCrypto;
@@ -42,8 +43,20 @@ public class PlayerConfig implements IPlayerConfig, Cloneable {
 	};
 	private char managerIdSignaturePrefixFlag = '.';
 	private String managerId = null;
-	
+	private ObjPersistenceMode objPersistenceMode;
+
 	private Set<String> addictionalManagedTypeSet = new HashSet<String>();
+	
+	@Override
+	public ObjPersistenceMode getObjPersistenceMode() {
+		return objPersistenceMode;
+	}
+
+	@Override
+	public IPlayerConfig configObjPersistenceMode(ObjPersistenceMode objPersistenceMode) {
+		this.objPersistenceMode = objPersistenceMode;
+		return this;
+	}
 	
 	private Function<IPlayerManager, PlayerMetadatas> metadataInstantiator =
 			(manager) -> {

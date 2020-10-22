@@ -1,5 +1,6 @@
 package org.jsonplayback.player.spring.context.annotation;
 
+import org.config.jsonplayback.TestServiceConfigBase;
 import org.jsonplayback.player.ObjPersistenceMode;
 import org.jsonplayback.player.implementation.PlayerManagerDefault;
 import org.springframework.context.annotation.Condition;
@@ -17,6 +18,6 @@ public class OnHibernate4 implements Condition {
 
 	@Override
 	public boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata) {
-		return PlayerManagerDefault.getObjPersistenceModeStatic() == ObjPersistenceMode.HB4;
+		return context.getEnvironment().getProperty(TestServiceConfigBase.OBJ_PERSISTENCE_MODE, ObjPersistenceMode.class, null) == ObjPersistenceMode.HB4;
 	}
 }

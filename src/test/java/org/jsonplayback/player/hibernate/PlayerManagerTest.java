@@ -52,7 +52,6 @@ import org.jsonplayback.player.hibernate.entities.MasterBEnt;
 import org.jsonplayback.player.hibernate.nonentities.DetailAWrapper;
 import org.jsonplayback.player.hibernate.nonentities.MasterAWrapper;
 import org.jsonplayback.player.implementation.IPlayerManagerImplementor;
-import org.jsonplayback.player.implementation.PlayerManagerDefault;
 import org.jsonplayback.player.util.ReflectionUtil;
 import org.jsonplayback.player.util.SqlLogInspetor;
 import org.jsonplayback.player.util.spring.orm.hibernate3.JpbSpringJUnit4ClassRunner;
@@ -67,8 +66,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
+import org.springframework.context.annotation.PropertySource;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestExecutionListeners;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.support.DependencyInjectionTestExecutionListener;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionStatus;
@@ -93,7 +94,7 @@ public class PlayerManagerTest {
 	
 	@Autowired
 	private SessionFactory sessionFactory;
-	
+
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
     	System.out.println("TEST");
@@ -2512,15 +2513,15 @@ public class PlayerManagerTest {
 	
 	
 	private String getMasterAEntDetailAColKey0Sign() {
-		if (PlayerManagerDefault.getObjPersistenceModeStatic() == ObjPersistenceMode.HB3) {
+		if (this.manager.getConfig().getObjPersistenceMode() == ObjPersistenceMode.HB3) {
 			return "manager01.eyJjbGF6ek5hbWUiOiJvcmcuanNvbnBsYXliYWNrLnBsYXllci5oaWJlcm5hdGUuZW50aXRpZXMuTWFzdGVyQUVudCIsImlzQ29sbCI6dHJ1ZSwicHJvcGVydHlOYW1lIjoiZGV0YWlsQUVudENvbCIsInN0cmluZ2lmaWVkT2JqZWN0SWQiOiJ7XCJyYXdLZXlWYWx1ZXNcIjpbXCIwXCJdLFwicmF3S2V5VHlwZU5hbWVzXCI6W1wiamF2YS5sYW5nLkludGVnZXJcIl19In0";
-		} else if (PlayerManagerDefault.getObjPersistenceModeStatic() == ObjPersistenceMode.HB4) {
+		} else if (this.manager.getConfig().getObjPersistenceMode() == ObjPersistenceMode.HB4) {
 			return "manager01.eyJjbGF6ek5hbWUiOiJvcmcuanNvbnBsYXliYWNrLnBsYXllci5oaWJlcm5hdGUuZW50aXRpZXMuTWFzdGVyQUVudCIsImlzQ29sbCI6dHJ1ZSwicHJvcGVydHlOYW1lIjoiZGV0YWlsQUVudENvbCIsInN0cmluZ2lmaWVkT2JqZWN0SWQiOiJ7XCJyYXdLZXlWYWx1ZXNcIjpbXCIwXCJdLFwicmF3S2V5VHlwZU5hbWVzXCI6W1wiamF2YS5sYW5nLkludGVnZXJcIl19In0";
-		} else if (PlayerManagerDefault.getObjPersistenceModeStatic() == ObjPersistenceMode.HB5) {
+		} else if (this.manager.getConfig().getObjPersistenceMode() == ObjPersistenceMode.HB5) {
 			return "manager01.eyJjbGF6ek5hbWUiOiJvcmcuanNvbnBsYXliYWNrLnBsYXllci5oaWJlcm5hdGUuZW50aXRpZXMuTWFzdGVyQUVudCIsImlzQ29sbCI6dHJ1ZSwicHJvcGVydHlOYW1lIjoiZGV0YWlsQUVudENvbCIsInN0cmluZ2lmaWVkT2JqZWN0SWQiOiJ7XCJyYXdLZXlWYWx1ZXNcIjpbXCIwXCJdLFwicmF3S2V5VHlwZU5hbWVzXCI6W1wiamF2YS5sYW5nLkludGVnZXJcIl19In0";
-		} else if (PlayerManagerDefault.getObjPersistenceModeStatic() == ObjPersistenceMode.JPA) {
+		} else if (this.manager.getConfig().getObjPersistenceMode() == ObjPersistenceMode.JPA) {
 			return "manager01.eyJjbGF6ek5hbWUiOiJvcmcuanNvbnBsYXliYWNrLnBsYXllci5oaWJlcm5hdGUuZW50aXRpZXMuTWFzdGVyQUVudCIsImlzQ29sbCI6dHJ1ZSwicHJvcGVydHlOYW1lIjoiZGV0YWlsQUVudENvbCIsInN0cmluZ2lmaWVkT2JqZWN0SWQiOiJ7XCJpZFwiOjB9In0";
-		} else if (PlayerManagerDefault.getObjPersistenceModeStatic() == ObjPersistenceMode.CUSTOMIZED_PERSISTENCE) {
+		} else if (this.manager.getConfig().getObjPersistenceMode() == ObjPersistenceMode.CUSTOMIZED_PERSISTENCE) {
 			return "manager01.eyJjbGF6ek5hbWUiOiJvcmcuanNvbnBsYXliYWNrLnBsYXllci5oaWJlcm5hdGUuZW50aXRpZXMuTWFzdGVyQUVudCIsImlzQ29sbCI6dHJ1ZSwicHJvcGVydHlOYW1lIjoiZGV0YWlsQUVudENvbCIsInN0cmluZ2lmaWVkT2JqZWN0SWQiOiJ7XCJpZFwiOjB9In0" + ObjPersistenceMode.CUSTOMIZED_PERSISTENCE;
 		} else {
 			throw new RuntimeException("This should not happen");
@@ -2528,15 +2529,15 @@ public class PlayerManagerTest {
 	}
 
 	private String getMasterBEntKey1c1Sign() {
-		if (PlayerManagerDefault.getObjPersistenceModeStatic() == ObjPersistenceMode.HB3) {
+		if (this.manager.getConfig().getObjPersistenceMode() == ObjPersistenceMode.HB3) {
 			return "manager01.eyJjbGF6ek5hbWUiOiJvcmcuanNvbnBsYXliYWNrLnBsYXllci5oaWJlcm5hdGUuZW50aXRpZXMuTWFzdGVyQkVudCIsInN0cmluZ2lmaWVkT2JqZWN0SWQiOiJ7XCJyYXdLZXlWYWx1ZXNcIjpbXCIxXCIsXCIxXCJdLFwicmF3S2V5VHlwZU5hbWVzXCI6W1wiamF2YS5sYW5nLkludGVnZXJcIixcImphdmEubGFuZy5JbnRlZ2VyXCJdfSJ9";
-		} else if (PlayerManagerDefault.getObjPersistenceModeStatic() == ObjPersistenceMode.HB4) {
+		} else if (this.manager.getConfig().getObjPersistenceMode() == ObjPersistenceMode.HB4) {
 			return "manager01.eyJjbGF6ek5hbWUiOiJvcmcuanNvbnBsYXliYWNrLnBsYXllci5oaWJlcm5hdGUuZW50aXRpZXMuTWFzdGVyQkVudCIsInN0cmluZ2lmaWVkT2JqZWN0SWQiOiJ7XCJyYXdLZXlWYWx1ZXNcIjpbXCIxXCIsXCIxXCJdLFwicmF3S2V5VHlwZU5hbWVzXCI6W1wiamF2YS5sYW5nLkludGVnZXJcIixcImphdmEubGFuZy5JbnRlZ2VyXCJdfSJ9";
-		} else if (PlayerManagerDefault.getObjPersistenceModeStatic() == ObjPersistenceMode.HB5) {
+		} else if (this.manager.getConfig().getObjPersistenceMode() == ObjPersistenceMode.HB5) {
 			return "manager01.eyJjbGF6ek5hbWUiOiJvcmcuanNvbnBsYXliYWNrLnBsYXllci5oaWJlcm5hdGUuZW50aXRpZXMuTWFzdGVyQkVudCIsInN0cmluZ2lmaWVkT2JqZWN0SWQiOiJ7XCJyYXdLZXlWYWx1ZXNcIjpbXCIxXCIsXCIxXCJdLFwicmF3S2V5VHlwZU5hbWVzXCI6W1wiamF2YS5sYW5nLkludGVnZXJcIixcImphdmEubGFuZy5JbnRlZ2VyXCJdfSJ9";
-		} else if (PlayerManagerDefault.getObjPersistenceModeStatic() == ObjPersistenceMode.JPA) {
+		} else if (this.manager.getConfig().getObjPersistenceMode() == ObjPersistenceMode.JPA) {
 			return "manager01.eyJjbGF6ek5hbWUiOiJvcmcuanNvbnBsYXliYWNrLnBsYXllci5oaWJlcm5hdGUuZW50aXRpZXMuTWFzdGVyQkVudCIsInN0cmluZ2lmaWVkT2JqZWN0SWQiOiJ7XCJjb21wSWRcIjp7XCJpZEFcIjoxLFwiaWRCXCI6MX19In0";
-		} else if (PlayerManagerDefault.getObjPersistenceModeStatic() == ObjPersistenceMode.CUSTOMIZED_PERSISTENCE) {
+		} else if (this.manager.getConfig().getObjPersistenceMode() == ObjPersistenceMode.CUSTOMIZED_PERSISTENCE) {
 			return "manager01.eyJjbGF6ek5hbWUiOiJvcmcuanNvbnBsYXliYWNrLnBsYXllci5oaWJlcm5hdGUuZW50aXRpZXMuTWFzdGVyQkVudCIsInN0cmluZ2lmaWVkT2JqZWN0SWQiOiJ7XCJjb21wSWRcIjp7XCJpZEFcIjoxLFwiaWRCXCI6MX19In0"+ ObjPersistenceMode.CUSTOMIZED_PERSISTENCE;
 		} else {
 			throw new RuntimeException("This should not happen");
@@ -2544,15 +2545,15 @@ public class PlayerManagerTest {
 	}
 
 	private String getMasterBEntMasterBCompKey1c1Sign() {
-		if (PlayerManagerDefault.getObjPersistenceModeStatic() == ObjPersistenceMode.HB3) {
+		if (this.manager.getConfig().getObjPersistenceMode() == ObjPersistenceMode.HB3) {
 			return "manager01.eyJjbGF6ek5hbWUiOiJvcmcuanNvbnBsYXliYWNrLnBsYXllci5oaWJlcm5hdGUuZW50aXRpZXMuTWFzdGVyQkVudCIsImlzQ29tcCI6dHJ1ZSwicHJvcGVydHlOYW1lIjoibWFzdGVyQkNvbXAiLCJzdHJpbmdpZmllZE9iamVjdElkIjoie1wicmF3S2V5VmFsdWVzXCI6W1wiMVwiLFwiMVwiXSxcInJhd0tleVR5cGVOYW1lc1wiOltcImphdmEubGFuZy5JbnRlZ2VyXCIsXCJqYXZhLmxhbmcuSW50ZWdlclwiXX0ifQ";
-		} else if (PlayerManagerDefault.getObjPersistenceModeStatic() == ObjPersistenceMode.HB4) {
+		} else if (this.manager.getConfig().getObjPersistenceMode() == ObjPersistenceMode.HB4) {
 			return "manager01.eyJjbGF6ek5hbWUiOiJvcmcuanNvbnBsYXliYWNrLnBsYXllci5oaWJlcm5hdGUuZW50aXRpZXMuTWFzdGVyQkVudCIsImlzQ29tcCI6dHJ1ZSwicHJvcGVydHlOYW1lIjoibWFzdGVyQkNvbXAiLCJzdHJpbmdpZmllZE9iamVjdElkIjoie1wicmF3S2V5VmFsdWVzXCI6W1wiMVwiLFwiMVwiXSxcInJhd0tleVR5cGVOYW1lc1wiOltcImphdmEubGFuZy5JbnRlZ2VyXCIsXCJqYXZhLmxhbmcuSW50ZWdlclwiXX0ifQ";
-		} else if (PlayerManagerDefault.getObjPersistenceModeStatic() == ObjPersistenceMode.HB5) {
+		} else if (this.manager.getConfig().getObjPersistenceMode() == ObjPersistenceMode.HB5) {
 			return "manager01.eyJjbGF6ek5hbWUiOiJvcmcuanNvbnBsYXliYWNrLnBsYXllci5oaWJlcm5hdGUuZW50aXRpZXMuTWFzdGVyQkVudCIsImlzQ29tcCI6dHJ1ZSwicHJvcGVydHlOYW1lIjoibWFzdGVyQkNvbXAiLCJzdHJpbmdpZmllZE9iamVjdElkIjoie1wicmF3S2V5VmFsdWVzXCI6W1wiMVwiLFwiMVwiXSxcInJhd0tleVR5cGVOYW1lc1wiOltcImphdmEubGFuZy5JbnRlZ2VyXCIsXCJqYXZhLmxhbmcuSW50ZWdlclwiXX0ifQ";
-		} else if (PlayerManagerDefault.getObjPersistenceModeStatic() == ObjPersistenceMode.JPA) {
+		} else if (this.manager.getConfig().getObjPersistenceMode() == ObjPersistenceMode.JPA) {
 			return "manager01.eyJjbGF6ek5hbWUiOiJvcmcuanNvbnBsYXliYWNrLnBsYXllci5oaWJlcm5hdGUuZW50aXRpZXMuTWFzdGVyQkVudCIsImlzQ29tcCI6dHJ1ZSwicHJvcGVydHlOYW1lIjoibWFzdGVyQkNvbXAiLCJzdHJpbmdpZmllZE9iamVjdElkIjoie1wiY29tcElkXCI6e1wiaWRBXCI6MSxcImlkQlwiOjF9fSJ9";	
-		} else if (PlayerManagerDefault.getObjPersistenceModeStatic() == ObjPersistenceMode.CUSTOMIZED_PERSISTENCE) {
+		} else if (this.manager.getConfig().getObjPersistenceMode() == ObjPersistenceMode.CUSTOMIZED_PERSISTENCE) {
 			return "manager01.eyJjbGF6ek5hbWUiOiJvcmcuanNvbnBsYXliYWNrLnBsYXllci5oaWJlcm5hdGUuZW50aXRpZXMuTWFzdGVyQkVudCIsImlzQ29tcCI6dHJ1ZSwicHJvcGVydHlOYW1lIjoibWFzdGVyQkNvbXAiLCJzdHJpbmdpZmllZE9iamVjdElkIjoie1wiY29tcElkXCI6e1wiaWRBXCI6MSxcImlkQlwiOjF9fSJ9" + ObjPersistenceMode.CUSTOMIZED_PERSISTENCE;
 		} else {
 			throw new RuntimeException("This should not happen");
@@ -2560,15 +2561,15 @@ public class PlayerManagerTest {
 	}
 
 	private String getMasterBEntMasterBCompDetailAEntColKey1c1Sign() {
-		if (PlayerManagerDefault.getObjPersistenceModeStatic() == ObjPersistenceMode.HB3) {
+		if (this.manager.getConfig().getObjPersistenceMode() == ObjPersistenceMode.HB3) {
 			return "manager01.eyJjbGF6ek5hbWUiOiJvcmcuanNvbnBsYXliYWNrLnBsYXllci5oaWJlcm5hdGUuZW50aXRpZXMuTWFzdGVyQkVudCIsImlzQ29sbCI6dHJ1ZSwicHJvcGVydHlOYW1lIjoibWFzdGVyQkNvbXAuZGV0YWlsQUVudENvbCIsInN0cmluZ2lmaWVkT2JqZWN0SWQiOiJ7XCJyYXdLZXlWYWx1ZXNcIjpbXCIxXCIsXCIxXCJdLFwicmF3S2V5VHlwZU5hbWVzXCI6W1wiamF2YS5sYW5nLkludGVnZXJcIixcImphdmEubGFuZy5JbnRlZ2VyXCJdfSJ9";
-		} else if (PlayerManagerDefault.getObjPersistenceModeStatic() == ObjPersistenceMode.HB4) {
+		} else if (this.manager.getConfig().getObjPersistenceMode() == ObjPersistenceMode.HB4) {
 			return "manager01.eyJjbGF6ek5hbWUiOiJvcmcuanNvbnBsYXliYWNrLnBsYXllci5oaWJlcm5hdGUuZW50aXRpZXMuTWFzdGVyQkVudCIsImlzQ29sbCI6dHJ1ZSwicHJvcGVydHlOYW1lIjoibWFzdGVyQkNvbXAuZGV0YWlsQUVudENvbCIsInN0cmluZ2lmaWVkT2JqZWN0SWQiOiJ7XCJyYXdLZXlWYWx1ZXNcIjpbXCIxXCIsXCIxXCJdLFwicmF3S2V5VHlwZU5hbWVzXCI6W1wiamF2YS5sYW5nLkludGVnZXJcIixcImphdmEubGFuZy5JbnRlZ2VyXCJdfSJ9";
-		} else if (PlayerManagerDefault.getObjPersistenceModeStatic() == ObjPersistenceMode.HB5) {
+		} else if (this.manager.getConfig().getObjPersistenceMode() == ObjPersistenceMode.HB5) {
 			return "manager01.eyJjbGF6ek5hbWUiOiJvcmcuanNvbnBsYXliYWNrLnBsYXllci5oaWJlcm5hdGUuZW50aXRpZXMuTWFzdGVyQkVudCIsImlzQ29sbCI6dHJ1ZSwicHJvcGVydHlOYW1lIjoibWFzdGVyQkNvbXAuZGV0YWlsQUVudENvbCIsInN0cmluZ2lmaWVkT2JqZWN0SWQiOiJ7XCJyYXdLZXlWYWx1ZXNcIjpbXCIxXCIsXCIxXCJdLFwicmF3S2V5VHlwZU5hbWVzXCI6W1wiamF2YS5sYW5nLkludGVnZXJcIixcImphdmEubGFuZy5JbnRlZ2VyXCJdfSJ9";
-		} else if (PlayerManagerDefault.getObjPersistenceModeStatic() == ObjPersistenceMode.JPA) {			
+		} else if (this.manager.getConfig().getObjPersistenceMode() == ObjPersistenceMode.JPA) {			
 			return "manager01.eyJjbGF6ek5hbWUiOiJvcmcuanNvbnBsYXliYWNrLnBsYXllci5oaWJlcm5hdGUuZW50aXRpZXMuTWFzdGVyQkVudCIsImlzQ29sbCI6dHJ1ZSwicHJvcGVydHlOYW1lIjoibWFzdGVyQkNvbXAuZGV0YWlsQUVudENvbCIsInN0cmluZ2lmaWVkT2JqZWN0SWQiOiJ7XCJjb21wSWRcIjp7XCJpZEFcIjoxLFwiaWRCXCI6MX19In0";
-		} else if (PlayerManagerDefault.getObjPersistenceModeStatic() == ObjPersistenceMode.CUSTOMIZED_PERSISTENCE) {
+		} else if (this.manager.getConfig().getObjPersistenceMode() == ObjPersistenceMode.CUSTOMIZED_PERSISTENCE) {
 			return "manager01.eyJjbGF6ek5hbWUiOiJvcmcuanNvbnBsYXliYWNrLnBsYXllci5oaWJlcm5hdGUuZW50aXRpZXMuTWFzdGVyQkVudCIsImlzQ29sbCI6dHJ1ZSwicHJvcGVydHlOYW1lIjoibWFzdGVyQkNvbXAuZGV0YWlsQUVudENvbCIsInN0cmluZ2lmaWVkT2JqZWN0SWQiOiJ7XCJjb21wSWRcIjp7XCJpZEFcIjoxLFwiaWRCXCI6MX19In0" + ObjPersistenceMode.CUSTOMIZED_PERSISTENCE;
 		} else {
 			throw new RuntimeException("This should not happen");
@@ -2576,15 +2577,15 @@ public class PlayerManagerTest {
 	}
 
 	private String getMasterBEntMasterBCompMasterBCompCompKey1c1Sign() {
-		if (PlayerManagerDefault.getObjPersistenceModeStatic() == ObjPersistenceMode.HB3) {
+		if (this.manager.getConfig().getObjPersistenceMode() == ObjPersistenceMode.HB3) {
 			return "manager01.eyJjbGF6ek5hbWUiOiJvcmcuanNvbnBsYXliYWNrLnBsYXllci5oaWJlcm5hdGUuZW50aXRpZXMuTWFzdGVyQkVudCIsImlzQ29tcCI6dHJ1ZSwicHJvcGVydHlOYW1lIjoibWFzdGVyQkNvbXAubWFzdGVyQkNvbXBDb21wIiwic3RyaW5naWZpZWRPYmplY3RJZCI6IntcInJhd0tleVZhbHVlc1wiOltcIjFcIixcIjFcIl0sXCJyYXdLZXlUeXBlTmFtZXNcIjpbXCJqYXZhLmxhbmcuSW50ZWdlclwiLFwiamF2YS5sYW5nLkludGVnZXJcIl19In0";
-		} else if (PlayerManagerDefault.getObjPersistenceModeStatic() == ObjPersistenceMode.HB4) {
+		} else if (this.manager.getConfig().getObjPersistenceMode() == ObjPersistenceMode.HB4) {
 			return "manager01.eyJjbGF6ek5hbWUiOiJvcmcuanNvbnBsYXliYWNrLnBsYXllci5oaWJlcm5hdGUuZW50aXRpZXMuTWFzdGVyQkVudCIsImlzQ29tcCI6dHJ1ZSwicHJvcGVydHlOYW1lIjoibWFzdGVyQkNvbXAubWFzdGVyQkNvbXBDb21wIiwic3RyaW5naWZpZWRPYmplY3RJZCI6IntcInJhd0tleVZhbHVlc1wiOltcIjFcIixcIjFcIl0sXCJyYXdLZXlUeXBlTmFtZXNcIjpbXCJqYXZhLmxhbmcuSW50ZWdlclwiLFwiamF2YS5sYW5nLkludGVnZXJcIl19In0";
-		} else if (PlayerManagerDefault.getObjPersistenceModeStatic() == ObjPersistenceMode.HB5) {
+		} else if (this.manager.getConfig().getObjPersistenceMode() == ObjPersistenceMode.HB5) {
 			return "manager01.eyJjbGF6ek5hbWUiOiJvcmcuanNvbnBsYXliYWNrLnBsYXllci5oaWJlcm5hdGUuZW50aXRpZXMuTWFzdGVyQkVudCIsImlzQ29tcCI6dHJ1ZSwicHJvcGVydHlOYW1lIjoibWFzdGVyQkNvbXAubWFzdGVyQkNvbXBDb21wIiwic3RyaW5naWZpZWRPYmplY3RJZCI6IntcInJhd0tleVZhbHVlc1wiOltcIjFcIixcIjFcIl0sXCJyYXdLZXlUeXBlTmFtZXNcIjpbXCJqYXZhLmxhbmcuSW50ZWdlclwiLFwiamF2YS5sYW5nLkludGVnZXJcIl19In0";
-		} else if (PlayerManagerDefault.getObjPersistenceModeStatic() == ObjPersistenceMode.JPA) {
+		} else if (this.manager.getConfig().getObjPersistenceMode() == ObjPersistenceMode.JPA) {
 			return "manager01.eyJjbGF6ek5hbWUiOiJvcmcuanNvbnBsYXliYWNrLnBsYXllci5oaWJlcm5hdGUuZW50aXRpZXMuTWFzdGVyQkVudCIsImlzQ29tcCI6dHJ1ZSwicHJvcGVydHlOYW1lIjoibWFzdGVyQkNvbXAubWFzdGVyQkNvbXBDb21wIiwic3RyaW5naWZpZWRPYmplY3RJZCI6IntcImNvbXBJZFwiOntcImlkQVwiOjEsXCJpZEJcIjoxfX0ifQ";
-		} else if (PlayerManagerDefault.getObjPersistenceModeStatic() == ObjPersistenceMode.CUSTOMIZED_PERSISTENCE) {
+		} else if (this.manager.getConfig().getObjPersistenceMode() == ObjPersistenceMode.CUSTOMIZED_PERSISTENCE) {
 			return "manager01.eyJjbGF6ek5hbWUiOiJvcmcuanNvbnBsYXliYWNrLnBsYXllci5oaWJlcm5hdGUuZW50aXRpZXMuTWFzdGVyQkVudCIsImlzQ29tcCI6dHJ1ZSwicHJvcGVydHlOYW1lIjoibWFzdGVyQkNvbXAubWFzdGVyQkNvbXBDb21wIiwic3RyaW5naWZpZWRPYmplY3RJZCI6IntcImNvbXBJZFwiOntcImlkQVwiOjEsXCJpZEJcIjoxfX0ifQ"+ ObjPersistenceMode.CUSTOMIZED_PERSISTENCE;
 		} else {
 			throw new RuntimeException("This should not happen");
@@ -2592,15 +2593,15 @@ public class PlayerManagerTest {
 	}
 
 	private String getMasterBEntMasterBCompMasterBCompCompDetailAEntColKey1c1Sign() {
-		if (PlayerManagerDefault.getObjPersistenceModeStatic() == ObjPersistenceMode.HB3) {
+		if (this.manager.getConfig().getObjPersistenceMode() == ObjPersistenceMode.HB3) {
 			return "manager01.eyJjbGF6ek5hbWUiOiJvcmcuanNvbnBsYXliYWNrLnBsYXllci5oaWJlcm5hdGUuZW50aXRpZXMuTWFzdGVyQkVudCIsImlzQ29sbCI6dHJ1ZSwicHJvcGVydHlOYW1lIjoibWFzdGVyQkNvbXAubWFzdGVyQkNvbXBDb21wLmRldGFpbEFFbnRDb2wiLCJzdHJpbmdpZmllZE9iamVjdElkIjoie1wicmF3S2V5VmFsdWVzXCI6W1wiMVwiLFwiMVwiXSxcInJhd0tleVR5cGVOYW1lc1wiOltcImphdmEubGFuZy5JbnRlZ2VyXCIsXCJqYXZhLmxhbmcuSW50ZWdlclwiXX0ifQ";
-		} else if (PlayerManagerDefault.getObjPersistenceModeStatic() == ObjPersistenceMode.HB4) {
+		} else if (this.manager.getConfig().getObjPersistenceMode() == ObjPersistenceMode.HB4) {
 			return "manager01.eyJjbGF6ek5hbWUiOiJvcmcuanNvbnBsYXliYWNrLnBsYXllci5oaWJlcm5hdGUuZW50aXRpZXMuTWFzdGVyQkVudCIsImlzQ29sbCI6dHJ1ZSwicHJvcGVydHlOYW1lIjoibWFzdGVyQkNvbXAubWFzdGVyQkNvbXBDb21wLmRldGFpbEFFbnRDb2wiLCJzdHJpbmdpZmllZE9iamVjdElkIjoie1wicmF3S2V5VmFsdWVzXCI6W1wiMVwiLFwiMVwiXSxcInJhd0tleVR5cGVOYW1lc1wiOltcImphdmEubGFuZy5JbnRlZ2VyXCIsXCJqYXZhLmxhbmcuSW50ZWdlclwiXX0ifQ";
-		} else if (PlayerManagerDefault.getObjPersistenceModeStatic() == ObjPersistenceMode.HB5) {
+		} else if (this.manager.getConfig().getObjPersistenceMode() == ObjPersistenceMode.HB5) {
 			return "manager01.eyJjbGF6ek5hbWUiOiJvcmcuanNvbnBsYXliYWNrLnBsYXllci5oaWJlcm5hdGUuZW50aXRpZXMuTWFzdGVyQkVudCIsImlzQ29sbCI6dHJ1ZSwicHJvcGVydHlOYW1lIjoibWFzdGVyQkNvbXAubWFzdGVyQkNvbXBDb21wLmRldGFpbEFFbnRDb2wiLCJzdHJpbmdpZmllZE9iamVjdElkIjoie1wicmF3S2V5VmFsdWVzXCI6W1wiMVwiLFwiMVwiXSxcInJhd0tleVR5cGVOYW1lc1wiOltcImphdmEubGFuZy5JbnRlZ2VyXCIsXCJqYXZhLmxhbmcuSW50ZWdlclwiXX0ifQ";
-		} else if (PlayerManagerDefault.getObjPersistenceModeStatic() == ObjPersistenceMode.JPA) {
+		} else if (this.manager.getConfig().getObjPersistenceMode() == ObjPersistenceMode.JPA) {
 			return "manager01.eyJjbGF6ek5hbWUiOiJvcmcuanNvbnBsYXliYWNrLnBsYXllci5oaWJlcm5hdGUuZW50aXRpZXMuTWFzdGVyQkVudCIsImlzQ29sbCI6dHJ1ZSwicHJvcGVydHlOYW1lIjoibWFzdGVyQkNvbXAubWFzdGVyQkNvbXBDb21wLmRldGFpbEFFbnRDb2wiLCJzdHJpbmdpZmllZE9iamVjdElkIjoie1wiY29tcElkXCI6e1wiaWRBXCI6MSxcImlkQlwiOjF9fSJ9";
-		} else if (PlayerManagerDefault.getObjPersistenceModeStatic() == ObjPersistenceMode.CUSTOMIZED_PERSISTENCE) {
+		} else if (this.manager.getConfig().getObjPersistenceMode() == ObjPersistenceMode.CUSTOMIZED_PERSISTENCE) {
 			return "manager01.eyJjbGF6ek5hbWUiOiJvcmcuanNvbnBsYXliYWNrLnBsYXllci5oaWJlcm5hdGUuZW50aXRpZXMuTWFzdGVyQkVudCIsImlzQ29sbCI6dHJ1ZSwicHJvcGVydHlOYW1lIjoibWFzdGVyQkNvbXAubWFzdGVyQkNvbXBDb21wLmRldGFpbEFFbnRDb2wiLCJzdHJpbmdpZmllZE9iamVjdElkIjoie1wiY29tcElkXCI6e1wiaWRBXCI6MSxcImlkQlwiOjF9fSJ9" + ObjPersistenceMode.CUSTOMIZED_PERSISTENCE;
 		} else {
 			throw new RuntimeException("This should not happen");
@@ -2608,15 +2609,15 @@ public class PlayerManagerTest {
 	}
 	
 	private String getResourceFolder() {
-		if (PlayerManagerDefault.getObjPersistenceModeStatic() == ObjPersistenceMode.HB3) {
+		if (this.manager.getConfig().getObjPersistenceMode() == ObjPersistenceMode.HB3) {
 			return "jsonplayback/hb3";
-		} else if (PlayerManagerDefault.getObjPersistenceModeStatic() == ObjPersistenceMode.HB4) {
+		} else if (this.manager.getConfig().getObjPersistenceMode() == ObjPersistenceMode.HB4) {
 			return "jsonplayback/hb3";
-		} else if (PlayerManagerDefault.getObjPersistenceModeStatic() == ObjPersistenceMode.HB5) {
+		} else if (this.manager.getConfig().getObjPersistenceMode() == ObjPersistenceMode.HB5) {
 			return "jsonplayback/hb3";
-		} else if (PlayerManagerDefault.getObjPersistenceModeStatic() == ObjPersistenceMode.JPA) {
+		} else if (this.manager.getConfig().getObjPersistenceMode() == ObjPersistenceMode.JPA) {
 			return "jsonplayback/jpa";
-		} else if (PlayerManagerDefault.getObjPersistenceModeStatic() == ObjPersistenceMode.CUSTOMIZED_PERSISTENCE) {
+		} else if (this.manager.getConfig().getObjPersistenceMode() == ObjPersistenceMode.CUSTOMIZED_PERSISTENCE) {
 			return "jsonplayback/customized-persistence";
 		} else {
 			throw new RuntimeException("This should not happen");

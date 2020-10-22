@@ -75,6 +75,5 @@ public interface IPlayerManager {
 	
 	<O> IPlayerManager registerComponentOwner(O owner, Function<O, ?> propertyFunc);
 	<O, T> IPlayerManager registerComponentOwner(Class<O> ownerClass, T targetOwned, Function<O, T> propertyFunc);	
-	ObjPersistenceMode getObjPersistenceMode();
 }
 /*gerando conflito*/

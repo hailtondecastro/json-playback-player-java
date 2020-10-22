@@ -70,5 +70,9 @@ public interface IPlayerConfig {
 	Function<IPlayerManager, PlayerMetadatas> getMetadataInstantiator();
 
 	IPlayerConfig configMetadataInstantiator(Function<IPlayerManager, PlayerMetadatas> metadataInstantiator);
+	
+	ObjPersistenceMode getObjPersistenceMode();
+
+	IPlayerConfig configObjPersistenceMode(ObjPersistenceMode objPersistenceMode);
 }
 /*gerando conflito*/

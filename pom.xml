@@ -234,10 +234,10 @@
 						<configuration>
 							<tasks>
 								<delete
-									file="${project.build.outputDirectory}/environment.properties" />
+									file="${project.build.testOutputDirectory}/test-environment.properties" />
 								<copy
-									file="src/main/resources/environment.${jsonplayback.classifier}.properties"
-									tofile="${project.build.outputDirectory}/environment.properties" />
+									file="src/test/resources/test-environment.${jsonplayback.test-profile}.properties"
+									tofile="${project.build.testOutputDirectory}/test-environment.properties" />
 							</tasks>
 						</configuration>
 					</execution>
@@ -262,7 +262,6 @@
 							<goal>jar</goal>
 						</goals>
 						<configuration>
-							<classifier>${jsonplayback.classifier}</classifier>
 						</configuration>
 					</execution>
 				</executions>
@@ -311,7 +310,7 @@
 				<activeByDefault>true</activeByDefault>
 			</activation>
 			<properties>
-				<jsonplayback.classifier>hb3</jsonplayback.classifier>
+				<jsonplayback.test-profile>hb3</jsonplayback.test-profile>
 				<jsonplayback.springboot.version>1.5.2.RELEASE</jsonplayback.springboot.version>
 				<jsonplayback.spring.version>4.3.7.RELEASE</jsonplayback.spring.version>
 			</properties>
@@ -330,7 +329,7 @@
 		<profile>
 			<id>hb4</id>
 			<properties>
-				<jsonplayback.classifier>hb4</jsonplayback.classifier>
+				<jsonplayback.test-profile>hb4</jsonplayback.test-profile>
 				<jsonplayback.springboot.version>1.5.2.RELEASE</jsonplayback.springboot.version>
 				<jsonplayback.spring.version>4.3.7.RELEASE</jsonplayback.spring.version>
 			</properties>
@@ -349,7 +348,7 @@
 		<profile>
 			<id>hb5</id>
 			<properties>
-				<jsonplayback.classifier>hb5</jsonplayback.classifier>
+				<jsonplayback.test-profile>hb5</jsonplayback.test-profile>
 				<jsonplayback.springboot.version>2.1.8.RELEASE</jsonplayback.springboot.version>
 				<jsonplayback.spring.version>5.1.9.RELEASE</jsonplayback.spring.version>
 			</properties>
@@ -368,7 +367,7 @@
 		<profile>
 			<id>jpa</id>
 			<properties>
-				<jsonplayback.classifier>jpa</jsonplayback.classifier>
+				<jsonplayback.test-profile>jpa</jsonplayback.test-profile>
 				<jsonplayback.springboot.version>2.1.8.RELEASE</jsonplayback.springboot.version>
 				<jsonplayback.spring.version>5.1.9.RELEASE</jsonplayback.spring.version>
 			</properties>
@@ -387,7 +386,7 @@
 		<profile>
 			<id>customized-persistence</id>
 			<properties>
-				<jsonplayback.classifier>customized-persistence</jsonplayback.classifier>
+				<jsonplayback.test-profile>customized-persistence</jsonplayback.test-profile>
 				<jsonplayback.springboot.version>2.1.8.RELEASE</jsonplayback.springboot.version>
 				<jsonplayback.spring.version>5.1.9.RELEASE</jsonplayback.spring.version>
 			</properties>
@@ -409,7 +408,7 @@
 		<profile>
 			<id>hb6</id>
 			<properties>
-				<jsonplayback.classifier>hb6</jsonplayback.classifier>
+				<jsonplayback.test-profile>hb6</jsonplayback.test-profile>
 				<jsonplayback.springboot.version>2.1.8.RELEASE</jsonplayback.springboot.version>
 				<jsonplayback.spring.version>5.1.9.RELEASE</jsonplayback.spring.version>
 			</properties>

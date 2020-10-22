@@ -37,6 +37,7 @@ import org.jsonplayback.player.util.ReflectionUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.AutoConfigurationExcludeFilter;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.cassandra.CassandraAutoConfiguration;
@@ -54,6 +55,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.FilterType;
+import org.springframework.context.annotation.PropertySource;
 import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.transaction.PlatformTransactionManager;
@@ -95,10 +97,16 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 @ComponentScan(basePackages = { "org.jsonplayback" }, excludeFilters = {
 		@ComponentScan.Filter(type = FilterType.CUSTOM, classes = TypeExcludeFilter.class),
 		@ComponentScan.Filter(type = FilterType.CUSTOM, classes = AutoConfigurationExcludeFilter.class) })
+@PropertySource("test-environment.properties")
 public class TestServiceConfigBase {
 	
 	static {
 	}
+	
+	public static final String OBJ_PERSISTENCE_MODE = "jsonplayback.objPersistenceMode";
+    
+	//@Value("${"+OBJ_PERSISTENCE_MODE+"}")
+    //protected ObjPersistenceMode objPersistenceMode;
 	
 	@SuppressWarnings("unused")
 	private static final Logger logger = LoggerFactory.getLogger(TestServiceConfigBase.class);
@@ -112,6 +120,7 @@ public class TestServiceConfigBase {
     
     @Autowired
     ApplicationContext applicationContext;
+    
     
     @SuppressWarnings("deprecation")
 	@Bean("localSessionFactoryBean3")
@@ -331,13 +340,17 @@ public class TestServiceConfigBase {
     }
     
 	@Bean
-	public IPlayerConfig getConfig(@Autowired SessionFactory sessionFactory, @Autowired ApplicationContext applicationContext) {
+	public IPlayerConfig getConfig(
+			@Autowired SessionFactory sessionFactory, 
+			@Autowired ApplicationContext applicationContext,
+			@Value("${"+OBJ_PERSISTENCE_MODE+"}") ObjPersistenceMode objPersistenceMode) {
 		IPlayerConfig config = 
 				new PlayerConfig()
 					.configManagerId("manager01")
+					.configObjPersistenceMode(objPersistenceMode)
 					.registerAddictionalManagedType(MasterAWrapper.class)
 					.registerAddictionalManagedType(DetailAWrapper.class);
-		if (PlayerManagerDefault.getObjPersistenceModeStatic() == ObjPersistenceMode.HB3) {
+		if (objPersistenceMode == ObjPersistenceMode.HB3) {
 			config = config.configObjPersistenceSupport(
 					new Hb3Support() {						
 						@Override
@@ -345,7 +358,7 @@ public class TestServiceConfigBase {
 							return (SessionFactory) applicationContext.getBean("localSessionFactoryBean3");
 						}
 					});			
-		} else if (PlayerManagerDefault.getObjPersistenceModeStatic() == ObjPersistenceMode.HB4) {
+		} else if (objPersistenceMode == ObjPersistenceMode.HB4) {
 			config = config.configObjPersistenceSupport(
 					new Hb4Support() {						
 						@Override
@@ -353,7 +366,7 @@ public class TestServiceConfigBase {
 							return (SessionFactory) applicationContext.getBean("localSessionFactoryBean4");
 						}
 					});					
-		} else if (PlayerManagerDefault.getObjPersistenceModeStatic() == ObjPersistenceMode.HB5) {
+		} else if (objPersistenceMode == ObjPersistenceMode.HB5) {
 			config = config.configObjPersistenceSupport(
 					new Hb5Support() {						
 						@Override
@@ -361,7 +374,7 @@ public class TestServiceConfigBase {
 							return (SessionFactory) applicationContext.getBean("localSessionFactoryBean5");
 						}
 					});						
-		} else if (PlayerManagerDefault.getObjPersistenceModeStatic() == ObjPersistenceMode.JPA) {
+		} else if (objPersistenceMode == ObjPersistenceMode.JPA) {
 			config = config.configObjPersistenceSupport(
 					new JpaSupport() {
 						@Override
@@ -369,7 +382,7 @@ public class TestServiceConfigBase {
 							return (EntityManager) ((SessionFactory) applicationContext.getBean("localSessionFactoryBeanJpa")).getCurrentSession();
 						}
 					});				
-		} else if (PlayerManagerDefault.getObjPersistenceModeStatic() == ObjPersistenceMode.CUSTOMIZED_PERSISTENCE) {
+		} else if (objPersistenceMode == ObjPersistenceMode.CUSTOMIZED_PERSISTENCE) {
 			config = config.configObjPersistenceSupport(
 					new JpaSupport() {
 						@Override
@@ -378,7 +391,7 @@ public class TestServiceConfigBase {
 						}
 					});					
 		} else {
-			throw new RuntimeException("This should not happen. PlayerManagerDefault.getObjPersistenceModeStatic(): " + PlayerManagerDefault.getObjPersistenceModeStatic());
+			throw new RuntimeException("This should not happen. config.getObjPersistenceMode(): " + config.getObjPersistenceMode());
 		}
 		
 		return config;
@@ -387,15 +400,15 @@ public class TestServiceConfigBase {
 	@Bean
 	public IPlayerManager getManager(@Autowired IPlayerConfig config, PlatformTransactionManager transactionManager) {
 		IPlayerManager manager = null;
-		if (PlayerManagerDefault.getObjPersistenceModeStatic() == ObjPersistenceMode.HB3) {
+		if (config.getObjPersistenceMode() == ObjPersistenceMode.HB3) {
 			manager = new PlayerManagerDefault().configure(config);			
-		} else if (PlayerManagerDefault.getObjPersistenceModeStatic() == ObjPersistenceMode.HB4) {
+		} else if (config.getObjPersistenceMode() == ObjPersistenceMode.HB4) {
 			manager = new PlayerManagerDefault().configure(config);						
-		} else if (PlayerManagerDefault.getObjPersistenceModeStatic() == ObjPersistenceMode.HB5) {
+		} else if (config.getObjPersistenceMode() == ObjPersistenceMode.HB5) {
 			manager = new PlayerManagerDefault().configure(config);						
-		} else if (PlayerManagerDefault.getObjPersistenceModeStatic() == ObjPersistenceMode.JPA) {
+		} else if (config.getObjPersistenceMode() == ObjPersistenceMode.JPA) {
 			manager = new PlayerManagerDefault().configure(config);					
-		} else if (PlayerManagerDefault.getObjPersistenceModeStatic() == ObjPersistenceMode.CUSTOMIZED_PERSISTENCE) {
+		} else if (config.getObjPersistenceMode() == ObjPersistenceMode.CUSTOMIZED_PERSISTENCE) {
 			manager = new PlayerManagerDefault(){
 				public SignatureBean deserializeSignature(String signatureStr) {
 					return super.deserializeSignature(signatureStr.substring(0, signatureStr.length() - ObjPersistenceMode.CUSTOMIZED_PERSISTENCE.toString().length()));
@@ -405,7 +418,7 @@ public class TestServiceConfigBase {
 				};
 			}.configure(config);
 		} else {
-			throw new RuntimeException("This should not happen. PlayerManagerDefault.getObjPersistenceModeStatic(): " + PlayerManagerDefault.getObjPersistenceModeStatic());
+			throw new RuntimeException("This should not happen. config.getObjPersistenceMode(): " + config.getObjPersistenceMode());
 		}	
 		TransactionTemplate transactionTemplate = new TransactionTemplate(transactionManager);
 		final IPlayerManager managerFinal = manager;

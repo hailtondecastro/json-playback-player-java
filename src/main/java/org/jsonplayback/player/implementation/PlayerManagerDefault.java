@@ -6,7 +6,6 @@ import java.io.OutputStream;
 import java.io.Reader;
 import java.io.StringReader;
 import java.io.StringWriter;
-import java.lang.reflect.Array;
 import java.nio.CharBuffer;
 import java.nio.channels.Channels;
 import java.nio.channels.WritableByteChannel;
@@ -24,7 +23,6 @@ import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
 import java.util.Stack;
 import java.util.function.Function;
 
@@ -56,10 +54,9 @@ import com.fasterxml.jackson.databind.ser.BeanSerializer;
 import com.fasterxml.jackson.databind.ser.PropertyWriter;
 
 public class PlayerManagerDefault implements IPlayerManagerImplementor {
-	private static final String OBJ_PERSISTENCE_MODE = "jsonplayback.objPersistenceMode"; 
 	private static Logger logger = LoggerFactory.getLogger(PlayerManagerDefault.class);
-	private static Properties envPrps = new Properties(); 
 	
+	/*
 	static {
 		InputStream is = PlayerManagerDefault.class.getClassLoader().getResourceAsStream("environment.properties");
 		try {
@@ -68,6 +65,7 @@ public class PlayerManagerDefault implements IPlayerManagerImplementor {
 			throw new RuntimeException("This should not happen", e);
 		}
 	}
+	*/
 	
 	private IPlayerConfig config = new PlayerConfig();
 	ThreadLocal<Long> currIdTL = new ThreadLocal<Long>();
@@ -98,22 +96,21 @@ public class PlayerManagerDefault implements IPlayerManagerImplementor {
 			logger.debug(MessageFormat.format("configure.  config:\n{0}", config));
 		}
 		this.config = config;
-		this.objPersistenceMode = getObjPersistenceModeStatic();
 		
-		if (this.objPersistenceMode.equals(ObjPersistenceMode.HB3)) {
+		if (this.config.getObjPersistenceMode().equals(ObjPersistenceMode.HB3)) {
 			this.objPersistenceSupport = config.getObjPersistenceSupport();
-		} else if (this.objPersistenceMode.equals(ObjPersistenceMode.HB4)) {
+		} else if (this.config.getObjPersistenceMode().equals(ObjPersistenceMode.HB4)) {
 			this.objPersistenceSupport = config.getObjPersistenceSupport();
-		} else if (this.objPersistenceMode.equals(ObjPersistenceMode.HB5)) {
+		} else if (this.config.getObjPersistenceMode().equals(ObjPersistenceMode.HB5)) {
 			this.objPersistenceSupport = config.getObjPersistenceSupport();
-		} else if (this.objPersistenceMode.equals(ObjPersistenceMode.JPA)) {
+		} else if (this.config.getObjPersistenceMode().equals(ObjPersistenceMode.JPA)) {
 			this.objPersistenceSupport = config.getObjPersistenceSupport();
-		} else if (this.objPersistenceMode.equals(ObjPersistenceMode.CUSTOMIZED_PERSISTENCE)) {
+		} else if (this.config.getObjPersistenceMode().equals(ObjPersistenceMode.CUSTOMIZED_PERSISTENCE)) {
 			this.objPersistenceSupport = config.getObjPersistenceSupport();
 		} else {
 			throw new RuntimeException(
 				"Object Persistent mode not supported: " +
-				this.objPersistenceMode +
+				this.config.getObjPersistenceMode() +
 				". Colaborate, help us to support this hibernate version.");
 		}
 		return this;
@@ -946,14 +943,9 @@ public class PlayerManagerDefault implements IPlayerManagerImplementor {
 		return this.objPersistenceSupport;
 	}
 	
-	private ObjPersistenceMode objPersistenceMode;
-	public ObjPersistenceMode getObjPersistenceMode() {
-		return this.objPersistenceMode;
-	}
-	
-	public static ObjPersistenceMode getObjPersistenceModeStatic() {
-		return ObjPersistenceMode.valueOf(envPrps.getProperty(OBJ_PERSISTENCE_MODE));
-	}
+//	public static ObjPersistenceMode getObjPersistenceModeStatic() {
+//		return ObjPersistenceMode.valueOf(envPrps.getProperty(OBJ_PERSISTENCE_MODE));
+//	}
 
 	@Override
 	public boolean isManagerOfSignature(String signature) {
