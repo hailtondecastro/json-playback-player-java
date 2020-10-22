@@ -6,11 +6,11 @@
 
 	<groupId>io.github.hailtondecastro</groupId>
 	<artifactId>json-playback-player</artifactId>
-	<version>0.6.2-SNAPSHOT</version>
+	<version>0.6.3-SNAPSHOT</version>
 	<packaging>jar</packaging>
 	<name>json-playback-player-java</name>
 	<description>Frameworks and APIs for exchanging/interoperation entity object graph states and their operations (changing fields, collections modifications, etc) between two software layers using json.</description>
-	<url>https://github.com/hailtondecastro/json-playback-player-hibernate</url>
+	<url>https://github.com/hailtondecastro/json-playback-player-java</url>
 
 	<licenses>
 		<license>
@@ -20,9 +20,9 @@
 		</license>
 	</licenses>
 	<scm>
-		<url>https://github.com/hailtondecastro/json-playback-player-hibernate</url>
-		<connection>scm:git:git@github.com:hailtondecastro/json-playback-player-hibernate.git</connection>
-		<developerConnection>scm:git:git@github.com:hailtondecastro/json-playback-player-hibernate.git</developerConnection>
+		<url>https://github.com/hailtondecastro/json-playback-player-java</url>
+		<connection>scm:git:git@github.com:hailtondecastro/json-playback-player-java.git</connection>
+		<developerConnection>scm:git:git@github.com:hailtondecastro/json-playback-player-java.git</developerConnection>
 	</scm>
 
 	<developers>
