@@ -32,6 +32,7 @@ import org.jsonplayback.player.IDirectRawWriter;
 import org.jsonplayback.player.IDirectRawWriterWrapper;
 import org.jsonplayback.player.IPlayerConfig;
 import org.jsonplayback.player.IPlayerManager;
+import org.jsonplayback.player.IPlayerSnapshot;
 import org.jsonplayback.player.IdentityRefKey;
 import org.jsonplayback.player.LazyProperty;
 import org.jsonplayback.player.ObjPersistenceMode;
@@ -79,12 +80,18 @@ public class PlayerManagerDefault implements IPlayerManagerImplementor {
 	ThreadLocal<Stack<PlayerMetadatas>> playerMetadatasWritingStackTL = new ThreadLocal<Stack<PlayerMetadatas>>();
 
 	@Override
-	public <T> PlayerSnapshot<T> createPlayerSnapshot(T result) {
+	public <T> IPlayerSnapshot<T> createPlayerSnapshot(T result) {
 		if (logger.isTraceEnabled()) {
 			logger.trace(
 					MessageFormat.format("createResultEntity for {0}", result != null ? result.getClass() : "null"));
 		}
-		return new PlayerSnapshot<T>(result).configManager(this);
+
+		IPlayerSnapshot<T> playerSnapshot = new PlayerSnapshot<T>(result).configManager(this);
+		if (this.temporaryConfigurationTL.get() != null) {
+			playerSnapshot.configOverwrittenConfigurationConfigurationTemporarily(this.temporaryConfigurationTL.get());
+		}
+		
+		return playerSnapshot;
 	}
 
 	@Override
@@ -98,20 +105,20 @@ public class PlayerManagerDefault implements IPlayerManagerImplementor {
 		this.config = config;
 		this.validateObjPersistenceMode();
 		
-		if (this.config.getObjPersistenceMode().equals(ObjPersistenceMode.HB3)) {
+		if (this.getConfig().getObjPersistenceMode().equals(ObjPersistenceMode.HB3)) {
 			this.objPersistenceSupport = config.getObjPersistenceSupport();
-		} else if (this.config.getObjPersistenceMode().equals(ObjPersistenceMode.HB4)) {
+		} else if (this.getConfig().getObjPersistenceMode().equals(ObjPersistenceMode.HB4)) {
 			this.objPersistenceSupport = config.getObjPersistenceSupport();
-		} else if (this.config.getObjPersistenceMode().equals(ObjPersistenceMode.HB5)) {
+		} else if (this.getConfig().getObjPersistenceMode().equals(ObjPersistenceMode.HB5)) {
 			this.objPersistenceSupport = config.getObjPersistenceSupport();
-		} else if (this.config.getObjPersistenceMode().equals(ObjPersistenceMode.JPA)) {
+		} else if (this.getConfig().getObjPersistenceMode().equals(ObjPersistenceMode.JPA)) {
 			this.objPersistenceSupport = config.getObjPersistenceSupport();
-		} else if (this.config.getObjPersistenceMode().equals(ObjPersistenceMode.CUSTOMIZED_PERSISTENCE)) {
+		} else if (this.getConfig().getObjPersistenceMode().equals(ObjPersistenceMode.CUSTOMIZED_PERSISTENCE)) {
 			this.objPersistenceSupport = config.getObjPersistenceSupport();
 		} else {
 			throw new RuntimeException(
 				"Object Persistent mode not supported: " +
-				this.config.getObjPersistenceMode() +
+				this.getConfig().getObjPersistenceMode() +
 				". Colaborate, help us to support this hibernate version. config:\n" + config);
 		}
 		return this;
@@ -128,11 +135,11 @@ public class PlayerManagerDefault implements IPlayerManagerImplementor {
 				}
 				this.getObjPersistenceSupport().init(this);
 				this.loadManagedTypes();
-				if (this.config.getManagerId().contains("" + this.config.getManagerIdSignaturePrefixFlag())) {
+				if (this.getConfig().getManagerId().contains("" + this.getConfig().getManagerIdSignaturePrefixFlag())) {
 					throw new RuntimeException("Manager id ("
-							+ this.config.getManagerId()
+							+ this.getConfig().getManagerId()
 							+ ") can not contains ManagerIdSignaturePrefixFlag ("
-							+ this.config.getManagerIdSignaturePrefixFlag()+")");
+							+ this.getConfig().getManagerIdSignaturePrefixFlag()+")");
 				}
 				this.initialed = true;
 			}
@@ -144,7 +151,7 @@ public class PlayerManagerDefault implements IPlayerManagerImplementor {
 		this.managedTypeMap = new HashMap<>();
 		LinkedHashSet<Class> allManaged = new LinkedHashSet<>();
 		allManaged.addAll(this.getObjPersistenceSupport().allManagedTypes());
-		allManaged.addAll(this.config.addictionalManagedTypes());
+		allManaged.addAll(this.getConfig().addictionalManagedTypes());
 		for (Class<?> type : allManaged) {
 			RecorderTypeAlias recorderTypeAlias = type.getAnnotation(RecorderTypeAlias.class);
 			if(recorderTypeAlias != null) {
@@ -182,8 +189,8 @@ public class PlayerManagerDefault implements IPlayerManagerImplementor {
 		signatureBeanJson.setIsComp(signatureBean.getIsComp());
 
 		String result = "FOO BAA";
-		if (this.config.getSignatureCrypto() != null) {
-			result = this.config.getSignatureCrypto().encrypt(result);
+		if (this.getConfig().getSignatureCrypto() != null) {
+			result = this.getConfig().getSignatureCrypto().encrypt(result);
 		}
 
 		ObjectMapper objectMapper = new ObjectMapper();
@@ -199,8 +206,8 @@ public class PlayerManagerDefault implements IPlayerManagerImplementor {
 			throw new RuntimeException("This should not happen", e);
 		}
 		String resultStr = writer.toString();
-		if (this.config.getSignatureCrypto() != null) {
-			resultStr = this.config.getSignatureCrypto().encrypt(resultStr);
+		if (this.getConfig().getSignatureCrypto() != null) {
+			resultStr = this.getConfig().getSignatureCrypto().encrypt(resultStr);
 			if (logger.isTraceEnabled()) {
 				logger.trace(MessageFormat.format(
 						"serializeSignature(). encrypting. original json signature: ''{0}'', encripted signature: ''{1}''",
@@ -214,22 +221,22 @@ public class PlayerManagerDefault implements IPlayerManagerImplementor {
 						writer.toString(), resultStr));
 			}
 		}
-		return this.config.getManagerId() + this.config.getManagerIdSignaturePrefixFlag() + resultStr;
+		return this.getConfig().getManagerId() + this.getConfig().getManagerIdSignaturePrefixFlag() + resultStr;
 	}
 	
 	@Override
 	public SignatureBean deserializeSignature(String signatureStr) {
 		if (!this.isManagerOfSignature(signatureStr)) {
 			throw new RuntimeException(
-					"I (manager id: " + this.config.getManagerId() + ")"
+					"I (manager id: " + this.getConfig().getManagerId() + ")"
 							+ " am not manager for signature: " + signatureStr);
 		}
 		
-		int indexOfFlag = signatureStr.indexOf(this.config.getManagerIdSignaturePrefixFlag());
+		int indexOfFlag = signatureStr.indexOf(this.getConfig().getManagerIdSignaturePrefixFlag());
 		String decryptedSignatureStr = signatureStr.substring(indexOfFlag);
 
-		if (this.config.getSignatureCrypto() != null) {
-			decryptedSignatureStr = this.config.getSignatureCrypto().decrypt(decryptedSignatureStr);
+		if (this.getConfig().getSignatureCrypto() != null) {
+			decryptedSignatureStr = this.getConfig().getSignatureCrypto().decrypt(decryptedSignatureStr);
 			if (logger.isTraceEnabled()) {
 				logger.trace(MessageFormat.format(
 						"serializeSignature(). decrypting. original json signature: ''{0}'', dncripted signature: ''{1}''",
@@ -315,13 +322,17 @@ public class PlayerManagerDefault implements IPlayerManagerImplementor {
 		AssociationAndComponentTrackInfo aacTrackInfo = this.getCurrentAssociationAndComponentTrackInfo();
 //		Object ownerValue = this.getHbSupport().getCollectionOwner(persistentCollection);
 		Object ownerValue = aacTrackInfo.getEntityOwner();
-		Class<?> ownerClass = ownerValue.getClass();
+		Class<?> unwrappedOwnerClass = this.getConfig().getObjPersistenceSupport().unwrappRealType(ownerValue);
 //		String fieldName = this.getHbSupport().getCollectionFieldName(persistentCollection);
 		String fieldName = aacTrackInfo.getEntityAndComponentPath().getAacKey().getPathFromOwner();
 		Object fieldValue = persistentCollection;
 
-		SignatureBean signatureBean = this.generateLazySignatureForCollRelashionship(ownerClass, fieldName, ownerValue,
-				aacTrackInfo.getEntityAndComponentPath().getAacKey().getPathFromOwner());
+		SignatureBean signatureBean = 
+				this.generateLazySignatureForCollRelashionship(
+						unwrappedOwnerClass,
+						fieldName,
+						ownerValue,
+						aacTrackInfo.getEntityAndComponentPath().getAacKey().getPathFromOwner());
 		signatureBean.setIsColl(true);
 		if (logger.isTraceEnabled()) {
 			logger.trace(MessageFormat.format("generateLazySignature(). signatureBean:\nsignatureBean:\n{0}",
@@ -334,12 +345,13 @@ public class PlayerManagerDefault implements IPlayerManagerImplementor {
 	@Override
 	public SignatureBean generateLazySignatureForCollRelashionship(Class<?> ownerClass, String fieldName,
 			Object ownerValue, Object fieldValue) {
-		if (!this.getObjPersistenceSupport().isCollectionRelationship(ownerClass, fieldName)) {
-			throw new RuntimeException("This is not a relationship: " + ownerClass + "->" + fieldName);
+		Class<?> unwrappedOwnerClass = this.getConfig().getObjPersistenceSupport().unwrappRealType(ownerClass);
+		if (!this.getObjPersistenceSupport().isCollectionRelationship(unwrappedOwnerClass, fieldName)) {
+			throw new RuntimeException("This is not a relationship: " + unwrappedOwnerClass + "->" + fieldName);
 		}
 		
-		if (!this.getObjPersistenceSupport().isCollectionRelationship(ownerClass, fieldName)) {
-			throw new RuntimeException("Unespected type " + ownerClass + "->" + fieldName);
+		if (!this.getObjPersistenceSupport().isCollectionRelationship(unwrappedOwnerClass, fieldName)) {
+			throw new RuntimeException("Unespected type " + unwrappedOwnerClass + "->" + fieldName);
 		}
 
 		SignatureBean signatureBean = null;
@@ -350,11 +362,11 @@ public class PlayerManagerDefault implements IPlayerManagerImplementor {
 //		}
 		if (ownerValue == null) {
 			throw new IllegalArgumentException(
-					"ownerValue can not be null em caso de CollectionType: " + ownerClass + "->" + fieldName);
+					"ownerValue can not be null em caso de CollectionType: " + unwrappedOwnerClass + "->" + fieldName);
 		}
 		// if collection is not loaded "collType.getKeyOfOwner" is inconsistent (null)
 		// on hb-3
-		signatureBean.setClazz(ownerClass);
+		signatureBean.setClazz(unwrappedOwnerClass);
 		signatureBean.setIsColl(true);
 		signatureBean.setPropertyName(fieldName);
 	
@@ -369,6 +381,7 @@ public class PlayerManagerDefault implements IPlayerManagerImplementor {
 	@Override
 	public SignatureBean generateLazySignatureForLazyProperty(Class<?> ownerClass, String fieldName,
 			Object ownerValue, Object fieldValue) {
+		Class<?> unwrappedOwnerClass = this.getConfig().getObjPersistenceSupport().unwrappRealType(ownerClass);
 		if (fieldValue instanceof byte[] || fieldValue instanceof Blob || fieldValue instanceof String
 				|| fieldValue instanceof Clob) {
 			// nothing
@@ -377,9 +390,9 @@ public class PlayerManagerDefault implements IPlayerManagerImplementor {
 		}
 
 		//if (prpType instanceof AssociationType) {
-		if (this.getObjPersistenceSupport().isCollectionRelationship(ownerClass, fieldName)
-			|| this.getObjPersistenceSupport().isManyToOneRelationship(ownerClass, fieldName)) {
-			throw new RuntimeException("Unespected type " + ownerClass + "->" + fieldName);
+		if (this.getObjPersistenceSupport().isCollectionRelationship(unwrappedOwnerClass, fieldName)
+			|| this.getObjPersistenceSupport().isManyToOneRelationship(unwrappedOwnerClass, fieldName)) {
+			throw new RuntimeException("Unespected type " + unwrappedOwnerClass + "->" + fieldName);
 		}
 
 		SignatureBean signatureBean = this.generateSignature(ownerValue);
@@ -424,12 +437,12 @@ public class PlayerManagerDefault implements IPlayerManagerImplementor {
 //		if (value instanceof HibernateProxy) {
 //			throw new RuntimeException("nonHibernateProxy instanceof HibernateProxy: " + value);
 //		}
-		Class<?> entityClass = value.getClass();
-		entityClass = this.config.getObjPersistenceSupport().unwrappRealType(entityClass);
+		Class<?> unwrappedEntityClass = this.getConfig().getObjPersistenceSupport().unwrappRealType(value);
+		unwrappedEntityClass = this.getConfig().getObjPersistenceSupport().unwrappRealType(unwrappedEntityClass);
 		
 		SignatureBean signatureBean = new SignatureBean();
-		signatureBean.setClazz(entityClass);
-		signatureBean.setEntityName(entityClass.getName());
+		signatureBean.setClazz(unwrappedEntityClass);
+		signatureBean.setEntityName(unwrappedEntityClass.getName());
 		signatureBean.setPropertyName(null);
 		
 		//Object[] rawKeyValuesFromHbProxy = this.getObjPersistenceSupport().getRawKeyValuesFromNonHbProxy(alreadyLoadObject);
@@ -485,7 +498,8 @@ public class PlayerManagerDefault implements IPlayerManagerImplementor {
 	@SuppressWarnings("rawtypes")
 	@Override
 	public boolean isPersistentClass(Class<?> clazz) {
-		return this.getObjPersistenceSupport().isPersistentClass(clazz);
+		Class<?> unwrappedClass = this.getConfig().getObjPersistenceSupport().unwrappRealType(clazz);
+		return this.getObjPersistenceSupport().isPersistentClass(unwrappedClass);
 	}
 
 	@Override
@@ -493,11 +507,10 @@ public class PlayerManagerDefault implements IPlayerManagerImplementor {
 		if (logger.isTraceEnabled()) {
 			logger.trace("getHibernateObjectId()");
 		}
-		Class<?> entityClass = object.getClass();
-		entityClass = this.config.getObjPersistenceSupport().unwrappRealType(entityClass);
-//		if (object instanceof HibernateProxy) {
-//			entityClass = object.getClass().getSuperclass();
-//		}
+//		Class<?> unwrappedEntityClass = this.getConfig().getObjPersistenceSupport().unwrappRealType(object.getClass());
+////		if (object instanceof HibernateProxy) {
+////			entityClass = object.getClass().getSuperclass();
+////		}
 
 		@SuppressWarnings("deprecation")
 		Object idValue = this.getObjPersistenceSupport().getIdValue(object);
@@ -506,8 +519,8 @@ public class PlayerManagerDefault implements IPlayerManagerImplementor {
 	
 	@Override
 	public String getPlayerObjectIdName(Class clazz) {
-
-		return this.getObjPersistenceSupport().getPlayerObjectIdPrpName(clazz);
+		Class<?> unwrappedClass = this.getConfig().getObjPersistenceSupport().unwrappRealType(clazz);
+		return this.getObjPersistenceSupport().getPlayerObjectIdPrpName(unwrappedClass);
 	}
 
 	@Override
@@ -561,8 +574,8 @@ public class PlayerManagerDefault implements IPlayerManagerImplementor {
 	}
 
 	private void validateObjPersistenceMode() {
-		if (this.config.getObjPersistenceMode() == null) {
-			throw new RuntimeException("objPersistenceMode can not be null. config:\n" + this.config);
+		if (this.getConfig().getObjPersistenceMode() == null) {
+			throw new RuntimeException("objPersistenceMode can not be null. config:\n" + this.getConfig());
 		}
 	}
 	
@@ -624,7 +637,8 @@ public class PlayerManagerDefault implements IPlayerManagerImplementor {
 
 	@Override
 	public boolean isComponent(Class<?> componentClass) {
-		return this.getObjPersistenceSupport().isComponent(componentClass);
+		Class<?> unwrappedComponentClass = this.getConfig().getObjPersistenceSupport().unwrappRealType(componentClass);
+		return this.getObjPersistenceSupport().isComponent(unwrappedComponentClass);
 	}
 
 	@Override
@@ -659,12 +673,18 @@ public class PlayerManagerDefault implements IPlayerManagerImplementor {
 			if (currBean instanceof PlayerMetadatas) {
 				currBean = ((PlayerMetadatas) currBean).getOriginalPlayerObjectIdOwner();
 			}
+			
+			//Class<?> unwrappedCurrBeanClass = this.getConfig().getObjPersistenceSupport().unwrappRealType(currBean);
 			if (playerJsonSerializer.getCurrSerializationBean() != null && this.isPersistentClass(currBean.getClass())) {
 				lastEntityOwner = currBean;
 			}
 		}
 
 		for (PlayerBeanPropertyWriter jbHbBeanPropertyWriter : this.getPlayerBeanPropertyWriterStepStack()) {
+//			Class<?> unwrappedCurrOwnerClass = null;
+//			if(jbHbBeanPropertyWriter.getCurrOwner() != null) {
+//				unwrappedCurrOwnerClass = this.getConfig().getObjPersistenceSupport().unwrappRealType(jbHbBeanPropertyWriter.getCurrOwner());
+//			}
 			if (jbHbBeanPropertyWriter.getCurrOwner() != null 
 					&& this.isPersistentClass(jbHbBeanPropertyWriter.getCurrOwner().getClass())) {
 				lastEntityOwner = jbHbBeanPropertyWriter.getCurrOwner();
@@ -678,10 +698,11 @@ public class PlayerManagerDefault implements IPlayerManagerImplementor {
 			String pathStr = this.mountPathFromStack(pathList);
 //			AssociationAndComponentPathKey aacKey = new AssociationAndComponentPathKey(lastEntityOwner.getClass(),
 //					pathStr);
-			if (this.getObjPersistenceSupport().isComponentOrRelationship(lastEntityOwner.getClass(), pathStr)) {
+			Class<?> unwrappedLastEntityOwnerClass = this.getConfig().getObjPersistenceSupport().unwrappRealType(lastEntityOwner);
+			if (this.getObjPersistenceSupport().isComponentOrRelationship(unwrappedLastEntityOwnerClass, pathStr)) {
 				AssociationAndComponentTrackInfo trackInfo = new AssociationAndComponentTrackInfo();
 				trackInfo.setEntityOwner(lastEntityOwner);
-				trackInfo.setEntityAndComponentPath(this.getObjPersistenceSupport().getAssociationAndComponentOnPath(lastEntityOwner.getClass(), pathStr));
+				trackInfo.setEntityAndComponentPath(this.getObjPersistenceSupport().getAssociationAndComponentOnPath(unwrappedLastEntityOwnerClass, pathStr));
 				return trackInfo;
 			} else {
 				return null;
@@ -696,6 +717,7 @@ public class PlayerManagerDefault implements IPlayerManagerImplementor {
 		List<String> pathList = new ArrayList<>();
 		Object lastEntityOwner = null;
 		for (PlayerBeanPropertyWriter jbHbBeanPropertyWriter : this.getPlayerBeanPropertyWriterStepStack()) {
+//			Class<?> unwrappedCurrOwnerClass = this.getConfig().getObjPersistenceSupport().unwrappRealType(jbHbBeanPropertyWriter.getCurrOwner());
 			if (this.isPersistentClass(jbHbBeanPropertyWriter.getCurrOwner().getClass())) {
 				lastEntityOwner = jbHbBeanPropertyWriter.getCurrOwner();
 				pathList.clear();
@@ -716,6 +738,7 @@ public class PlayerManagerDefault implements IPlayerManagerImplementor {
 		List<String> pathList = new ArrayList<>();
 		Object lastEntityOwner = null;
 		for (PlayerBeanPropertyWriter jbHbBeanPropertyWriter : this.getPlayerBeanPropertyWriterStepStack()) {
+			//Class<?> unwrappedCurrOwnerClass = this.getConfig().getObjPersistenceSupport().unwrappRealType(jbHbBeanPropertyWriter.getCurrOwner());
 			if (this.isPersistentClass(jbHbBeanPropertyWriter.getCurrOwner().getClass())) {
 				lastEntityOwner = jbHbBeanPropertyWriter.getCurrOwner();
 				pathList.clear();
@@ -727,7 +750,8 @@ public class PlayerManagerDefault implements IPlayerManagerImplementor {
 		String pathStr = null;
 		if (lastEntityOwner != null && pathList.size() > 0) {
 			pathStr = this.mountPathFromStack(pathList);
-			if (this.getObjPersistenceSupport().isManyToOneRelationship(lastEntityOwner.getClass(), pathStr)) {
+			Class<?> unwrappedLastEntityOwnerClass = this.getConfig().getObjPersistenceSupport().unwrappRealType(lastEntityOwner);
+			if (this.getObjPersistenceSupport().isManyToOneRelationship(unwrappedLastEntityOwnerClass, pathStr)) {
 				return true;
 			}
 //			AssociationAndComponentPathKey aacKey = new AssociationAndComponentPathKey(lastEntityOwner.getClass(),
@@ -760,7 +784,7 @@ public class PlayerManagerDefault implements IPlayerManagerImplementor {
 	public IDirectRawWriterWrapper needDirectWrite(SignatureBean signature) {
 		JsonSerializer<Object> jsonSerializer = null;
 		try {
-			jsonSerializer = this.config.getObjectMapper().getSerializerProvider()
+			jsonSerializer = this.getConfig().getObjectMapper().getSerializerProvider()
 					.findValueSerializer(signature.getClazz());
 		} catch (JsonMappingException e) {
 			throw new RuntimeException("This should not happen", e);
@@ -858,13 +882,13 @@ public class PlayerManagerDefault implements IPlayerManagerImplementor {
 			throw new RuntimeException("propertyFunc can not return null!");
 		}
 		IdentityRefKey identityRefKey = new IdentityRefKey(owned);
-		Class<O> ownerClass = (Class<O>) owner.getClass();
-		ownerClass = (Class<O>) this.config.getObjPersistenceSupport().unwrappRealType(ownerClass);
-//		if (owner instanceof HibernateProxy) {
-//			ownerClass = (Class<O>) owner.getClass().getSuperclass();
-//		} else {
-//			ownerClass = (Class<O>) owner.getClass();
-//		}
+//		@SuppressWarnings({ "unused", "unchecked" })
+//		Class<O> unwrappedOwnerClass = (Class<O>) this.getConfig().getObjPersistenceSupport().unwrappRealType(owner);
+////		if (owner instanceof HibernateProxy) {
+////			ownerClass = (Class<O>) owner.getClass().getSuperclass();
+////		} else {
+////			ownerClass = (Class<O>) owner.getClass();
+////		}
 		OwnerAndProperty ownerAndProperty = new OwnerAndProperty();
 		ownerAndProperty.setOwner(owner);
 		ownerAndProperty.setProperty(propertyName);
@@ -878,14 +902,13 @@ public class PlayerManagerDefault implements IPlayerManagerImplementor {
 	@Override
 	public <O> IPlayerManager registerComponentOwner(O owner, Function<O, ?> propertyFunc) {
 		Object owned = propertyFunc.apply(owner);
-		Class<O> ownerClass = (Class<O>) owner.getClass();
-		ownerClass = (Class<O>) this.config.getObjPersistenceSupport().unwrappRealType(ownerClass);
+		Class<O> unwrappedOwnerClass = (Class<O>) this.getConfig().getObjPersistenceSupport().unwrappRealType(owner);
 //		if (owner instanceof HibernateProxy) {
 //			ownerClass = (Class<O>) owner.getClass().getSuperclass();
 //		} else {
 //			ownerClass = (Class<O>) owner.getClass();
 //		}
-		String propertyName = ReflectionNamesDiscovery.fieldByGetMethod(propertyFunc, ownerClass);
+		String propertyName = ReflectionNamesDiscovery.fieldByGetMethod(propertyFunc, unwrappedOwnerClass);
 		this.registerComponentOwnerPriv(owner, propertyName, owned);
 		return this;
 	}
@@ -957,10 +980,10 @@ public class PlayerManagerDefault implements IPlayerManagerImplementor {
 	@Override
 	public boolean isManagerOfSignature(String signature) {
 		this.validateInited();
-		int indexOfFlag = signature.indexOf(this.config.getManagerIdSignaturePrefixFlag());
+		int indexOfFlag = signature.indexOf(this.getConfig().getManagerIdSignaturePrefixFlag());
 		if (indexOfFlag >= 0) {
 			String possibleId = signature.substring(0, indexOfFlag);
-			return this.config.getManagerId().equals(possibleId);
+			return this.getConfig().getManagerId().equals(possibleId);
 		} else {
 			return false;
 		}
@@ -976,7 +999,7 @@ public class PlayerManagerDefault implements IPlayerManagerImplementor {
 	@Override
 	public boolean isManagerOfType(Class<?> type) {
 		this.validateInited();
-		Class<?> unwrappedType = this.config.getObjPersistenceSupport().unwrappRealType(type);
+		Class<?> unwrappedType = this.getConfig().getObjPersistenceSupport().unwrappRealType(type);
 		return this.isManagerOfType(unwrappedType.getName());
 	}
 

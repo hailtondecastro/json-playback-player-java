@@ -68,7 +68,7 @@ public class CriteriaCompatBase<R> implements CriteriaCompat<R> {
 		this.rootClass = rootClass;
 		this.session = session;
 		
-		if (isGtHb6()) {
+		if (isJpa()) {
 			throw new RuntimeException("Wrong contructor, using Hibernate 6. Use CriteriaCompatBase(EntityManager, Class<R>)");
 		}
 		
@@ -84,26 +84,26 @@ public class CriteriaCompatBase<R> implements CriteriaCompat<R> {
 				});
 	}
 
-	private Boolean isGtHb6Priv = null;
-	private boolean isGtHb6() {
-		if (this.isGtHb6Priv == null) {
+	private Boolean isJpaPriv = null;
+	private boolean isJpa() {
+		if (this.isJpaPriv == null) {
 			Class<?> sessionClass = this.session.getClass();
 			for (Method method : sessionClass.getMethods()) {
 				if (method.getName().equals("createCriteria")) {
-					this.isGtHb6Priv = false;
+					this.isJpaPriv = false;
 					break;
 				}
 			}
-			if (this.isGtHb6Priv == null) {
-				this.isGtHb6Priv = true;
+			if (this.isJpaPriv == null) {
+				this.isJpaPriv = true;
 			}
 		}
-		return this.isGtHb6Priv;
+		return this.isJpaPriv;
 	}
 	
 	@Override
 	public <P> CriteriaCompat<R> add(CriterionCompat<R, P> criterion) {
-		if (this.isGtHb6()) {
+		if (this.isJpa()) {
 			this.criteriaQuery = criterion.applyToCriteria(this);
 		} else {
 			this.criteria = this.criteria.add(criterion.toClassicCriterion());
@@ -113,7 +113,7 @@ public class CriteriaCompatBase<R> implements CriteriaCompat<R> {
 	@SuppressWarnings("unchecked")
 	@Override
 	public CriteriaCompat<R> addOrder(OrderCompat order) {
-		if (this.isGtHb6()) {
+		if (this.isJpa()) {
 			this.criteriaQuery = (CriteriaQuery<R>) order.applyToJpaCriteria(this);
 		} else {
 			this.criteria = order.applyToHbCriteria(this);
@@ -124,10 +124,20 @@ public class CriteriaCompatBase<R> implements CriteriaCompat<R> {
 	@SuppressWarnings("unchecked")
 	@Override
 	public List<R> list() {
-		if (this.isGtHb6()) {
+		if (this.isJpa()) {
 			return this.entityManager.createQuery(criteriaQuery).getResultList();
 		} else {
 			return (List<R>)this.criteria.list();
+		}
+	}
+	
+	@SuppressWarnings("unchecked")
+	@Override
+	public R uniqueResult() {
+		if (this.isJpa()) {
+			return this.entityManager.createQuery(criteriaQuery).getSingleResult();
+		} else {
+			return (R)this.criteria.uniqueResult();
 		}
 	}
 }

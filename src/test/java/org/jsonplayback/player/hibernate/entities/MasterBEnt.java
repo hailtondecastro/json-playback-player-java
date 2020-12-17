@@ -62,7 +62,7 @@ public class MasterBEnt {
 	@Embedded
 	@AssociationOverrides({
 		@AssociationOverride(
-				name="detailAEntColB", 
+				name="detailAEntCol", 
 				joinColumns={
 						@JoinColumn(name="DTLA_MTRB_ID_A_COMPONENT", columnDefinition="INTEGER"),
 						@JoinColumn(name="DTLA_MTRB_ID_B_COMPONENT", columnDefinition="INTEGER")

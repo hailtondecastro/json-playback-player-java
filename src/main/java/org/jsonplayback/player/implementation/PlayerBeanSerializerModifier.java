@@ -55,10 +55,9 @@ public class PlayerBeanSerializerModifier extends BeanSerializerModifier {
 		for (int i = 0; i < beanProperties.size(); i++) {
 			BeanPropertyWriter beanPropertyWriter = beanProperties.get(i);
 			BeanPropertyDefinition prpDef = prpDefsMap.get(beanPropertyWriter.getName());
-			Class prpClass = beanPropertyWriter.getType().getRawClass();
 			boolean isPersistent = false;
 			if (manager != null) {
-				isPersistent = manager.isPersistentClass(prpClass);
+				isPersistent = manager.isPersistentClass(beanPropertyWriter.getType().getRawClass());
 			}
 			boolean isPlayerObjectId = false;
 			boolean isMetadatasPlayerObjectId = false;

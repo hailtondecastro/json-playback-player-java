@@ -1,7 +1,6 @@
 package org.jsonplayback.player.spring.context.annotation;
 
 import org.jsonplayback.player.ObjPersistenceMode;
-import org.jsonplayback.player.implementation.PlayerManagerDefault;
 import org.springframework.context.annotation.Condition;
 import org.springframework.context.annotation.ConditionContext;
 import org.springframework.core.type.AnnotatedTypeMetadata;

@@ -443,7 +443,38 @@ public abstract class JpaSupport implements ObjPersistenceSupport {
 	public Object getById(Class<?> entityClass, Object idValue) {
 		PersistenceUnitUtil unitUtil = this.getCurrentEntityManager().getEntityManagerFactory()
 				.getPersistenceUnitUtil();
+		this.deepGetReferenceForEmbeddedId(entityClass, idValue);
 		return this.getCurrentEntityManager().find(entityClass, idValue);
+	}
+	
+	/**
+	 * Without this you will see: "org.hibernate.TransientObjectException: object references an unsaved transient instance - save the transient instance before flushing..." on 
+	 * PlayerManagerTest.detailAKey0c0GetBySignTest() using Jpa mode.
+	 * @param entityClass
+	 * @param idValue
+	 */
+	private void deepGetReferenceForEmbeddedId(Class<?> entityClass, Object idValue) {
+		PersistenceUnitUtil unitUtil = this.getCurrentEntityManager().getEntityManagerFactory()
+				.getPersistenceUnitUtil();
+		PropertyDescriptor[] prpDescsArr = PropertyUtils.getPropertyDescriptors(idValue.getClass());
+		try {						
+			for (PropertyDescriptor prpDescItem : prpDescsArr) {
+				Object idPart = PropertyUtils.getProperty(idValue, prpDescItem.getName());
+				if(idPart != null) {
+					Class<?> idPartClass = this.unwrappRealType(idPart);
+					if(this.isPersistentClass(idPartClass)) {
+						Object idOfIdPart = unitUtil.getIdentifier(idPart);
+						this.deepGetReferenceForEmbeddedId(idOfIdPart.getClass(), idOfIdPart);
+						Object idPartAsRef = this.getCurrentEntityManager().getReference(idPart.getClass(), idOfIdPart);
+						PropertyUtils.setProperty(idValue, prpDescItem.getName(), idPartAsRef);
+					} else {
+						// nothing							
+					}
+				}
+			}
+		} catch (Throwable e) {
+			throw new RuntimeException("This should not happen", e);
+		}
 	}
 
 	@Override

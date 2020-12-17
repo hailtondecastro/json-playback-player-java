@@ -5,7 +5,6 @@ import java.util.function.Function;
 import javax.persistence.criteria.CriteriaQuery;
 
 import org.hibernate.criterion.Criterion;
-import org.springframework.stereotype.Component;
 
 public class CriterionCompatBase<R, P> implements CriterionCompat<R, P> {
 	private Criterion criterion;

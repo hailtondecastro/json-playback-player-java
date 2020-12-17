@@ -30,4 +30,6 @@ public interface CriteriaCompat<R> {
 	public Class<R> getRootClass();
 
 	public List<R> list();
+
+	R uniqueResult();
 }

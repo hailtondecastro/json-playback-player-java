@@ -1,0 +1,27 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+"http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+
+	<class
+		name="org.jsonplayback.player.hibernate.entities.DetailARefererEnt"
+		table="DETAIL_A_REFERER">
+
+		<id name="id" type="java.lang.Integer">
+			<column name="DTAR_ID" sql-type="INTEGER"/>
+			<generator class="assigned"></generator>
+		</id>
+		
+		<property name="vcharA" type="java.lang.String">
+			<column name="DTAR_VCHAR_A" sql-type="VARCHAR(200)" length="200"/>
+		</property>
+		
+		<many-to-one name="detailA">
+			<column name="DTAR_DTLA_MTRA_ID" sql-type="INTEGER"/>
+			<column name="DTAR_DTLA_SUB_ID" sql-type="INTEGER"/>
+		</many-to-one>
+	</class>
+
+
+</hibernate-mapping>

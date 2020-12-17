@@ -58,12 +58,12 @@ public interface IPlayerManager {
 	 */
 	IPlayerManager overwriteConfigurationTemporarily(IPlayerConfig newConfig);
 
-	<T> PlayerSnapshot<T> createPlayerSnapshot(T result);
+	<T> IPlayerSnapshot<T> createPlayerSnapshot(T result);
 
 	/**
 	 * Initializes the Manager. It does as the initial metadata loads hibernate
 	 * and all other necessary information. Home
-	 * Eh automatically called in the first {@link #startJsonWriteIntersept ()} if not
+	 * It is automatically called in the first {@link #startJsonWriteIntersept ()} if not
 	 * has been called yet. It can be recalled at any time. Not
 	 * eh thread safe.
 	 * 

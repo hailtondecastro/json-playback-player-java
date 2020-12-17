@@ -27,18 +27,22 @@ import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.TimeZone;
 
 import org.hibernate.HibernateException;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.tool.hbm2ddl.SchemaExport;
+import org.jsonplayback.player.hibernate.CriterionCompat;
 import org.jsonplayback.player.hibernate.HibernateJpaCompat;
 import org.jsonplayback.player.hibernate.OrderCompat;
+import org.jsonplayback.player.hibernate.RestrictionsCompat;
 import org.jsonplayback.player.hibernate.entities.DetailAComp;
 import org.jsonplayback.player.hibernate.entities.DetailACompComp;
 import org.jsonplayback.player.hibernate.entities.DetailACompId;
 import org.jsonplayback.player.hibernate.entities.DetailAEnt;
+import org.jsonplayback.player.hibernate.entities.DetailARefererEnt;
 import org.jsonplayback.player.hibernate.entities.MasterAEnt;
 import org.jsonplayback.player.hibernate.entities.MasterBComp;
 import org.jsonplayback.player.hibernate.entities.MasterBCompComp;
@@ -257,6 +261,7 @@ public class PlayerManagerTest {
 					MasterAEnt[] detailACompIdMasterAEntArr = new MasterAEnt[3];
 					int[] detailACompIdMasterAEntSubIdArr = new int[]{0, 0, 0};
 					MasterBEnt[] detailAComponentMasterBEntArr = new MasterBEnt[3];
+					DetailAEnt[] detailARefererDetailAEntArr = new DetailAEnt[6];
 					List<Object> objectsToSaveList = new ArrayList<>();
 					for (int i = 0; i < 10; i++) {
 						MasterAEnt masterAEnt = new MasterAEnt();
@@ -340,7 +345,17 @@ public class PlayerManagerTest {
 						os.write(MessageFormat.format("DetailAEnt_REG{0,number,00}_BlobB", i).getBytes(StandardCharsets.UTF_8));
 						os.flush();
 						os.close();
-						//ss.save(detailAEnt);
+						if (i < detailARefererDetailAEntArr.length) {
+							detailARefererDetailAEntArr[i] = detailAEnt;
+						}
+					}
+					for (int i = 0; i < 10; i++) {
+						DetailARefererEnt detailARefererEnt = new DetailARefererEnt();
+						detailARefererEnt.setId(i);
+						detailARefererEnt.setVcharA(MessageFormat.format("DetailARefererEnt_REG{0,number,00}_REG01_VcharA", i));
+						int detailARefererDetailAEntIndex = i % detailARefererDetailAEntArr.length;
+						detailARefererEnt.setDetailA(detailARefererDetailAEntArr[detailARefererDetailAEntIndex]);
+						objectsToSaveList.add(detailARefererEnt);
 					}
 					
 					for (Object itemToSave : objectsToSaveList) {
@@ -536,9 +551,14 @@ public class PlayerManagerTest {
     PlatformTransactionManager transactionManager;
     
 	@Test
-	public void masterATest() throws Exception {		
+	public void masterATest() throws Exception {	
+		String methodName = new Object() {}
+			.getClass()
+			.getEnclosingMethod()
+			.getName();
+			
 		Session ss = this.sessionFactory.openSession();
-		String generatedFileResult = "target/"+PlayerManagerTest.class.getName()+".masterATest_result_generated.json";
+		String generatedFileResult = "target/"+PlayerManagerTest.class.getSimpleName()+"."+methodName+"_result_generated.json";
 		
 		TransactionTemplate transactionTemplate = new TransactionTemplate(this.transactionManager);
 		transactionTemplate.execute(new TransactionCallback<Object>() {
@@ -568,7 +588,7 @@ public class PlayerManagerTest {
 											.clone()
 											.configSerialiseBySignatureAllRelationship(true));
 				
-				PlayerSnapshot<MasterAEnt> playerSnapshot = PlayerManagerTest.this.manager.createPlayerSnapshot(masterAEnt);
+				IPlayerSnapshot<MasterAEnt> playerSnapshot = PlayerManagerTest.this.manager.createPlayerSnapshot(masterAEnt);
 				
 				FileOutputStream fos;
 				try {
@@ -598,7 +618,7 @@ public class PlayerManagerTest {
 		BufferedReader brExpected = 
 			new BufferedReader(
 				new InputStreamReader(
-					classLoader.getResourceAsStream(PlayerManagerTest.class.getPackage().getName().replaceAll("\\.", "/")+"/"+this.getResourceFolder()+"/"+ PlayerManagerTest.class.getSimpleName()+ ".masterATest_result_expected.json")
+					classLoader.getResourceAsStream(PlayerManagerTest.class.getPackage().getName().replaceAll("\\.", "/")+"/"+this.getResourceFolder()+"/"+ PlayerManagerTest.class.getSimpleName()+ "."+methodName+"_result_expected.json")
 				)
 			);
 		BufferedReader brGenerated = 
@@ -624,8 +644,13 @@ public class PlayerManagerTest {
 
 	@Test
 	public void masterAWithCustomMetadataTest() throws Exception {		
+		String methodName = new Object() {}
+			.getClass()
+			.getEnclosingMethod()
+			.getName();
+			
 		Session ss = this.sessionFactory.openSession();
-		String generatedFileResult = "target/"+PlayerManagerTest.class.getName()+".masterAWithCustomMetadataTest_result_generated.json";
+		String generatedFileResult = "target/"+PlayerManagerTest.class.getSimpleName()+"."+methodName+"_result_generated.json";
 		
 		TransactionTemplate transactionTemplate = new TransactionTemplate(this.transactionManager);
 		transactionTemplate.execute(new TransactionCallback<Object>() {
@@ -675,7 +700,7 @@ public class PlayerManagerTest {
 											)
 						);
 				
-				PlayerSnapshot<MasterAEnt> playerSnapshot = PlayerManagerTest.this.manager.createPlayerSnapshot(masterAEnt);
+				IPlayerSnapshot<MasterAEnt> playerSnapshot = PlayerManagerTest.this.manager.createPlayerSnapshot(masterAEnt);
 				
 				FileOutputStream fos;
 				try {
@@ -705,7 +730,7 @@ public class PlayerManagerTest {
 		BufferedReader brExpected = 
 			new BufferedReader(
 				new InputStreamReader(
-					classLoader.getResourceAsStream(PlayerManagerTest.class.getPackage().getName().replaceAll("\\.", "/")+"/"+this.getResourceFolder()+"/"+ PlayerManagerTest.class.getSimpleName()+".masterAWithCustomMetadataTest_result_expected.json")
+					classLoader.getResourceAsStream(PlayerManagerTest.class.getPackage().getName().replaceAll("\\.", "/")+"/"+this.getResourceFolder()+"/"+ PlayerManagerTest.class.getSimpleName()+"."+methodName+"_result_expected.json")
 				)
 			);
 		BufferedReader brGenerated = 
@@ -730,11 +755,16 @@ public class PlayerManagerTest {
 	
 	
 	@Test
-	public void masterABlobLazyBNullTest() throws Exception {		
+	public void masterABlobLazyBNullTest() throws Exception {	
+		String methodName = new Object() {}
+			.getClass()
+			.getEnclosingMethod()
+			.getName();
+					
 		try {
 			Session ss = this.sessionFactory.openSession();
-			String generatedFileResult = "target/" + PlayerManagerTest.class.getName()
-					+ ".masterABlobLazyBNullTest_result_generated.json";
+			String generatedFileResult = "target/" + PlayerManagerTest.class.getSimpleName()
+					+ "."+methodName+"_result_generated.json";
 
 			TransactionTemplate transactionTemplate = new TransactionTemplate(this.transactionManager);
 			transactionTemplate.execute(new TransactionCallback<Object>() {
@@ -778,7 +808,7 @@ public class PlayerManagerTest {
 					PlayerManagerTest.this.manager.overwriteConfigurationTemporarily(PlayerManagerTest.this.manager
 							.getConfig().clone().configSerialiseBySignatureAllRelationship(true));
 
-					PlayerSnapshot<MasterAEnt> playerSnapshot = PlayerManagerTest.this.manager
+					IPlayerSnapshot<MasterAEnt> playerSnapshot = PlayerManagerTest.this.manager
 							.createPlayerSnapshot(masterAEnt);
 
 					FileOutputStream fos;
@@ -802,7 +832,7 @@ public class PlayerManagerTest {
 
 			ClassLoader classLoader = getClass().getClassLoader();
 			BufferedReader brExpected = new BufferedReader(
-					new InputStreamReader(classLoader.getResourceAsStream(PlayerManagerTest.class.getPackage().getName().replaceAll("\\.", "/")+"/"+this.getResourceFolder()+"/"+ PlayerManagerTest.class.getSimpleName()+ ".masterABlobLazyBNullTest_result_expected.json")));
+					new InputStreamReader(classLoader.getResourceAsStream(PlayerManagerTest.class.getPackage().getName().replaceAll("\\.", "/")+"/"+this.getResourceFolder()+"/"+ PlayerManagerTest.class.getSimpleName()+ "."+methodName+"_result_expected.json")));
 			BufferedReader brGenerated = new BufferedReader(
 					new InputStreamReader(new FileInputStream(generatedFileResult)));
 
@@ -825,11 +855,16 @@ public class PlayerManagerTest {
 	
 	
 	@Test
-	public void masterAList1000Test() throws Exception {		
+	public void masterAList1000Test() throws Exception {			
+		String methodName = new Object() {}
+			.getClass()
+			.getEnclosingMethod()
+			.getName();
+			
 		try {
 			this.setUpCustom(1000);
 			Session ss = this.sessionFactory.openSession();
-			String generatedFileResult = "target/"+PlayerManagerTest.class.getName()+".masterAList1000Test_result_generated.json";
+			String generatedFileResult = "target/"+PlayerManagerTest.class.getSimpleName()+"."+methodName+"_result_generated.json";
 			TransactionTemplate transactionTemplate = new TransactionTemplate(this.transactionManager);
 			ObjPersistenceSupport objPersistenceSupport = ((IPlayerManagerImplementor)this.manager).getObjPersistenceSupport();
 			transactionTemplate.execute(new TransactionCallback<Object>() {
@@ -853,7 +888,7 @@ public class PlayerManagerTest {
 							PlayerManagerTest.this.manager.getConfig().clone()
 								.configSerialiseBySignatureAllRelationship(true));
 					
-					PlayerSnapshot<List<MasterAEnt>> playerSnapshot = PlayerManagerTest.this.manager.createPlayerSnapshot(masterAEntList);
+					IPlayerSnapshot<List<MasterAEnt>> playerSnapshot = PlayerManagerTest.this.manager.createPlayerSnapshot(masterAEntList);
 					
 					FileOutputStream fos;
 					try {
@@ -883,7 +918,7 @@ public class PlayerManagerTest {
 			BufferedReader brExpected = 
 					new BufferedReader(
 							new InputStreamReader(
-									classLoader.getResourceAsStream(PlayerManagerTest.class.getPackage().getName().replaceAll("\\.", "/")+"/"+this.getResourceFolder()+"/"+ PlayerManagerTest.class.getSimpleName()+".masterAList1000Test_result_expected.json")
+									classLoader.getResourceAsStream(PlayerManagerTest.class.getPackage().getName().replaceAll("\\.", "/")+"/"+this.getResourceFolder()+"/"+ PlayerManagerTest.class.getSimpleName()+"."+methodName+"_result_expected.json")
 									)
 							);
 			BufferedReader brGenerated = 
@@ -911,9 +946,14 @@ public class PlayerManagerTest {
 	}
 	
 	@Test
-	public void masterAListFirstTwiceTest() throws Exception {
+	public void masterAListFirstTwiceTest() throws Exception {	
+		String methodName = new Object() {}
+			.getClass()
+			.getEnclosingMethod()
+			.getName();
+			
 		Session ss = this.sessionFactory.openSession();
-		String generatedFileResult = "target/"+PlayerManagerTest.class.getName()+".masterAListFirstTwiceTest_result_generated.json";
+		String generatedFileResult = "target/"+PlayerManagerTest.class.getSimpleName()+"."+methodName+"_result_generated.json";
 		TransactionTemplate transactionTemplate = new TransactionTemplate(this.transactionManager);
 		transactionTemplate.execute(new TransactionCallback<Object>() {
 
@@ -942,7 +982,7 @@ public class PlayerManagerTest {
 											.clone()
 											.configSerialiseBySignatureAllRelationship(true));
 				
-				PlayerSnapshot<List<MasterAEnt>> playerSnapshot = PlayerManagerTest.this.manager.createPlayerSnapshot(masterAEntList);
+				IPlayerSnapshot<List<MasterAEnt>> playerSnapshot = PlayerManagerTest.this.manager.createPlayerSnapshot(masterAEntList);
 				
 				FileOutputStream fos;
 				try {
@@ -972,7 +1012,7 @@ public class PlayerManagerTest {
 		BufferedReader brExpected = 
 			new BufferedReader(
 				new InputStreamReader(
-					classLoader.getResourceAsStream(PlayerManagerTest.class.getPackage().getName().replaceAll("\\.", "/")+"/"+this.getResourceFolder()+"/"+ PlayerManagerTest.class.getSimpleName()+".masterAListFirstTwiceTest_result_expected.json")
+					classLoader.getResourceAsStream(PlayerManagerTest.class.getPackage().getName().replaceAll("\\.", "/")+"/"+this.getResourceFolder()+"/"+ PlayerManagerTest.class.getSimpleName()+"."+methodName+"_result_expected.json")
 				)
 			);
 		BufferedReader brGenerated = 
@@ -996,9 +1036,14 @@ public class PlayerManagerTest {
 	}
 	
 	@Test
-	public void masterBList10Test() throws Exception {		
+	public void masterBList10Test() throws Exception {			
+		String methodName = new Object() {}
+			.getClass()
+			.getEnclosingMethod()
+			.getName();
+			
 		Session ss = this.sessionFactory.openSession();
-		String generatedFileResult = "target/"+PlayerManagerTest.class.getName()+".masterBList10Test_result_generated.json";
+		String generatedFileResult = "target/"+PlayerManagerTest.class.getSimpleName()+"."+methodName+"_result_generated.json";
 		TransactionTemplate transactionTemplate = new TransactionTemplate(this.transactionManager);
 		transactionTemplate.execute(new TransactionCallback<Object>() {
 
@@ -1029,7 +1074,7 @@ public class PlayerManagerTest {
 											.clone()
 											.configSerialiseBySignatureAllRelationship(false));
 				
-				PlayerSnapshot<List<MasterBEnt>> playerSnapshot = PlayerManagerTest.this.manager.createPlayerSnapshot(masterBEntList);
+				IPlayerSnapshot<List<MasterBEnt>> playerSnapshot = PlayerManagerTest.this.manager.createPlayerSnapshot(masterBEntList);
 				
 				FileOutputStream fos;
 				try {
@@ -1059,7 +1104,7 @@ public class PlayerManagerTest {
 		BufferedReader brExpected = 
 			new BufferedReader(
 				new InputStreamReader(
-					classLoader.getResourceAsStream(PlayerManagerTest.class.getPackage().getName().replaceAll("\\.", "/")+"/"+this.getResourceFolder()+"/"+ PlayerManagerTest.class.getSimpleName()+".masterBList10Test_result_expected.json")
+					classLoader.getResourceAsStream(PlayerManagerTest.class.getPackage().getName().replaceAll("\\.", "/")+"/"+this.getResourceFolder()+"/"+ PlayerManagerTest.class.getSimpleName()+"."+methodName+"_result_expected.json")
 				)
 			);
 		BufferedReader brGenerated = 
@@ -1084,8 +1129,13 @@ public class PlayerManagerTest {
 	
 	@Test
 	public void detailACompIdList10Test() throws Exception {		
+		String methodName = new Object() {}
+			.getClass()
+			.getEnclosingMethod()
+			.getName();
+				
 		Session ss = this.sessionFactory.openSession();
-		String generatedFileResult = "target/"+PlayerManagerTest.class.getName()+".detailACompIdList10Test_result_generated.json";
+		String generatedFileResult = "target/"+PlayerManagerTest.class.getSimpleName()+"."+methodName+"_result_generated.json";
 		TransactionTemplate transactionTemplate = new TransactionTemplate(this.transactionManager);
 		ObjPersistenceSupport objPersistenceSupport = ((IPlayerManagerImplementor)this.manager).getObjPersistenceSupport();
 		
@@ -1124,7 +1174,7 @@ public class PlayerManagerTest {
 											.clone()
 											.configSerialiseBySignatureAllRelationship(false));
 				
-				PlayerSnapshot<List<DetailACompId>> playerSnapshot = PlayerManagerTest.this.manager.createPlayerSnapshot(detailACompIdList);
+				IPlayerSnapshot<List<DetailACompId>> playerSnapshot = PlayerManagerTest.this.manager.createPlayerSnapshot(detailACompIdList);
 				
 				FileOutputStream fos;
 				try {
@@ -1154,7 +1204,7 @@ public class PlayerManagerTest {
 		BufferedReader brExpected = 
 			new BufferedReader(
 				new InputStreamReader(
-					classLoader.getResourceAsStream(PlayerManagerTest.class.getPackage().getName().replaceAll("\\.", "/")+"/"+this.getResourceFolder()+"/"+ PlayerManagerTest.class.getSimpleName()+".detailACompIdList10Test_result_expected.json")
+					classLoader.getResourceAsStream(PlayerManagerTest.class.getPackage().getName().replaceAll("\\.", "/")+"/"+this.getResourceFolder()+"/"+ PlayerManagerTest.class.getSimpleName()+"."+methodName+"_result_expected.json")
 				)
 			);
 		BufferedReader brGenerated = 
@@ -1179,8 +1229,13 @@ public class PlayerManagerTest {
 	
 	@Test
 	public void detailACompIdListDummyOwner10Test() throws Exception {		
+		String methodName = new Object() {}
+			.getClass()
+			.getEnclosingMethod()
+			.getName();
+				
 		Session ss = this.sessionFactory.openSession();
-		String generatedFileResult = "target/"+PlayerManagerTest.class.getName()+".detailACompIdListDummyOwner10Test_result_generated.json";
+		String generatedFileResult = "target/"+PlayerManagerTest.class.getSimpleName()+"."+methodName+"_result_generated.json";
 		TransactionTemplate transactionTemplate = new TransactionTemplate(this.transactionManager);
 		ObjPersistenceSupport objPersistenceSupport = ((IPlayerManagerImplementor)this.manager).getObjPersistenceSupport();
 		transactionTemplate.execute(new TransactionCallback<Object>() {
@@ -1218,7 +1273,7 @@ public class PlayerManagerTest {
 											.clone()
 											.configSerialiseBySignatureAllRelationship(false));
 				
-				PlayerSnapshot<List<DetailACompId>> playerSnapshot = PlayerManagerTest.this.manager.createPlayerSnapshot(detailACompIdList);
+				IPlayerSnapshot<List<DetailACompId>> playerSnapshot = PlayerManagerTest.this.manager.createPlayerSnapshot(detailACompIdList);
 				
 				FileOutputStream fos;
 				try {
@@ -1248,7 +1303,7 @@ public class PlayerManagerTest {
 		BufferedReader brExpected = 
 			new BufferedReader(
 				new InputStreamReader(
-					classLoader.getResourceAsStream(PlayerManagerTest.class.getPackage().getName().replaceAll("\\.", "/")+"/"+this.getResourceFolder()+"/"+ PlayerManagerTest.class.getSimpleName()+".detailACompIdListDummyOwner10Test_result_expected.json")
+					classLoader.getResourceAsStream(PlayerManagerTest.class.getPackage().getName().replaceAll("\\.", "/")+"/"+this.getResourceFolder()+"/"+ PlayerManagerTest.class.getSimpleName()+"."+methodName+"_result_expected.json")
 				)
 			);
 		BufferedReader brGenerated = 
@@ -1274,8 +1329,13 @@ public class PlayerManagerTest {
 	
 	@Test
 	public void detailACompCompListDummyOwner10Test() throws Exception {		
+		String methodName = new Object() {}
+			.getClass()
+			.getEnclosingMethod()
+			.getName();
+				
 		Session ss = this.sessionFactory.openSession();
-		String generatedFileResult = "target/"+PlayerManagerTest.class.getName()+".detailACompCompListDummyOwner10Test_result_generated.json";
+		String generatedFileResult = "target/"+PlayerManagerTest.class.getSimpleName()+"."+methodName+"_result_generated.json";
 		TransactionTemplate transactionTemplate = new TransactionTemplate(this.transactionManager);
 		PlayerManagerTest.this.manager.startJsonWriteIntersept();
 		ObjPersistenceSupport objPersistenceSupport = ((IPlayerManagerImplementor)this.manager).getObjPersistenceSupport();
@@ -1316,7 +1376,7 @@ public class PlayerManagerTest {
 											.clone()
 											.configSerialiseBySignatureAllRelationship(false));
 				
-				PlayerSnapshot<List<DetailACompComp>> playerSnapshot = PlayerManagerTest.this.manager.createPlayerSnapshot(detailACompIdList);
+				IPlayerSnapshot<List<DetailACompComp>> playerSnapshot = PlayerManagerTest.this.manager.createPlayerSnapshot(detailACompIdList);
 				
 				FileOutputStream fos;
 				try {
@@ -1346,7 +1406,7 @@ public class PlayerManagerTest {
 		BufferedReader brExpected = 
 			new BufferedReader(
 				new InputStreamReader(
-					classLoader.getResourceAsStream(PlayerManagerTest.class.getPackage().getName().replaceAll("\\.", "/")+"/"+this.getResourceFolder()+"/"+ PlayerManagerTest.class.getSimpleName()+".detailACompCompListDummyOwner10Test_result_expected.json")
+					classLoader.getResourceAsStream(PlayerManagerTest.class.getPackage().getName().replaceAll("\\.", "/")+"/"+this.getResourceFolder()+"/"+ PlayerManagerTest.class.getSimpleName()+"."+methodName+"_result_expected.json")
 				)
 			);
 		BufferedReader brGenerated = 
@@ -1372,8 +1432,13 @@ public class PlayerManagerTest {
 	
 	@Test
 	public void detailACompCompList10Test() throws Exception {		
+		String methodName = new Object() {}
+			.getClass()
+			.getEnclosingMethod()
+			.getName();
+				
 		Session ss = this.sessionFactory.openSession();
-		String generatedFileResult = "target/"+PlayerManagerTest.class.getName()+".detailACompCompList10Test_result_generated.json";
+		String generatedFileResult = "target/"+PlayerManagerTest.class.getSimpleName()+"."+methodName+"_result_generated.json";
 		TransactionTemplate transactionTemplate = new TransactionTemplate(this.transactionManager);
 		ObjPersistenceSupport objPersistenceSupport = ((IPlayerManagerImplementor)this.manager).getObjPersistenceSupport();
 		transactionTemplate.execute(new TransactionCallback<Object>() {
@@ -1412,7 +1477,7 @@ public class PlayerManagerTest {
 											.clone()
 											.configSerialiseBySignatureAllRelationship(false));
 				
-				PlayerSnapshot<List<DetailACompComp>> playerSnapshot = PlayerManagerTest.this.manager.createPlayerSnapshot(detailACompIdList);
+				IPlayerSnapshot<List<DetailACompComp>> playerSnapshot = PlayerManagerTest.this.manager.createPlayerSnapshot(detailACompIdList);
 				
 				FileOutputStream fos;
 				try {
@@ -1442,7 +1507,7 @@ public class PlayerManagerTest {
 		BufferedReader brExpected = 
 			new BufferedReader(
 				new InputStreamReader(
-					classLoader.getResourceAsStream(PlayerManagerTest.class.getPackage().getName().replaceAll("\\.", "/")+"/"+this.getResourceFolder()+"/"+ PlayerManagerTest.class.getSimpleName()+".detailACompCompList10Test_result_expected.json")
+					classLoader.getResourceAsStream(PlayerManagerTest.class.getPackage().getName().replaceAll("\\.", "/")+"/"+this.getResourceFolder()+"/"+ PlayerManagerTest.class.getSimpleName()+"."+methodName+"_result_expected.json")
 				)
 			);
 		BufferedReader brGenerated = 
@@ -1468,8 +1533,13 @@ public class PlayerManagerTest {
 	
 	@Test
 	public void masterBList10BizarreTest() throws Exception {		
+		String methodName = new Object() {}
+			.getClass()
+			.getEnclosingMethod()
+			.getName();
+				
 		Session ss = this.sessionFactory.openSession();
-		String generatedFileResult = "target/"+PlayerManagerTest.class.getName()+".masterBList10BizarreTest_result_generated.json";
+		String generatedFileResult = "target/"+PlayerManagerTest.class.getSimpleName()+"."+methodName+"_result_generated.json";
 		TransactionTemplate transactionTemplate = new TransactionTemplate(this.transactionManager);
 		ObjPersistenceSupport objPersistenceSupport = ((IPlayerManagerImplementor)this.manager).getObjPersistenceSupport();
 		transactionTemplate.execute(new TransactionCallback<Object>() {
@@ -1495,7 +1565,7 @@ public class PlayerManagerTest {
 					SignatureBean signBean = ((IPlayerManagerImplementor) PlayerManagerTest.this.manager).generateSignature(masterB);
 					String signStr = PlayerManagerTest.this.manager.serializeSignature(signBean);
 					Map<String,  Map<String, MasterBEnt>> mapItem = new LinkedHashMap<>();
-					PlayerSnapshot<MasterBEnt> masterBPS = PlayerManagerTest.this.manager.createPlayerSnapshot(masterB);
+					IPlayerSnapshot<MasterBEnt> masterBPS = PlayerManagerTest.this.manager.createPlayerSnapshot(masterB);
 					Map<String, MasterBEnt> mapMapItem = new LinkedHashMap<>();
 					mapMapItem.put("wrappedSnapshot", masterB);
 					mapItem.put(signStr, mapMapItem);
@@ -1513,7 +1583,7 @@ public class PlayerManagerTest {
 											.clone()
 											.configSerialiseBySignatureAllRelationship(false));
 				
-				PlayerSnapshot<List<Map<String, Map<String, MasterBEnt>>>> playerSnapshot = PlayerManagerTest.this.manager.createPlayerSnapshot(masterBEntBizarreList);
+				IPlayerSnapshot<List<Map<String, Map<String, MasterBEnt>>>> playerSnapshot = PlayerManagerTest.this.manager.createPlayerSnapshot(masterBEntBizarreList);
 				
 				FileOutputStream fos;
 				try {
@@ -1543,7 +1613,7 @@ public class PlayerManagerTest {
 		BufferedReader brExpected = 
 			new BufferedReader(
 				new InputStreamReader(
-					classLoader.getResourceAsStream(PlayerManagerTest.class.getPackage().getName().replaceAll("\\.", "/")+"/"+this.getResourceFolder()+"/"+ PlayerManagerTest.class.getSimpleName()+".masterBList10BizarreTest_result_expected.json")
+					classLoader.getResourceAsStream(PlayerManagerTest.class.getPackage().getName().replaceAll("\\.", "/")+"/"+this.getResourceFolder()+"/"+ PlayerManagerTest.class.getSimpleName()+"."+methodName+"_result_expected.json")
 				)
 			);
 		BufferedReader brGenerated = 
@@ -1567,10 +1637,15 @@ public class PlayerManagerTest {
 	}
 	
 	@Test
-	public void masterLazyPrpOverSizedTest() throws Exception {
+	public void masterLazyPrpOverSizedTest() throws Exception {	
+		String methodName = new Object() {}
+			.getClass()
+			.getEnclosingMethod()
+			.getName();
+			
 		try {
 			Session ss = this.sessionFactory.openSession();
-			String generatedFileResult = "target/"+PlayerManagerTest.class.getName()+".masterLazyPrpOverSizedTest_result_generated.json";
+			String generatedFileResult = "target/"+PlayerManagerTest.class.getSimpleName()+"."+methodName+"_result_generated.json";
 			
 			TransactionTemplate transactionTemplate = new TransactionTemplate(this.transactionManager);
 			
@@ -1665,7 +1740,7 @@ public class PlayerManagerTest {
 												.clone()
 												.configSerialiseBySignatureAllRelationship(true));
 					
-					PlayerSnapshot<MasterAEnt> playerSnapshot = PlayerManagerTest.this.manager.createPlayerSnapshot(masterAEnt);
+					IPlayerSnapshot<MasterAEnt> playerSnapshot = PlayerManagerTest.this.manager.createPlayerSnapshot(masterAEnt);
 					
 					FileOutputStream fos;
 					try {
@@ -1695,7 +1770,7 @@ public class PlayerManagerTest {
 			BufferedReader brExpected = 
 				new BufferedReader(
 					new InputStreamReader(
-						classLoader.getResourceAsStream(PlayerManagerTest.class.getPackage().getName().replaceAll("\\.", "/")+"/"+this.getResourceFolder()+"/"+ PlayerManagerTest.class.getSimpleName()+".masterLazyPrpOverSizedTest_result_expected.json")
+						classLoader.getResourceAsStream(PlayerManagerTest.class.getPackage().getName().replaceAll("\\.", "/")+"/"+this.getResourceFolder()+"/"+ PlayerManagerTest.class.getSimpleName()+"."+methodName+"_result_expected.json")
 					)
 				);
 			BufferedReader brGenerated = 
@@ -1724,14 +1799,19 @@ public class PlayerManagerTest {
 	}
 	
 	@Test
-	public void masterADetailATest() throws HibernateException, SQLException, JsonGenerationException, JsonMappingException, IOException {
+	public void masterADetailATest() throws HibernateException, SQLException, JsonGenerationException, JsonMappingException, IOException {	
+		String methodName = new Object() {}
+			.getClass()
+			.getEnclosingMethod()
+			.getName();
+			
 		Map<String, Charset> availableCharsetsMap = Charset.availableCharsets();
 //		for (String keyCS : availableCharsetsMap.keySet()) {
 //			System.out.println(">>>>>>>: "+keyCS+"= "+ availableCharsetsMap.get(keyCS).displayName());
 //		}
 		
 		Session ss = this.sessionFactory.openSession();
-		String generatedFileResult = "target/"+PlayerManagerTest.class.getName()+".masterADetailATest_result_generated.json";
+		String generatedFileResult = "target/"+PlayerManagerTest.class.getSimpleName()+"."+methodName+"_result_generated.json";
 			
 		TransactionTemplate transactionTemplate = new TransactionTemplate(this.transactionManager);
 		PlayerManagerTest.this.manager.startJsonWriteIntersept();
@@ -1761,7 +1841,7 @@ public class PlayerManagerTest {
 											.clone()
 											.configSerialiseBySignatureAllRelationship(false));
 				
-				PlayerSnapshot<MasterAEnt> playerSnapshot = PlayerManagerTest.this.manager.createPlayerSnapshot(masterAEnt);
+				IPlayerSnapshot<MasterAEnt> playerSnapshot = PlayerManagerTest.this.manager.createPlayerSnapshot(masterAEnt);
 				
 				FileOutputStream fos;
 				try {
@@ -1791,7 +1871,7 @@ public class PlayerManagerTest {
 		BufferedReader brExpected = 
 			new BufferedReader(
 				new InputStreamReader(
-					classLoader.getResourceAsStream(PlayerManagerTest.class.getPackage().getName().replaceAll("\\.", "/")+"/"+this.getResourceFolder()+"/"+ PlayerManagerTest.class.getSimpleName()+".masterADetailATest_result_expected.json")
+					classLoader.getResourceAsStream(PlayerManagerTest.class.getPackage().getName().replaceAll("\\.", "/")+"/"+this.getResourceFolder()+"/"+ PlayerManagerTest.class.getSimpleName()+"."+methodName+"_result_expected.json")
 				)
 			);
 		BufferedReader brGenerated = 
@@ -1816,14 +1896,19 @@ public class PlayerManagerTest {
 
 	
 	@Test
-	public void masterAWrapperTest() throws HibernateException, SQLException, JsonGenerationException, JsonMappingException, IOException {
+	public void masterAWrapperTest() throws HibernateException, SQLException, JsonGenerationException, JsonMappingException, IOException {	
+		String methodName = new Object() {}
+			.getClass()
+			.getEnclosingMethod()
+			.getName();
+			
 		Map<String, Charset> availableCharsetsMap = Charset.availableCharsets();
 //		for (String keyCS : availableCharsetsMap.keySet()) {
 //			System.out.println(">>>>>>>: "+keyCS+"= "+ availableCharsetsMap.get(keyCS).displayName());
 //		}
 		
 		Session ss = this.sessionFactory.openSession();
-		String generatedFileResult = "target/"+PlayerManagerTest.class.getName()+".masterAWrapperTest_result_generated.json";
+		String generatedFileResult = "target/"+PlayerManagerTest.class.getSimpleName()+"."+methodName+"_result_generated.json";
 			
 		TransactionTemplate transactionTemplate = new TransactionTemplate(this.transactionManager);
 		PlayerManagerTest.this.manager.startJsonWriteIntersept();
@@ -1868,7 +1953,7 @@ public class PlayerManagerTest {
 											.clone()
 											.configSerialiseBySignatureAllRelationship(true));
 				
-				PlayerSnapshot<List<MasterAWrapper>> playerSnapshot = PlayerManagerTest.this.manager.createPlayerSnapshot(masterAWrapperList);
+				IPlayerSnapshot<List<MasterAWrapper>> playerSnapshot = PlayerManagerTest.this.manager.createPlayerSnapshot(masterAWrapperList);
 				
 				FileOutputStream fos;
 				try {
@@ -1898,7 +1983,7 @@ public class PlayerManagerTest {
 		BufferedReader brExpected = 
 			new BufferedReader(
 				new InputStreamReader(
-					classLoader.getResourceAsStream(PlayerManagerTest.class.getPackage().getName().replaceAll("\\.", "/")+"/"+this.getResourceFolder()+"/"+ PlayerManagerTest.class.getSimpleName()+".masterAWrapperTest_result_expected.json")
+					classLoader.getResourceAsStream(PlayerManagerTest.class.getPackage().getName().replaceAll("\\.", "/")+"/"+this.getResourceFolder()+"/"+ PlayerManagerTest.class.getSimpleName()+"."+methodName+"_result_expected.json")
 				)
 			);
 		BufferedReader brGenerated = 
@@ -1922,13 +2007,18 @@ public class PlayerManagerTest {
 	}
 
 	@Test
-	public void detailAWithoutMasterBTest() throws HibernateException, SQLException, JsonGenerationException, JsonMappingException, IOException {
+	public void detailAWithoutMasterBTest() throws HibernateException, SQLException, JsonGenerationException, JsonMappingException, IOException {	
+		String methodName = new Object() {}
+			.getClass()
+			.getEnclosingMethod()
+			.getName();
+			
 		Map<String, Charset> availableCharsetsMap = Charset.availableCharsets();
 //		for (String keyCS : availableCharsetsMap.keySet()) {
 //			System.out.println(">>>>>>>: "+keyCS+"= "+ availableCharsetsMap.get(keyCS).displayName());
 //		}
 		
-		String generatedFileResult = "target/"+PlayerManagerTest.class.getName()+".detailAWithoutMasterBTest_result_generated.json";
+		String generatedFileResult = "target/"+PlayerManagerTest.class.getSimpleName()+"."+methodName+"_result_generated.json";
 			
 		TransactionTemplate transactionTemplate = new TransactionTemplate(this.transactionManager);
 		PlayerManagerTest.this.manager.startJsonWriteIntersept();
@@ -1957,7 +2047,7 @@ public class PlayerManagerTest {
 											.clone()
 											.configSerialiseBySignatureAllRelationship(false));
 				
-				PlayerSnapshot<MasterAEnt> playerSnapshot = PlayerManagerTest.this.manager.createPlayerSnapshot(masterAEnt);
+				IPlayerSnapshot<MasterAEnt> playerSnapshot = PlayerManagerTest.this.manager.createPlayerSnapshot(masterAEnt);
 				
 				FileOutputStream fos;
 				try {
@@ -1987,7 +2077,7 @@ public class PlayerManagerTest {
 		BufferedReader brExpected = 
 			new BufferedReader(
 				new InputStreamReader(
-					classLoader.getResourceAsStream(PlayerManagerTest.class.getPackage().getName().replaceAll("\\.", "/")+"/"+this.getResourceFolder()+"/"+ PlayerManagerTest.class.getSimpleName()+".detailAWithoutMasterBTest_result_expected.json")
+					classLoader.getResourceAsStream(PlayerManagerTest.class.getPackage().getName().replaceAll("\\.", "/")+"/"+this.getResourceFolder()+"/"+ PlayerManagerTest.class.getSimpleName()+"."+methodName+"_result_expected.json")
 				)
 			);
 		BufferedReader brGenerated = 
@@ -2011,14 +2101,19 @@ public class PlayerManagerTest {
 	}
 
 	@Test
-	public void detailABySigTest() throws HibernateException, SQLException, JsonGenerationException, JsonMappingException, IOException {
+	public void detailABySigTest() throws HibernateException, SQLException, JsonGenerationException, JsonMappingException, IOException {	
+		String methodName = new Object() {}
+			.getClass()
+			.getEnclosingMethod()
+			.getName();
+			
 		Map<String, Charset> availableCharsetsMap = Charset.availableCharsets();
 //		for (String keyCS : availableCharsetsMap.keySet()) {
 //			System.out.println(">>>>>>>: "+keyCS+"= "+ availableCharsetsMap.get(keyCS).displayName());
 //		}
 		
 		Session ss = this.sessionFactory.openSession();
-		String generatedFileResult = "target/"+PlayerManagerTest.class.getName()+".detailABySigTest_result_generated.json";
+		String generatedFileResult = "target/"+PlayerManagerTest.class.getSimpleName()+"."+methodName+"_result_generated.json";
 			
 		TransactionTemplate transactionTemplate = new TransactionTemplate(this.transactionManager);
 		transactionTemplate.execute(new TransactionCallback<Object>() {
@@ -2049,7 +2144,7 @@ public class PlayerManagerTest {
 				
 				SignatureBean signatureBean = PlayerManagerTest.this.manager.deserializeSignature(PlayerManagerTest.this.getMasterAEntDetailAColKey0Sign());
 				Collection<DetailAEnt> detailAEntCol = PlayerManagerTest.this.manager.getBySignature(signatureBean);
-				PlayerSnapshot<Collection<DetailAEnt>> playerSnapshot = PlayerManagerTest.this.manager.createPlayerSnapshot(detailAEntCol);
+				IPlayerSnapshot<Collection<DetailAEnt>> playerSnapshot = PlayerManagerTest.this.manager.createPlayerSnapshot(detailAEntCol);
 				
 				FileOutputStream fos;
 				
@@ -2080,7 +2175,7 @@ public class PlayerManagerTest {
 		BufferedReader brExpected = 
 			new BufferedReader(
 				new InputStreamReader(
-					classLoader.getResourceAsStream(PlayerManagerTest.class.getPackage().getName().replaceAll("\\.", "/")+"/"+this.getResourceFolder()+"/"+ PlayerManagerTest.class.getSimpleName()+".detailABySigTest_result_expected.json")
+					classLoader.getResourceAsStream(PlayerManagerTest.class.getPackage().getName().replaceAll("\\.", "/")+"/"+this.getResourceFolder()+"/"+ PlayerManagerTest.class.getSimpleName()+"."+methodName+"_result_expected.json")
 				)
 			);
 		BufferedReader brGenerated = 
@@ -2103,16 +2198,833 @@ public class PlayerManagerTest {
 		}
 	}
 
-
 	@Test
-	public void detailAFirstSecontTest() throws HibernateException, SQLException, JsonGenerationException, JsonMappingException, IOException {
+	public void detailAAllBySignTest() throws HibernateException, SQLException, JsonGenerationException, JsonMappingException, IOException {
+		String methodName = new Object() {}
+			.getClass()
+			.getEnclosingMethod()
+			.getName();
+			
 		Map<String, Charset> availableCharsetsMap = Charset.availableCharsets();
 //		for (String keyCS : availableCharsetsMap.keySet()) {
 //			System.out.println(">>>>>>>: "+keyCS+"= "+ availableCharsetsMap.get(keyCS).displayName());
 //		}
 		
 		Session ss = this.sessionFactory.openSession();
-		String generatedFileResult = "target/"+PlayerManagerTest.class.getName()+".detailAFirstSecontTest_result_generated.json";
+		String generatedFileResult = "target/"+PlayerManagerTest.class.getSimpleName()+"."+methodName+"_result_generated.json";
+			
+		TransactionTemplate transactionTemplate = new TransactionTemplate(this.transactionManager);
+		transactionTemplate.execute(new TransactionCallback<Object>() {
+
+			@Override
+			public Object doInTransaction(TransactionStatus arg0) {
+				PlayerManagerTest.this.manager.startJsonWriteIntersept();
+				//SchemaExport
+				
+				//Configuration hbConfiguration = PlayerManagerTest.this.localSessionFactoryBean.getConfiguration();
+				
+				SqlLogInspetor sqlLogInspetor = new SqlLogInspetor();
+				sqlLogInspetor.enable();
+				
+				List<DetailAEnt> detailAEntsList =
+						PlayerManagerTest.this.hibernateJpaCompat.createCriteria(ss, DetailAEnt.class)
+							.addOrder(OrderCompat.asc("id")).list();
+				
+				PlayerManagerTest.this
+					.manager
+					.overwriteConfigurationTemporarily(
+						PlayerManagerTest
+							.this
+								.manager
+									.getConfig()
+										.clone()
+										.configSerialiseBySignatureAllRelationship(true));
+				
+				Map<String, IPlayerSnapshot<DetailAEnt>> allMasteraBySignMap = new LinkedHashMap();
+				for (DetailAEnt detailAEnt : detailAEntsList) {
+					SignatureBean sign = ((IPlayerManagerImplementor) PlayerManagerTest.this.manager).generateSignature(detailAEnt);
+					String signStr = ((IPlayerManagerImplementor) PlayerManagerTest.this.manager).serializeSignature(sign);
+					IPlayerSnapshot<DetailAEnt> masteraPlayerSnapshot = PlayerManagerTest.this.manager.createPlayerSnapshot(detailAEnt);
+					allMasteraBySignMap.put(signStr, masteraPlayerSnapshot);
+				}
+				
+				FileOutputStream fos;
+				
+				try {
+					fos = new FileOutputStream(generatedFileResult);
+					PlayerManagerTest
+						.this
+							.manager
+								.getConfig()
+									.getObjectMapper()
+										.writerWithDefaultPrettyPrinter()
+											.writeValue(fos, allMasteraBySignMap);
+					
+				} catch (Exception e) {
+					// TODO Auto-generated catch block
+					throw new RuntimeException("Unexpected", e);
+				}
+				
+				sqlLogInspetor.disable();
+				
+				return null;
+			}
+			
+		});
+		PlayerManagerTest.this.manager.stopJsonWriteIntersept();
+		
+		ClassLoader classLoader = getClass().getClassLoader();
+		BufferedReader brExpected = 
+			new BufferedReader(
+				new InputStreamReader(
+					classLoader.getResourceAsStream(PlayerManagerTest.class.getPackage().getName().replaceAll("\\.", "/")+"/"+this.getResourceFolder()+"/"+ PlayerManagerTest.class.getSimpleName()+"."+methodName+"_result_expected.json")
+				)
+			);
+		BufferedReader brGenerated = 
+			new BufferedReader(
+				new InputStreamReader(
+					new FileInputStream(generatedFileResult)
+				)
+			);
+		
+		String strLineExpected;
+		String strLineGenerated;
+		int lineCount = 1;
+		while ((strLineExpected = brExpected.readLine()) != null)   {
+			strLineExpected = strLineExpected.trim();
+			strLineGenerated = brGenerated.readLine();
+			if (strLineGenerated != null) {
+				strLineGenerated = strLineGenerated.trim();
+			}
+			Assert.assertThat("Line " + lineCount++, strLineGenerated, equalTo(strLineExpected));
+		}
+	}
+	
+	@Test
+	public void detailAAllTest() throws HibernateException, SQLException, JsonGenerationException, JsonMappingException, IOException {	
+		String methodName = new Object() {}
+			.getClass()
+			.getEnclosingMethod()
+			.getName();
+			
+		Map<String, Charset> availableCharsetsMap = Charset.availableCharsets();
+//		for (String keyCS : availableCharsetsMap.keySet()) {
+//			System.out.println(">>>>>>>: "+keyCS+"= "+ availableCharsetsMap.get(keyCS).displayName());
+//		}
+		
+		Session ss = this.sessionFactory.openSession();
+		String generatedFileResult = "target/"+PlayerManagerTest.class.getSimpleName()+"."+methodName+"_result_generated.json";
+			
+		TransactionTemplate transactionTemplate = new TransactionTemplate(this.transactionManager);
+		transactionTemplate.execute(new TransactionCallback<Object>() {
+
+			@Override
+			public Object doInTransaction(TransactionStatus arg0) {
+				PlayerManagerTest.this.manager.startJsonWriteIntersept();
+				//SchemaExport
+				
+				//Configuration hbConfiguration = PlayerManagerTest.this.localSessionFactoryBean.getConfiguration();
+				
+				SqlLogInspetor sqlLogInspetor = new SqlLogInspetor();
+				sqlLogInspetor.enable();
+				
+				List<DetailAEnt> detailAEntList =
+						PlayerManagerTest.this.hibernateJpaCompat.createCriteria(ss, DetailAEnt.class)
+							.addOrder(OrderCompat.asc("id")).list();
+				
+				PlayerManagerTest.this
+					.manager
+					.overwriteConfigurationTemporarily(
+						PlayerManagerTest
+							.this
+								.manager
+									.getConfig()
+										.clone()
+										.configSerialiseBySignatureAllRelationship(true));
+				
+				IPlayerSnapshot<List<DetailAEnt>> playerSnapshot = PlayerManagerTest.this.manager.createPlayerSnapshot(detailAEntList);
+				
+				FileOutputStream fos;
+				
+				try {
+					fos = new FileOutputStream(generatedFileResult);
+					PlayerManagerTest
+						.this
+							.manager
+								.getConfig()
+									.getObjectMapper()
+										.writerWithDefaultPrettyPrinter()
+											.writeValue(fos, playerSnapshot);
+					
+				} catch (Exception e) {
+					// TODO Auto-generated catch block
+					throw new RuntimeException("Unexpected", e);
+				}
+				
+				sqlLogInspetor.disable();
+				
+				return null;
+			}
+			
+		});
+		PlayerManagerTest.this.manager.stopJsonWriteIntersept();
+		
+		ClassLoader classLoader = getClass().getClassLoader();
+		BufferedReader brExpected = 
+			new BufferedReader(
+				new InputStreamReader(
+					classLoader.getResourceAsStream(PlayerManagerTest.class.getPackage().getName().replaceAll("\\.", "/")+"/"+this.getResourceFolder()+"/"+ PlayerManagerTest.class.getSimpleName()+"."+methodName+"_result_expected.json")
+				)
+			);
+		BufferedReader brGenerated = 
+			new BufferedReader(
+				new InputStreamReader(
+					new FileInputStream(generatedFileResult)
+				)
+			);
+		
+		String strLineExpected;
+		String strLineGenerated;
+		int lineCount = 1;
+		while ((strLineExpected = brExpected.readLine()) != null)   {
+			strLineExpected = strLineExpected.trim();
+			strLineGenerated = brGenerated.readLine();
+			if (strLineGenerated != null) {
+				strLineGenerated = strLineGenerated.trim();
+			}
+			Assert.assertThat("Line " + lineCount++, strLineGenerated, equalTo(strLineExpected));
+		}
+	}
+	
+	@Test
+	public void detailAAllLazyLoadedTest() throws HibernateException, SQLException, JsonGenerationException, JsonMappingException, IOException {	
+		String methodName = new Object() {}
+			.getClass()
+			.getEnclosingMethod()
+			.getName();
+			
+		Map<String, Charset> availableCharsetsMap = Charset.availableCharsets();
+//		for (String keyCS : availableCharsetsMap.keySet()) {
+//			System.out.println(">>>>>>>: "+keyCS+"= "+ availableCharsetsMap.get(keyCS).displayName());
+//		}
+		
+		Session ss = this.sessionFactory.openSession();
+		String generatedFileResult = "target/"+PlayerManagerTest.class.getSimpleName()+"."+methodName+"_result_generated.json";
+			
+		TransactionTemplate transactionTemplate = new TransactionTemplate(this.transactionManager);
+		transactionTemplate.execute(new TransactionCallback<Object>() {
+
+			@Override
+			public Object doInTransaction(TransactionStatus arg0) {
+				PlayerManagerTest.this.manager.startJsonWriteIntersept();
+				//SchemaExport
+				
+				//Configuration hbConfiguration = PlayerManagerTest.this.localSessionFactoryBean.getConfiguration();
+				
+				SqlLogInspetor sqlLogInspetor = new SqlLogInspetor();
+				sqlLogInspetor.enable();
+				
+				MasterAEnt masterAEnt = (MasterAEnt) ss.get(MasterAEnt.class, 0);
+				DetailACompId id = new DetailACompId();
+				id.setSubId(0);
+				id.setMasterA(masterAEnt);
+				@SuppressWarnings("unchecked")
+				DetailAEnt detailAEnt = (DetailAEnt) ss.get(DetailAEnt.class, id);
+//						PlayerManagerTest.this.hibernateJpaCompat.createCriteria(ss, DetailAEnt.class)
+//							.add((CriterionCompat<DetailAEnt, DetailACompId>) RestrictionsCompat.eq("id", id))
+//							.uniqueResult();
+				
+				detailAEnt.getDetailAComp().getMasterB().getVcharA();
+				for (DetailAEnt detailItem : detailAEnt.getCompId().getMasterA().getDetailAEntCol()) {
+					detailItem.getDetailAComp().getMasterB().getVcharA();
+					detailItem.getDetailAComp().getMasterB().getDetailAEntCol().size();
+					detailItem.getDetailAComp().getMasterB().getMasterBComp().getDetailAEntCol().size();
+					detailItem.getDetailAComp().getMasterB().getMasterBComp().getMasterBCompComp().getDetailAEntCol().size();
+					detailItem.getDetailAComp().getDetailACompComp().getMasterB().getVcharA();
+					detailItem.getDetailAComp().getDetailACompComp().getMasterB().getDetailAEntCol().size();
+					detailItem.getCompId().getMasterA().getVcharA();
+					detailItem.getCompId().getMasterA().getVcharA();
+				}				
+				
+				PlayerManagerTest.this
+					.manager
+					.overwriteConfigurationTemporarily(
+						PlayerManagerTest
+							.this
+								.manager
+									.getConfig()
+										.clone()
+										.configSerialiseBySignatureAllRelationship(false));
+				
+				IPlayerSnapshot<DetailAEnt> detailAEntPlayerSnapshot = PlayerManagerTest.this.manager.createPlayerSnapshot(detailAEnt);
+				
+				FileOutputStream fos;
+				
+				try {
+					fos = new FileOutputStream(generatedFileResult);
+					PlayerManagerTest
+						.this
+							.manager
+								.getConfig()
+									.getObjectMapper()
+										.writerWithDefaultPrettyPrinter()
+											.writeValue(fos, detailAEntPlayerSnapshot);
+					
+				} catch (Exception e) {
+					// TODO Auto-generated catch block
+					throw new RuntimeException("Unexpected", e);
+				}
+				
+				sqlLogInspetor.disable();
+				
+				return null;
+			}
+			
+		});
+		PlayerManagerTest.this.manager.stopJsonWriteIntersept();
+		
+		ClassLoader classLoader = getClass().getClassLoader();
+		BufferedReader brExpected = 
+			new BufferedReader(
+				new InputStreamReader(
+					classLoader.getResourceAsStream(PlayerManagerTest.class.getPackage().getName().replaceAll("\\.", "/")+"/"+this.getResourceFolder()+"/"+ PlayerManagerTest.class.getSimpleName()+"."+methodName+"_result_expected.json")
+				)
+			);
+		BufferedReader brGenerated = 
+			new BufferedReader(
+				new InputStreamReader(
+					new FileInputStream(generatedFileResult)
+				)
+			);
+		
+		String strLineExpected;
+		String strLineGenerated;
+		int lineCount = 1;
+		while ((strLineExpected = brExpected.readLine()) != null)   {
+			strLineExpected = strLineExpected.trim();
+			strLineGenerated = brGenerated.readLine();
+			if (strLineGenerated != null) {
+				strLineGenerated = strLineGenerated.trim();
+			}
+			Assert.assertThat("Line " + lineCount++, strLineGenerated, equalTo(strLineExpected));
+		}
+	}
+	
+	@Test
+	public void detailAEntColAllBySignTest() throws HibernateException, SQLException, JsonGenerationException, JsonMappingException, IOException {	
+		String methodName = new Object() {}
+			.getClass()
+			.getEnclosingMethod()
+			.getName();
+			
+		Map<String, Charset> availableCharsetsMap = Charset.availableCharsets();
+//		for (String keyCS : availableCharsetsMap.keySet()) {
+//			System.out.println(">>>>>>>: "+keyCS+"= "+ availableCharsetsMap.get(keyCS).displayName());
+//		}
+		
+		Session ss = this.sessionFactory.openSession();
+		String generatedFileResult = "target/"+PlayerManagerTest.class.getSimpleName()+"."+methodName+"_result_generated.json";
+			
+		TransactionTemplate transactionTemplate = new TransactionTemplate(this.transactionManager);
+		transactionTemplate.execute(new TransactionCallback<Object>() {
+
+			@Override
+			public Object doInTransaction(TransactionStatus arg0) {
+				PlayerManagerTest.this.manager.startJsonWriteIntersept();
+				//SchemaExport
+				
+				//Configuration hbConfiguration = PlayerManagerTest.this.localSessionFactoryBean.getConfiguration();
+				
+				SqlLogInspetor sqlLogInspetor = new SqlLogInspetor();
+				sqlLogInspetor.enable();
+				
+				List<MasterAEnt> masterAEntList =
+						PlayerManagerTest.this.hibernateJpaCompat.createCriteria(ss, MasterAEnt.class)
+							.addOrder(OrderCompat.asc("id")).list();
+				
+				PlayerManagerTest.this
+					.manager
+					.overwriteConfigurationTemporarily(
+						PlayerManagerTest
+							.this
+								.manager
+									.getConfig()
+										.clone()
+										.configSerialiseBySignatureAllRelationship(true));
+				
+				Map<String, IPlayerSnapshot<Set<DetailAEnt>>> allMasteraBySignMap = new LinkedHashMap();
+				for (MasterAEnt masterAEnt : masterAEntList) {
+					SignatureBean sign = ((IPlayerManagerImplementor) PlayerManagerTest.this.manager).generateLazySignatureForCollRelashionship(MasterAEnt.class, "detailAEntCol", masterAEnt, masterAEnt.getDetailAEntCol());
+					String signStr = ((IPlayerManagerImplementor) PlayerManagerTest.this.manager).serializeSignature(sign);
+					IPlayerSnapshot<Set<DetailAEnt>> masteraPlayerSnapshot = PlayerManagerTest.this.manager.createPlayerSnapshot(masterAEnt.getDetailAEntCol());
+					allMasteraBySignMap.put(signStr, masteraPlayerSnapshot);
+				}
+				
+				FileOutputStream fos;
+				
+				try {
+					fos = new FileOutputStream(generatedFileResult);
+					PlayerManagerTest
+						.this
+							.manager
+								.getConfig()
+									.getObjectMapper()
+										.writerWithDefaultPrettyPrinter()
+											.writeValue(fos, allMasteraBySignMap);
+					
+				} catch (Exception e) {
+					// TODO Auto-generated catch block
+					throw new RuntimeException("Unexpected", e);
+				}
+				
+				sqlLogInspetor.disable();
+				
+				return null;
+			}
+			
+		});
+		PlayerManagerTest.this.manager.stopJsonWriteIntersept();
+		
+		ClassLoader classLoader = getClass().getClassLoader();
+		BufferedReader brExpected = 
+			new BufferedReader(
+				new InputStreamReader(
+					classLoader.getResourceAsStream(PlayerManagerTest.class.getPackage().getName().replaceAll("\\.", "/")+"/"+this.getResourceFolder()+"/"+ PlayerManagerTest.class.getSimpleName()+"."+methodName+"_result_expected.json")
+				)
+			);
+		BufferedReader brGenerated = 
+			new BufferedReader(
+				new InputStreamReader(
+					new FileInputStream(generatedFileResult)
+				)
+			);
+		
+		String strLineExpected;
+		String strLineGenerated;
+		int lineCount = 1;
+		while ((strLineExpected = brExpected.readLine()) != null)   {
+			strLineExpected = strLineExpected.trim();
+			strLineGenerated = brGenerated.readLine();
+			if (strLineGenerated != null) {
+				strLineGenerated = strLineGenerated.trim();
+			}
+			Assert.assertThat("Line " + lineCount++, strLineGenerated, equalTo(strLineExpected));
+		}
+	}
+	
+	@Test
+	public void detailARefererAllTest() throws HibernateException, SQLException, JsonGenerationException, JsonMappingException, IOException {	
+		String methodName = new Object() {}
+			.getClass()
+			.getEnclosingMethod()
+			.getName();
+			
+		Map<String, Charset> availableCharsetsMap = Charset.availableCharsets();
+//		for (String keyCS : availableCharsetsMap.keySet()) {
+//			System.out.println(">>>>>>>: "+keyCS+"= "+ availableCharsetsMap.get(keyCS).displayName());
+//		}
+		
+		Session ss = this.sessionFactory.openSession();
+		String generatedFileResult = "target/"+PlayerManagerTest.class.getSimpleName()+"."+methodName+"_result_generated.json";
+			
+		TransactionTemplate transactionTemplate = new TransactionTemplate(this.transactionManager);
+		transactionTemplate.execute(new TransactionCallback<Object>() {
+
+			@Override
+			public Object doInTransaction(TransactionStatus arg0) {
+				PlayerManagerTest.this.manager.startJsonWriteIntersept();
+				//SchemaExport
+				
+				//Configuration hbConfiguration = PlayerManagerTest.this.localSessionFactoryBean.getConfiguration();
+				
+				SqlLogInspetor sqlLogInspetor = new SqlLogInspetor();
+				sqlLogInspetor.enable();
+				
+				List<DetailARefererEnt> detailARefererEntList =
+						PlayerManagerTest.this.hibernateJpaCompat.createCriteria(ss, DetailARefererEnt.class)
+							.addOrder(OrderCompat.asc("id")).list();
+				
+				PlayerManagerTest.this
+					.manager
+					.overwriteConfigurationTemporarily(
+						PlayerManagerTest
+							.this
+								.manager
+									.getConfig()
+										.clone()
+										.configSerialiseBySignatureAllRelationship(true));
+				
+				IPlayerSnapshot<List<DetailARefererEnt>> playerSnapshot = PlayerManagerTest.this.manager.createPlayerSnapshot(detailARefererEntList);
+				
+				FileOutputStream fos;
+				
+				try {
+					fos = new FileOutputStream(generatedFileResult);
+					PlayerManagerTest
+						.this
+							.manager
+								.getConfig()
+									.getObjectMapper()
+										.writerWithDefaultPrettyPrinter()
+											.writeValue(fos, playerSnapshot);
+					
+				} catch (Exception e) {
+					// TODO Auto-generated catch block
+					throw new RuntimeException("Unexpected", e);
+				}
+				
+				sqlLogInspetor.disable();
+				
+				return null;
+			}
+			
+		});
+		PlayerManagerTest.this.manager.stopJsonWriteIntersept();
+		
+		ClassLoader classLoader = getClass().getClassLoader();
+		BufferedReader brExpected = 
+			new BufferedReader(
+				new InputStreamReader(
+					classLoader.getResourceAsStream(PlayerManagerTest.class.getPackage().getName().replaceAll("\\.", "/")+"/"+this.getResourceFolder()+"/"+ PlayerManagerTest.class.getSimpleName()+"."+methodName+"_result_expected.json")
+				)
+			);
+		BufferedReader brGenerated = 
+			new BufferedReader(
+				new InputStreamReader(
+					new FileInputStream(generatedFileResult)
+				)
+			);
+		
+		String strLineExpected;
+		String strLineGenerated;
+		int lineCount = 1;
+		while ((strLineExpected = brExpected.readLine()) != null)   {
+			strLineExpected = strLineExpected.trim();
+			strLineGenerated = brGenerated.readLine();
+			if (strLineGenerated != null) {
+				strLineGenerated = strLineGenerated.trim();
+			}
+			Assert.assertThat("Line " + lineCount++, strLineGenerated, equalTo(strLineExpected));
+		}
+	}
+	
+	@Test
+	public void detailARefererAllBySignTest() throws HibernateException, SQLException, JsonGenerationException, JsonMappingException, IOException {
+		String methodName = new Object() {}
+			.getClass()
+			.getEnclosingMethod()
+			.getName();
+		Map<String, Charset> availableCharsetsMap = Charset.availableCharsets();
+//		for (String keyCS : availableCharsetsMap.keySet()) {
+//			System.out.println(">>>>>>>: "+keyCS+"= "+ availableCharsetsMap.get(keyCS).displayName());
+//		}
+		
+		Session ss = this.sessionFactory.openSession();
+		String generatedFileResult = "target/"+PlayerManagerTest.class.getSimpleName()+"."+methodName+"_result_generated.json";
+			
+		TransactionTemplate transactionTemplate = new TransactionTemplate(this.transactionManager);
+		transactionTemplate.execute(new TransactionCallback<Object>() {
+
+			@Override
+			public Object doInTransaction(TransactionStatus arg0) {
+				PlayerManagerTest.this.manager.startJsonWriteIntersept();
+				//SchemaExport
+				
+				//Configuration hbConfiguration = PlayerManagerTest.this.localSessionFactoryBean.getConfiguration();
+				
+				SqlLogInspetor sqlLogInspetor = new SqlLogInspetor();
+				sqlLogInspetor.enable();
+				
+				List<DetailARefererEnt> detailARefererEntList =
+						PlayerManagerTest.this.hibernateJpaCompat.createCriteria(ss, DetailARefererEnt.class)
+							.addOrder(OrderCompat.asc("id")).list();
+				
+				PlayerManagerTest.this
+					.manager
+					.overwriteConfigurationTemporarily(
+						PlayerManagerTest
+							.this
+								.manager
+									.getConfig()
+										.clone()
+										.configSerialiseBySignatureAllRelationship(true));
+				Map<String, IPlayerSnapshot<DetailARefererEnt>> allDetailARefererBySignMap = new LinkedHashMap<>();
+				
+				for (DetailARefererEnt detailARefererEnt : detailARefererEntList) {
+					SignatureBean sign = ((IPlayerManagerImplementor) PlayerManagerTest.this.manager).generateSignature(detailARefererEnt);
+					String signStr = ((IPlayerManagerImplementor) PlayerManagerTest.this.manager).serializeSignature(sign);
+					IPlayerSnapshot<DetailARefererEnt> detailARefererPlayerSnapshot = PlayerManagerTest.this.manager.createPlayerSnapshot(detailARefererEnt);
+					allDetailARefererBySignMap.put(signStr, detailARefererPlayerSnapshot);
+				}
+				
+				FileOutputStream fos;
+				
+				try {
+					fos = new FileOutputStream(generatedFileResult);
+					PlayerManagerTest
+						.this
+							.manager
+								.getConfig()
+									.getObjectMapper()
+										.writerWithDefaultPrettyPrinter()
+											.writeValue(fos, allDetailARefererBySignMap);
+					
+				} catch (Exception e) {
+					// TODO Auto-generated catch block
+					throw new RuntimeException("Unexpected", e);
+				}
+				
+				sqlLogInspetor.disable();
+				
+				return null;
+			}
+			
+		});
+		PlayerManagerTest.this.manager.stopJsonWriteIntersept();
+		
+		ClassLoader classLoader = getClass().getClassLoader();
+		BufferedReader brExpected = 
+			new BufferedReader(
+				new InputStreamReader(
+					classLoader.getResourceAsStream(PlayerManagerTest.class.getPackage().getName().replaceAll("\\.", "/")+"/"+this.getResourceFolder()+"/"+ PlayerManagerTest.class.getSimpleName()+"."+methodName+"_result_expected.json")
+				)
+			);
+		BufferedReader brGenerated = 
+			new BufferedReader(
+				new InputStreamReader(
+					new FileInputStream(generatedFileResult)
+				)
+			);
+		
+		String strLineExpected;
+		String strLineGenerated;
+		int lineCount = 1;
+		while ((strLineExpected = brExpected.readLine()) != null)   {
+			strLineExpected = strLineExpected.trim();
+			strLineGenerated = brGenerated.readLine();
+			if (strLineGenerated != null) {
+				strLineGenerated = strLineGenerated.trim();
+			}
+			Assert.assertThat("Line " + lineCount++, strLineGenerated, equalTo(strLineExpected));
+		}
+	}
+	
+	@Test
+	public void masterAAllTest() throws HibernateException, SQLException, JsonGenerationException, JsonMappingException, IOException {	
+		String methodName = new Object() {}
+			.getClass()
+			.getEnclosingMethod()
+			.getName();
+			
+		Map<String, Charset> availableCharsetsMap = Charset.availableCharsets();
+//		for (String keyCS : availableCharsetsMap.keySet()) {
+//			System.out.println(">>>>>>>: "+keyCS+"= "+ availableCharsetsMap.get(keyCS).displayName());
+//		}
+		
+		Session ss = this.sessionFactory.openSession();
+		String generatedFileResult = "target/"+PlayerManagerTest.class.getSimpleName()+"."+methodName+"_result_generated.json";
+			
+		TransactionTemplate transactionTemplate = new TransactionTemplate(this.transactionManager);
+		transactionTemplate.execute(new TransactionCallback<Object>() {
+
+			@Override
+			public Object doInTransaction(TransactionStatus arg0) {
+				PlayerManagerTest.this.manager.startJsonWriteIntersept();
+				//SchemaExport
+				
+				//Configuration hbConfiguration = PlayerManagerTest.this.localSessionFactoryBean.getConfiguration();
+				
+				SqlLogInspetor sqlLogInspetor = new SqlLogInspetor();
+				sqlLogInspetor.enable();
+				
+				List<MasterAEnt> masterAEntList =
+						PlayerManagerTest.this.hibernateJpaCompat.createCriteria(ss, MasterAEnt.class)
+							.addOrder(OrderCompat.asc("id")).list();
+				
+				PlayerManagerTest.this
+					.manager
+					.overwriteConfigurationTemporarily(
+						PlayerManagerTest
+							.this
+								.manager
+									.getConfig()
+										.clone()
+										.configSerialiseBySignatureAllRelationship(true));
+				
+				List<IPlayerSnapshot<MasterAEnt>> allMasteraList = new ArrayList<>();
+				for (MasterAEnt masterAEnt : masterAEntList) {
+					IPlayerSnapshot<MasterAEnt> masteraPlayerSnapshot = PlayerManagerTest.this.manager.createPlayerSnapshot(masterAEnt);
+					allMasteraList.add(masteraPlayerSnapshot);
+				}
+				
+				FileOutputStream fos;
+				
+				try {
+					fos = new FileOutputStream(generatedFileResult);
+					PlayerManagerTest
+						.this
+							.manager
+								.getConfig()
+									.getObjectMapper()
+										.writerWithDefaultPrettyPrinter()
+											.writeValue(fos, allMasteraList);
+					
+				} catch (Exception e) {
+					// TODO Auto-generated catch block
+					throw new RuntimeException("Unexpected", e);
+				}
+				
+				sqlLogInspetor.disable();
+				
+				return null;
+			}
+			
+		});
+		PlayerManagerTest.this.manager.stopJsonWriteIntersept();
+		
+		ClassLoader classLoader = getClass().getClassLoader();
+		BufferedReader brExpected = 
+			new BufferedReader(
+				new InputStreamReader(
+					classLoader.getResourceAsStream(PlayerManagerTest.class.getPackage().getName().replaceAll("\\.", "/")+"/"+this.getResourceFolder()+"/"+ PlayerManagerTest.class.getSimpleName()+"."+methodName+"_result_expected.json")
+				)
+			);
+		BufferedReader brGenerated = 
+			new BufferedReader(
+				new InputStreamReader(
+					new FileInputStream(generatedFileResult)
+				)
+			);
+		
+		String strLineExpected;
+		String strLineGenerated;
+		int lineCount = 1;
+		while ((strLineExpected = brExpected.readLine()) != null)   {
+			strLineExpected = strLineExpected.trim();
+			strLineGenerated = brGenerated.readLine();
+			if (strLineGenerated != null) {
+				strLineGenerated = strLineGenerated.trim();
+			}
+			Assert.assertThat("Line " + lineCount++, strLineGenerated, equalTo(strLineExpected));
+		}
+	}
+	
+	@Test
+	public void masterAAllBySignTest() throws HibernateException, SQLException, JsonGenerationException, JsonMappingException, IOException {	
+		String methodName = new Object() {}
+			.getClass()
+			.getEnclosingMethod()
+			.getName();
+			
+		Map<String, Charset> availableCharsetsMap = Charset.availableCharsets();
+//		for (String keyCS : availableCharsetsMap.keySet()) {
+//			System.out.println(">>>>>>>: "+keyCS+"= "+ availableCharsetsMap.get(keyCS).displayName());
+//		}
+		
+		Session ss = this.sessionFactory.openSession();
+		String generatedFileResult = "target/"+PlayerManagerTest.class.getSimpleName()+"."+methodName+"_result_generated.json";
+			
+		TransactionTemplate transactionTemplate = new TransactionTemplate(this.transactionManager);
+		transactionTemplate.execute(new TransactionCallback<Object>() {
+
+			@Override
+			public Object doInTransaction(TransactionStatus arg0) {
+				PlayerManagerTest.this.manager.startJsonWriteIntersept();
+				//SchemaExport
+				
+				//Configuration hbConfiguration = PlayerManagerTest.this.localSessionFactoryBean.getConfiguration();
+				
+				SqlLogInspetor sqlLogInspetor = new SqlLogInspetor();
+				sqlLogInspetor.enable();
+				
+				List<MasterAEnt> masterAEntList =
+						PlayerManagerTest.this.hibernateJpaCompat.createCriteria(ss, MasterAEnt.class)
+							.addOrder(OrderCompat.asc("id")).list();
+				
+				PlayerManagerTest.this
+					.manager
+					.overwriteConfigurationTemporarily(
+						PlayerManagerTest
+							.this
+								.manager
+									.getConfig()
+										.clone()
+										.configSerialiseBySignatureAllRelationship(true));
+				
+				Map<String, IPlayerSnapshot<MasterAEnt>> allMasteraBySignMap = new LinkedHashMap();
+				for (MasterAEnt masterAEnt : masterAEntList) {
+					SignatureBean sign = ((IPlayerManagerImplementor) PlayerManagerTest.this.manager).generateSignature(masterAEnt);
+					String signStr = ((IPlayerManagerImplementor) PlayerManagerTest.this.manager).serializeSignature(sign);
+					IPlayerSnapshot<MasterAEnt> masteraPlayerSnapshot = PlayerManagerTest.this.manager.createPlayerSnapshot(masterAEnt);
+					allMasteraBySignMap.put(signStr, masteraPlayerSnapshot);
+				}
+				
+				FileOutputStream fos;
+				
+				try {
+					fos = new FileOutputStream(generatedFileResult);
+					PlayerManagerTest
+						.this
+							.manager
+								.getConfig()
+									.getObjectMapper()
+										.writerWithDefaultPrettyPrinter()
+											.writeValue(fos, allMasteraBySignMap);
+					
+				} catch (Exception e) {
+					// TODO Auto-generated catch block
+					throw new RuntimeException("Unexpected", e);
+				}
+				
+				sqlLogInspetor.disable();
+				
+				return null;
+			}
+			
+		});
+		PlayerManagerTest.this.manager.stopJsonWriteIntersept();
+		
+		ClassLoader classLoader = getClass().getClassLoader();
+		BufferedReader brExpected = 
+			new BufferedReader(
+				new InputStreamReader(
+					classLoader.getResourceAsStream(PlayerManagerTest.class.getPackage().getName().replaceAll("\\.", "/")+"/"+this.getResourceFolder()+"/"+ PlayerManagerTest.class.getSimpleName()+"."+methodName+"_result_expected.json")
+				)
+			);
+		BufferedReader brGenerated = 
+			new BufferedReader(
+				new InputStreamReader(
+					new FileInputStream(generatedFileResult)
+				)
+			);
+		
+		String strLineExpected;
+		String strLineGenerated;
+		int lineCount = 1;
+		while ((strLineExpected = brExpected.readLine()) != null)   {
+			strLineExpected = strLineExpected.trim();
+			strLineGenerated = brGenerated.readLine();
+			if (strLineGenerated != null) {
+				strLineGenerated = strLineGenerated.trim();
+			}
+			Assert.assertThat("Line " + lineCount++, strLineGenerated, equalTo(strLineExpected));
+		}
+	}
+	
+	@Test
+	public void detailAFirstSecontTest() throws HibernateException, SQLException, JsonGenerationException, JsonMappingException, IOException {	
+		String methodName = new Object() {}
+			.getClass()
+			.getEnclosingMethod()
+			.getName();
+			
+		Map<String, Charset> availableCharsetsMap = Charset.availableCharsets();
+//		for (String keyCS : availableCharsetsMap.keySet()) {
+//			System.out.println(">>>>>>>: "+keyCS+"= "+ availableCharsetsMap.get(keyCS).displayName());
+//		}
+		
+		Session ss = this.sessionFactory.openSession();
+		String generatedFileResult = "target/"+PlayerManagerTest.class.getSimpleName()+"."+methodName+"_result_generated.json";
 			
 		TransactionTemplate transactionTemplate = new TransactionTemplate(this.transactionManager);
 		PlayerManagerTest.this.manager.startJsonWriteIntersept();
@@ -2146,7 +3058,7 @@ public class PlayerManagerTest {
 				ArrayList<DetailAEnt> detailAEntCuttedCol = new ArrayList<>();
 				detailAEntCuttedCol.add(new ArrayList<>(detailAEntCol).get(0));
 				detailAEntCuttedCol.add(new ArrayList<>(detailAEntCol).get(1));
-				PlayerSnapshot<Collection<DetailAEnt>> playerSnapshot = PlayerManagerTest.this.manager.createPlayerSnapshot(detailAEntCuttedCol);
+				IPlayerSnapshot<Collection<DetailAEnt>> playerSnapshot = PlayerManagerTest.this.manager.createPlayerSnapshot(detailAEntCuttedCol);
 				
 				FileOutputStream fos;
 				
@@ -2177,7 +3089,7 @@ public class PlayerManagerTest {
 		BufferedReader brExpected = 
 			new BufferedReader(
 				new InputStreamReader(
-					classLoader.getResourceAsStream(PlayerManagerTest.class.getPackage().getName().replaceAll("\\.", "/")+"/"+this.getResourceFolder()+"/"+ PlayerManagerTest.class.getSimpleName()+".detailAFirstSecontTest_result_expected.json")
+					classLoader.getResourceAsStream(PlayerManagerTest.class.getPackage().getName().replaceAll("\\.", "/")+"/"+this.getResourceFolder()+"/"+ PlayerManagerTest.class.getSimpleName()+"."+methodName+"_result_expected.json")
 				)
 			);
 		BufferedReader brGenerated = 
@@ -2201,14 +3113,19 @@ public class PlayerManagerTest {
 	}
 
 	@Test
-	public void detailASecontThirdTest() throws HibernateException, SQLException, JsonGenerationException, JsonMappingException, IOException {
+	public void detailASecontThirdTest() throws HibernateException, SQLException, JsonGenerationException, JsonMappingException, IOException {	
+		String methodName = new Object() {}
+			.getClass()
+			.getEnclosingMethod()
+			.getName();
+			
 		Map<String, Charset> availableCharsetsMap = Charset.availableCharsets();
 //		for (String keyCS : availableCharsetsMap.keySet()) {
 //			System.out.println(">>>>>>>: "+keyCS+"= "+ availableCharsetsMap.get(keyCS).displayName());
 //		}
 		
 		Session ss = this.sessionFactory.openSession();
-		String generatedFileResult = "target/"+PlayerManagerTest.class.getName()+".detailASecontThirdTest_result_generated.json";
+		String generatedFileResult = "target/"+PlayerManagerTest.class.getSimpleName()+"."+methodName+"_result_generated.json";
 			
 		TransactionTemplate transactionTemplate = new TransactionTemplate(this.transactionManager);
 		transactionTemplate.execute(new TransactionCallback<Object>() {
@@ -2242,7 +3159,7 @@ public class PlayerManagerTest {
 				ArrayList<DetailAEnt> detailAEntCuttedCol = new ArrayList<>();
 				detailAEntCuttedCol.add(new ArrayList<>(detailAEntCol).get(1));
 				detailAEntCuttedCol.add(new ArrayList<>(detailAEntCol).get(2));
-				PlayerSnapshot<Collection<DetailAEnt>> playerSnapshot = PlayerManagerTest.this.manager.createPlayerSnapshot(detailAEntCuttedCol);
+				IPlayerSnapshot<Collection<DetailAEnt>> playerSnapshot = PlayerManagerTest.this.manager.createPlayerSnapshot(detailAEntCuttedCol);
 				
 				FileOutputStream fos;
 				
@@ -2273,7 +3190,7 @@ public class PlayerManagerTest {
 		BufferedReader brExpected = 
 			new BufferedReader(
 				new InputStreamReader(
-					classLoader.getResourceAsStream(PlayerManagerTest.class.getPackage().getName().replaceAll("\\.", "/")+"/"+this.getResourceFolder()+"/"+ PlayerManagerTest.class.getSimpleName()+".detailASecontThirdTest_result_expected.json")
+					classLoader.getResourceAsStream(PlayerManagerTest.class.getPackage().getName().replaceAll("\\.", "/")+"/"+this.getResourceFolder()+"/"+ PlayerManagerTest.class.getSimpleName()+"."+methodName+"_result_expected.json")
 				)
 			);
 		BufferedReader brGenerated = 
@@ -2297,9 +3214,14 @@ public class PlayerManagerTest {
 	}
 
 	@Test
-	public void masterBTest() throws Exception {		
+	public void masterBTest() throws Exception {	
+		String methodName = new Object() {}
+			.getClass()
+			.getEnclosingMethod()
+			.getName();
+					
 		Session ss = this.sessionFactory.openSession();
-		String generatedFileResult = "target/"+PlayerManagerTest.class.getName()+".masterBTest_result_generated.json";
+		String generatedFileResult = "target/"+PlayerManagerTest.class.getSimpleName()+"."+methodName+"_result_generated.json";
 		
 		TransactionTemplate transactionTemplate = new TransactionTemplate(this.transactionManager);
 		transactionTemplate.execute(new TransactionCallback<Object>() {
@@ -2332,7 +3254,7 @@ public class PlayerManagerTest {
 											.clone()
 											.configSerialiseBySignatureAllRelationship(true));
 				
-				PlayerSnapshot<MasterBEnt> playerSnapshot = PlayerManagerTest.this.manager.createPlayerSnapshot(masterBEnt);
+				IPlayerSnapshot<MasterBEnt> playerSnapshot = PlayerManagerTest.this.manager.createPlayerSnapshot(masterBEnt);
 				
 				FileOutputStream fos;
 				try {
@@ -2362,7 +3284,7 @@ public class PlayerManagerTest {
 		BufferedReader brExpected = 
 			new BufferedReader(
 				new InputStreamReader(
-					classLoader.getResourceAsStream(PlayerManagerTest.class.getPackage().getName().replaceAll("\\.", "/")+"/"+this.getResourceFolder()+"/"+ PlayerManagerTest.class.getSimpleName()+".masterBTest_result_expected.json")
+					classLoader.getResourceAsStream(PlayerManagerTest.class.getPackage().getName().replaceAll("\\.", "/")+"/"+this.getResourceFolder()+"/"+ PlayerManagerTest.class.getSimpleName()+"."+methodName+"_result_expected.json")
 				)
 			);
 		BufferedReader brGenerated = 
@@ -2385,14 +3307,59 @@ public class PlayerManagerTest {
 		}
 	}
 	
+	/**
+	 * "org.hibernate.TransientObjectException: object references an unsaved transient instance - save the transient instance before flushing..." on 
+	 * PlayerManagerTest.detailAKey0c0GetBySignTest() using Jpa mode.
+	 * @throws Exception
+	 */
 	@Test
-	public void masterBInnerCompsGetBySigTest() throws Exception {
+	public void detailAKey0c0GetBySignTest() throws Exception {	
+		String methodName = new Object() {}
+			.getClass()
+			.getEnclosingMethod()
+			.getName();
+			
+		Session ss = this.sessionFactory.openSession();
+		String generatedFileResult = "target/"+PlayerManagerTest.class.getSimpleName()+"."+methodName+"_result_generated.json";
+			
+		TransactionTemplate transactionTemplate = new TransactionTemplate(this.transactionManager);
+		transactionTemplate.execute(new TransactionCallback<Object>() {
+
+			@Override
+			public Object doInTransaction(TransactionStatus arg0) {
+				PlayerManagerTest.this.manager.startJsonWriteIntersept();
+				//SchemaExport
+				
+				//Configuration hbConfiguration = PlayerManagerTest.this.localSessionFactoryBean.getConfiguration();
+				
+				SqlLogInspetor sqlLogInspetor = new SqlLogInspetor();
+				sqlLogInspetor.enable();
+								
+				SignatureBean signatureBean = PlayerManagerTest.this.manager.deserializeSignature(PlayerManagerTest.this.getDetailAEntKey0c0Sign());
+				DetailAEnt detailAEnt = PlayerManagerTest.this.manager.getBySignature(signatureBean);
+				
+				sqlLogInspetor.disable();
+				
+				return null;
+			}
+			
+		});
+		PlayerManagerTest.this.manager.stopJsonWriteIntersept();
+	}
+	
+	@Test
+	public void masterBInnerCompsGetBySigTest() throws Exception {	
+		String methodName = new Object() {}
+			.getClass()
+			.getEnclosingMethod()
+			.getName();
+			
 		Map<String, Charset> availableCharsetsMap = Charset.availableCharsets();
 //		for (String keyCS : availableCharsetsMap.keySet()) {
 //			System.out.println(">>>>>>>: "+keyCS+"= "+ availableCharsetsMap.get(keyCS).displayName());
 //		}
 		Session ss = this.sessionFactory.openSession();
-		String generatedFileResult = "target/"+PlayerManagerTest.class.getName()+".detailABySigTest_result_generated.json";
+		String generatedFileResult = "target/"+PlayerManagerTest.class.getSimpleName()+"."+methodName+"_result_generated.json";
 			
 		TransactionTemplate transactionTemplate = new TransactionTemplate(this.transactionManager);
 		transactionTemplate.execute(new TransactionCallback<Object>() {
@@ -2445,9 +3412,14 @@ public class PlayerManagerTest {
 //eyJjbGF6ek5hbWUiOiJici5nb3Yuc2VycHJvLndlYmFuYWxpc2UuanNIYlN1cGVyU3luYy5lbnRpdGllcy5NYXN0ZXJCRW50IiwiaXNDb21wIjp0cnVlLCJwcm9wZXJ0eU5hbWUiOiJtYXN0ZXJCQ29tcCIsInJhd0tleVZhbHVlcyI6WyIxIiwiMSJdLCJyYXdLZXlUeXBlTmFtZXMiOlsiamF2YS5sYW5nLkludGVnZXIiLCJqYXZhLmxhbmcuSW50ZWdlciJdfQ
 	
 	@Test
-	public void nonStartedmanagerTest() throws Exception {
+	public void nonStartedmanagerTest() throws Exception {	
+		String methodName = new Object() {}
+			.getClass()
+			.getEnclosingMethod()
+			.getName();
+			
 		Session ss = this.sessionFactory.openSession();
-		String generatedFileResult = "target/"+PlayerManagerTest.class.getName()+".nonStartedmanagerTest_result_generated.json";
+		String generatedFileResult = "target/"+PlayerManagerTest.class.getSimpleName()+"."+methodName+"_result_generated.json";
 		FileOutputStream fos;
 		
 		try {
@@ -2481,7 +3453,7 @@ public class PlayerManagerTest {
 		BufferedReader brExpected = 
 			new BufferedReader(
 				new InputStreamReader(
-					classLoader.getResourceAsStream(PlayerManagerTest.class.getPackage().getName().replaceAll("\\.", "/")+"/"+this.getResourceFolder()+"/"+ PlayerManagerTest.class.getSimpleName()+".nonStartedmanagerTest_result_expected.json")
+					classLoader.getResourceAsStream(PlayerManagerTest.class.getPackage().getName().replaceAll("\\.", "/")+"/"+this.getResourceFolder()+"/"+ PlayerManagerTest.class.getSimpleName()+"."+methodName+"_result_expected.json")
 				)
 			);
 		BufferedReader brGenerated = 
@@ -2597,6 +3569,22 @@ public class PlayerManagerTest {
 			return "manager01.eyJjbGF6ek5hbWUiOiJvcmcuanNvbnBsYXliYWNrLnBsYXllci5oaWJlcm5hdGUuZW50aXRpZXMuTWFzdGVyQkVudCIsImlzQ29sbCI6dHJ1ZSwicHJvcGVydHlOYW1lIjoibWFzdGVyQkNvbXAubWFzdGVyQkNvbXBDb21wLmRldGFpbEFFbnRDb2wiLCJzdHJpbmdpZmllZE9iamVjdElkIjoie1wiY29tcElkXCI6e1wiaWRBXCI6MSxcImlkQlwiOjF9fSJ9";
 		} else if (this.manager.getConfig().getObjPersistenceMode() == ObjPersistenceMode.CUSTOMIZED_PERSISTENCE) {
 			return "manager01.eyJjbGF6ek5hbWUiOiJvcmcuanNvbnBsYXliYWNrLnBsYXllci5oaWJlcm5hdGUuZW50aXRpZXMuTWFzdGVyQkVudCIsImlzQ29sbCI6dHJ1ZSwicHJvcGVydHlOYW1lIjoibWFzdGVyQkNvbXAubWFzdGVyQkNvbXBDb21wLmRldGFpbEFFbnRDb2wiLCJzdHJpbmdpZmllZE9iamVjdElkIjoie1wiY29tcElkXCI6e1wiaWRBXCI6MSxcImlkQlwiOjF9fSJ9" + ObjPersistenceMode.CUSTOMIZED_PERSISTENCE;
+		} else {
+			throw new RuntimeException("This should not happen");
+		}
+	}
+	
+	private String getDetailAEntKey0c0Sign() {
+		if (this.manager.getConfig().getObjPersistenceMode() == ObjPersistenceMode.HB3) {
+			return "manager01.eyJjbGF6ek5hbWUiOiJvcmcuanNvbnBsYXliYWNrLnBsYXllci5oaWJlcm5hdGUuZW50aXRpZXMuRGV0YWlsQUVudCIsInN0cmluZ2lmaWVkT2JqZWN0SWQiOiJ7XCJyYXdLZXlWYWx1ZXNcIjpbXCIwXCIsXCIwXCJdLFwicmF3S2V5VHlwZU5hbWVzXCI6W1wiamF2YS5sYW5nLkludGVnZXJcIixcImphdmEubGFuZy5JbnRlZ2VyXCJdfSJ9";
+		} else if (this.manager.getConfig().getObjPersistenceMode() == ObjPersistenceMode.HB4) {
+			return "manager01.eyJjbGF6ek5hbWUiOiJvcmcuanNvbnBsYXliYWNrLnBsYXllci5oaWJlcm5hdGUuZW50aXRpZXMuRGV0YWlsQUVudCIsInN0cmluZ2lmaWVkT2JqZWN0SWQiOiJ7XCJyYXdLZXlWYWx1ZXNcIjpbXCIwXCIsXCIwXCJdLFwicmF3S2V5VHlwZU5hbWVzXCI6W1wiamF2YS5sYW5nLkludGVnZXJcIixcImphdmEubGFuZy5JbnRlZ2VyXCJdfSJ9";
+		} else if (this.manager.getConfig().getObjPersistenceMode() == ObjPersistenceMode.HB5) {
+			return "manager01.eyJjbGF6ek5hbWUiOiJvcmcuanNvbnBsYXliYWNrLnBsYXllci5oaWJlcm5hdGUuZW50aXRpZXMuRGV0YWlsQUVudCIsInN0cmluZ2lmaWVkT2JqZWN0SWQiOiJ7XCJyYXdLZXlWYWx1ZXNcIjpbXCIwXCIsXCIwXCJdLFwicmF3S2V5VHlwZU5hbWVzXCI6W1wiamF2YS5sYW5nLkludGVnZXJcIixcImphdmEubGFuZy5JbnRlZ2VyXCJdfSJ9";
+		} else if (this.manager.getConfig().getObjPersistenceMode() == ObjPersistenceMode.JPA) {
+			return "manager01.eyJjbGF6ek5hbWUiOiJvcmcuanNvbnBsYXliYWNrLnBsYXllci5oaWJlcm5hdGUuZW50aXRpZXMuRGV0YWlsQUVudCIsInN0cmluZ2lmaWVkT2JqZWN0SWQiOiJ7XCJjb21wSWRcIjp7XCJtYXN0ZXJBXCI6e1wiaWRcIjowfSxcInN1YklkXCI6MH19In0";
+		} else if (this.manager.getConfig().getObjPersistenceMode() == ObjPersistenceMode.CUSTOMIZED_PERSISTENCE) {
+			return "manager01.eyJjbGF6ek5hbWUiOiJvcmcuanNvbnBsYXliYWNrLnBsYXllci5oaWJlcm5hdGUuZW50aXRpZXMuRGV0YWlsQUVudCIsInN0cmluZ2lmaWVkT2JqZWN0SWQiOiJ7XCJjb21wSWRcIjp7XCJtYXN0ZXJBXCI6e1wiaWRcIjowfSxcInN1YklkXCI6MH19In0" + ObjPersistenceMode.CUSTOMIZED_PERSISTENCE;
 		} else {
 			throw new RuntimeException("This should not happen");
 		}

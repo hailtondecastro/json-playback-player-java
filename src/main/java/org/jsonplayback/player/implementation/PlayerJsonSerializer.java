@@ -129,8 +129,9 @@ public class PlayerJsonSerializer extends JsonSerializer<Object> {
 			throws IOException, JsonProcessingException {
 		try {
 			if (this.managersHolder.thereIsStartedManager()) {
+				IPlayerManagerImplementor manager = this.managersHolder.getStartedManagerImplementor();
 				this.trackRegisteredComponentOwnerIfNeeded(value, serializers);
-				this.managersHolder.getStartedManagerImplementor().getPlayerJsonSerializerStepStack().push(this);
+				manager.getPlayerJsonSerializerStepStack().push(this);
 				this.getCurrSerializationBeanStackTL().get().push(value);
 			}
 			
@@ -184,8 +185,9 @@ public class PlayerJsonSerializer extends JsonSerializer<Object> {
 		} finally {
 			if (this.managersHolder.thereIsStartedManager()) {
 				this.getCurrSerializationBeanStackTL().get().pop();
-				if (this.managersHolder.getStartedManagerImplementor().getPlayerJsonSerializerStepStack() != null) {
-					PlayerJsonSerializer playerJsonSerializer = this.managersHolder.getStartedManagerImplementor().getPlayerJsonSerializerStepStack().pop();
+				IPlayerManagerImplementor manager = this.managersHolder.getStartedManagerImplementor();
+				if (manager.getPlayerJsonSerializerStepStack() != null) {
+					PlayerJsonSerializer playerJsonSerializer = manager.getPlayerJsonSerializerStepStack().pop();
 					if (playerJsonSerializer != this) {
 						throw new RuntimeException("This should not happen");
 					}
@@ -197,11 +199,10 @@ public class PlayerJsonSerializer extends JsonSerializer<Object> {
 
 	private boolean mayByRefOrBySigneSerializeNoCache(Object valueToSerialize, JsonGenerator gen,
 			SerializerProvider serializers) throws IOException {
-		// Object unwrappedvalue = valueToSerialize;
-		//Class<?> forValueClass = this.managersHolder.getStartedManagerImplementor().getConfig().getBasicClassIntrospector(). valueToSerialize.getClass().getSuperclass();
 		if (valueToSerialize == null) {
 			throw new IllegalArgumentException("value can not be null");
 		}
+		IPlayerManagerImplementor manager = this.managersHolder.getStartedManagerImplementor();
 		
 		JavaType valueToSerializeType = serializers.getConfig()
 				.introspect(serializers.getConfig().getTypeFactory().constructType(valueToSerialize.getClass()))
@@ -211,8 +212,8 @@ public class PlayerJsonSerializer extends JsonSerializer<Object> {
 		
 		AssociationAndComponentTrackInfo aacTrackInfo = null;
 		String pathFromOwnerRoot = null;
-		if(!this.managersHolder.getStartedManagerImplementor().getConfig().getObjPersistenceSupport().isPersistentClass(valueToSerializeClass)) {
-			aacTrackInfo = this.managersHolder.getStartedManagerImplementor().getCurrentAssociationAndComponentTrackInfo();
+		if(!manager.isPersistentClass(valueToSerializeClass)) {
+			aacTrackInfo = manager.getCurrentAssociationAndComponentTrackInfo();
 			if (aacTrackInfo != null) {
 				pathFromOwnerRoot = aacTrackInfo.getEntityAndComponentPath().getAacKey().getPathFromOwner();
 				ownerValueClass = aacTrackInfo.getEntityAndComponentPath().getAacKey().getEntityClassRootOwner();
@@ -225,11 +226,10 @@ public class PlayerJsonSerializer extends JsonSerializer<Object> {
 		//if (wasWritenByLazyRef) {
 		//	return true;
 		//} else {
-			if (this.managersHolder.getStartedManagerImplementor().getIdByObjectMap().containsKey(new IdentityRefKey(valueToSerialize))) {
-				gen.writeStartObject();
-				IPlayerManagerImplementor manager = this.managersHolder.getStartedManagerImplementor(); 
+			if (manager.getIdByObjectMap().containsKey(new IdentityRefKey(valueToSerialize))) {
+				gen.writeStartObject(); 
 				PlayerMetadatas playerMetadatas = manager.getConfig().getMetadataInstantiator().apply(manager);
-				playerMetadatas.setIdRef(this.managersHolder.getStartedManagerImplementor().getIdByObjectMap().get(new IdentityRefKey(valueToSerialize)));
+				playerMetadatas.setIdRef(manager.getIdByObjectMap().get(new IdentityRefKey(valueToSerialize)));
 				if (logger.isTraceEnabled()) {
 					logger.trace(
 						MessageFormat.format(
@@ -238,18 +238,18 @@ public class PlayerJsonSerializer extends JsonSerializer<Object> {
 							+ " gen.writeEndObject();\n"
 							+ " gen.writeFieldName(\"{0}\");\n"
 							+ " gen.writeObject({1});\n",								
-						this.managersHolder.getStartedManagerImplementor().getConfig().getPlayerMetadatasName(), 
+						manager.getConfig().getPlayerMetadatasName(), 
 						playerMetadatas));
 				}
 				
 				try {
-					this.managersHolder.getStartedManagerImplementor().getPlayerMetadatasWritingStack().push(playerMetadatas);
-					gen.writeFieldName(this.managersHolder.getStartedManagerImplementor().getConfig().getPlayerMetadatasName());
+					manager.getPlayerMetadatasWritingStack().push(playerMetadatas);
+					gen.writeFieldName(manager.getConfig().getPlayerMetadatasName());
 					gen.writeObject(playerMetadatas);
-//					this.managersHolder.getStartedManagerImplementor().getMetadatasCacheMap().put(new IdentityRefKey(valueToSerialize), playerMetadatas);
+//					manager.getMetadatasCacheMap().put(new IdentityRefKey(valueToSerialize), playerMetadatas);
 				} finally {
-					if (this.managersHolder.getStartedManagerImplementor().getPlayerMetadatasWritingStack() != null) {
-						PlayerMetadatas playerMetadatasPoped = this.managersHolder.getStartedManagerImplementor().getPlayerMetadatasWritingStack().pop();
+					if (manager.getPlayerMetadatasWritingStack() != null) {
+						PlayerMetadatas playerMetadatasPoped = manager.getPlayerMetadatasWritingStack().pop();
 						if (playerMetadatasPoped != playerMetadatas) {
 							throw new RuntimeException("This should not happen");
 						}					
@@ -261,10 +261,10 @@ public class PlayerJsonSerializer extends JsonSerializer<Object> {
 //			}
 //			else if (valueToSerialize instanceof HibernateProxy) {
 //				Class<?> forValueClass = valueToSerialize.getClass().getSuperclass();
-//				if (this.managersHolder.getStartedManagerImplementor().getIdByObjectMap().containsKey(new IdentityRefKey(valueToSerialize))) {
+//				if (manager.getIdByObjectMap().containsKey(new IdentityRefKey(valueToSerialize))) {
 //					gen.writeStartObject();
 //					PlayerMetadatas playerMetadatas = new PlayerMetadatas();
-//					playerMetadatas.setIdRef(this.managersHolder.getStartedManagerImplementor().getIdByObjectMap().get(new IdentityRefKey(valueToSerialize)));
+//					playerMetadatas.setIdRef(manager.getIdByObjectMap().get(new IdentityRefKey(valueToSerialize)));
 //					if (logger.isTraceEnabled()) {
 //						logger.trace(
 //							MessageFormat.format(
@@ -273,17 +273,17 @@ public class PlayerJsonSerializer extends JsonSerializer<Object> {
 //								+ " gen.writeFieldName(\"{0}\");\n"
 //								+ " gen.writeObject({1});\n"
 //								+ " gen.writeEndObject();",								
-//							this.managersHolder.getStartedManagerImplementor().getConfig().getPlayerMetadatasName(), 
+//							manager.getConfig().getPlayerMetadatasName(), 
 //							playerMetadatas));
 //					}
 //					try {
-//						this.managersHolder.getStartedManagerImplementor().getPlayerMetadatasWritingStack().push(playerMetadatas);				
-//						gen.writeFieldName(this.managersHolder.getStartedManagerImplementor().getConfig().getPlayerMetadatasName());
+//						manager.getPlayerMetadatasWritingStack().push(playerMetadatas);				
+//						gen.writeFieldName(manager.getConfig().getPlayerMetadatasName());
 //						gen.writeObject(playerMetadatas);
-////						this.managersHolder.getStartedManagerImplementor().getMetadatasCacheMap().put(new IdentityRefKey(valueToSerialize), playerMetadatas);
+////						manager.getMetadatasCacheMap().put(new IdentityRefKey(valueToSerialize), playerMetadatas);
 //					} finally {
-//						if (this.managersHolder.getStartedManagerImplementor().getPlayerMetadatasWritingStack() != null) {
-//							PlayerMetadatas playerMetadatasPoped = this.managersHolder.getStartedManagerImplementor().getPlayerMetadatasWritingStack().pop();
+//						if (manager.getPlayerMetadatasWritingStack() != null) {
+//							PlayerMetadatas playerMetadatasPoped = manager.getPlayerMetadatasWritingStack().pop();
 //							if (playerMetadatasPoped != playerMetadatas) {
 //								throw new RuntimeException("This should not happen");
 //							}					
@@ -294,10 +294,10 @@ public class PlayerJsonSerializer extends JsonSerializer<Object> {
 //				} else {
 //					return false;
 //				}
-//			//} else if (this.managersHolder.getStartedManagerImplementor().getObjPersistenceSupport().isPersistentCollection(aacTrackInfo, valueToSerialize)) {
+//			//} else if (manager.getObjPersistenceSupport().isPersistentCollection(aacTrackInfo, valueToSerialize)) {
 			} else if (this.mayWriteBySignatureRef(valueToSerialize, gen, serializers)) {
 				return true;
-			} else if (this.managersHolder.getStartedManagerImplementor().getObjPersistenceSupport().isCollectionRelationship(ownerValueClass, pathFromOwnerRoot)) {
+			} else if (manager.getObjPersistenceSupport().isCollectionRelationship(ownerValueClass, pathFromOwnerRoot)) {
 				return false;
 			} else {
 				return false;
@@ -309,13 +309,13 @@ public class PlayerJsonSerializer extends JsonSerializer<Object> {
 		JavaType valueToSerializeType = serializers.getConfig()
 				.introspect(serializers.getConfig().getTypeFactory().constructType(valueToSerialize.getClass()))
 				.getType();
-		Class<?> forValueClass = valueToSerializeType.getRawClass();	
+		Class<?> forValueClass = valueToSerializeType.getRawClass();
 		PlayerMetadatas playerMetadatas = this.managersHolder.getStartedManagerImplementor().getMetadatasCacheMap().get(new IdentityRefKey(valueToSerialize));
+		IPlayerManagerImplementor manager = this.managersHolder.getStartedManagerImplementor();
 		
 		if (playerMetadatas != null) {
 			if (playerMetadatas.getId() != null) {
-				long idRef = playerMetadatas.getId();
-				IPlayerManagerImplementor manager = this.managersHolder.getStartedManagerImplementor(); 
+				long idRef = playerMetadatas.getId(); 
 				playerMetadatas = manager.getConfig().getMetadataInstantiator().apply(manager);
 				playerMetadatas.setIdRef(idRef);
 //			} else if (playerMetadatas.getIdRef() != null) {
@@ -333,18 +333,18 @@ public class PlayerJsonSerializer extends JsonSerializer<Object> {
 						+ " gen.writeFieldName(\"{0}\");\n"
 						+ " gen.writeObject({1});\n"
 						+ " gen.writeEndObject();",								
-					this.managersHolder.getStartedManagerImplementor().getConfig().getPlayerMetadatasName(), 
+					manager.getConfig().getPlayerMetadatasName(), 
 					playerMetadatas));
 			}			
 			
 			gen.writeStartObject();
 			try {
-				this.managersHolder.getStartedManagerImplementor().getPlayerMetadatasWritingStack().push(playerMetadatas);				
-				gen.writeFieldName(this.managersHolder.getStartedManagerImplementor().getConfig().getPlayerMetadatasName());
+				manager.getPlayerMetadatasWritingStack().push(playerMetadatas);				
+				gen.writeFieldName(manager.getConfig().getPlayerMetadatasName());
 				gen.writeObject(playerMetadatas);
 			} finally {
-				if (this.managersHolder.getStartedManagerImplementor().getPlayerMetadatasWritingStack() != null) {
-					PlayerMetadatas playerMetadatasPoped = this.managersHolder.getStartedManagerImplementor().getPlayerMetadatasWritingStack().pop();
+				if (manager.getPlayerMetadatasWritingStack() != null) {
+					PlayerMetadatas playerMetadatasPoped = manager.getPlayerMetadatasWritingStack().pop();
 					if (playerMetadatasPoped != playerMetadatas) {
 						throw new RuntimeException("This should not happen");
 					}					
@@ -360,7 +360,7 @@ public class PlayerJsonSerializer extends JsonSerializer<Object> {
 						+ " gen.writeFieldName(\"{0}\");\n"
 						+ " gen.writeObject({1});\n"
 						+ " gen.writeEndObject();",								
-					this.managersHolder.getStartedManagerImplementor().getConfig().getPlayerMetadatasName(), 
+					manager.getConfig().getPlayerMetadatasName(), 
 					playerMetadatas));
 			}
 			
@@ -372,25 +372,24 @@ public class PlayerJsonSerializer extends JsonSerializer<Object> {
 	
 	private boolean mayWriteBySignatureRef(Object valueToSerialize, JsonGenerator gen, SerializerProvider serializers)
 			throws IOException {
-		Object unwrappedvalue = valueToSerialize;
-		// SerializableString fieldName = null;
-		// Object owner = null;		
+		IPlayerManagerImplementor manager = this.managersHolder.getStartedManagerImplementor(); 
 		JavaType valueToSerializeType = serializers.getConfig()
 				.introspect(serializers.getConfig().getTypeFactory().constructType(valueToSerialize.getClass()))
 				.getType();
 		Class<?> valueToSerializeClass = valueToSerializeType.getRawClass();
+		Class<?> unwrappedValueToSerializeClass = manager.getConfig().getObjPersistenceSupport().unwrappRealType(valueToSerializeClass);
 		Class<?> ownerValueClass = null;
 
 		PlayerBeanPropertyWriter currPropertyWriter = null;
 
-		if (this.managersHolder.getStartedManagerImplementor().getPlayerBeanPropertyWriterStepStack().size() > 0) {
-			currPropertyWriter = this.managersHolder.getStartedManagerImplementor().getPlayerBeanPropertyWriterStepStack().peek();
+		if (manager.getPlayerBeanPropertyWriterStepStack().size() > 0) {
+			currPropertyWriter = manager.getPlayerBeanPropertyWriterStepStack().peek();
 		}
 
 		AssociationAndComponentTrackInfo aacTrackInfo = null;
 		String pathFromOwnerRoot = null;
-		if(!this.managersHolder.getStartedManagerImplementor().getConfig().getObjPersistenceSupport().isPersistentClass(valueToSerializeClass)) {
-			aacTrackInfo = this.managersHolder.getStartedManagerImplementor().getCurrentAssociationAndComponentTrackInfo();
+		if(!manager.isPersistentClass(valueToSerializeClass)) {
+			aacTrackInfo = manager.getCurrentAssociationAndComponentTrackInfo();
 			if (aacTrackInfo != null) {
 				pathFromOwnerRoot = aacTrackInfo.getEntityAndComponentPath().getAacKey().getPathFromOwner();
 				ownerValueClass = aacTrackInfo.getEntityAndComponentPath().getAacKey().getEntityClassRootOwner();
@@ -399,23 +398,22 @@ public class PlayerJsonSerializer extends JsonSerializer<Object> {
 
 		if (aacTrackInfo == null && currPropertyWriter == null) {
 			return false;
-		} else if (this.managersHolder.getStartedManagerImplementor().getConfig().getObjPersistenceSupport().isPersistentClass(valueToSerializeClass)
+		} else if (manager.isPersistentClass(valueToSerializeClass)
 				&& currPropertyWriter != null
-				&& !this.managersHolder.getStartedManagerImplementor().getConfig().getNonLazybleClasses().contains(valueToSerializeClass)) {
+				&& !manager.getConfig().getNonLazybleClasses().contains(unwrappedValueToSerializeClass)) {
 //			Class<?> forValueClass = valueToSerialize.getClass().getSuperclass();
-			if ((this.managersHolder.getStartedManagerImplementor().isCurrentPathFromLastEntityAnEntityRelationship() && this.managersHolder.getStartedManagerImplementor().getConfig().isSerialiseBySignatureAllRelationship())
-			//if ((this.managersHolder.getStartedManagerImplementor().getConfig().isSerialiseBySignatureAllRelationship())
-					|| this.managersHolder.getStartedManagerImplementor().getConfig().getObjPersistenceSupport().isLazyUnitialized(valueToSerialize)) {
+			if ((manager.isCurrentPathFromLastEntityAnEntityRelationship() && manager.getConfig().isSerialiseBySignatureAllRelationship())
+			//if ((manager.getConfig().isSerialiseBySignatureAllRelationship())
+					|| manager.getConfig().getObjPersistenceSupport().isLazyUnitialized(valueToSerialize)) {
 				gen.writeStartObject();
-				this.managersHolder.getStartedManagerImplementor().currIdPlusPlus();
-				this.managersHolder.getStartedManagerImplementor().getObjectByIdMap().put(this.managersHolder.getStartedManagerImplementor().getCurrId(), valueToSerialize);
-				this.managersHolder.getStartedManagerImplementor().getIdByObjectMap().put(new IdentityRefKey(valueToSerialize),
-						this.managersHolder.getStartedManagerImplementor().getCurrId());
+				manager.currIdPlusPlus();
+				manager.getObjectByIdMap().put(manager.getCurrId(), valueToSerialize);
+				manager.getIdByObjectMap().put(new IdentityRefKey(valueToSerialize),
+						manager.getCurrId());
 				
-				IPlayerManagerImplementor manager = this.managersHolder.getStartedManagerImplementor(); 
 				PlayerMetadatas playerMetadatas = manager.getConfig().getMetadataInstantiator().apply(manager);
 				
-				playerMetadatas.setId(this.managersHolder.getStartedManagerImplementor().getCurrId());
+				playerMetadatas.setId(manager.getCurrId());
 				playerMetadatas.setIsLazyUninitialized(true);
 				playerMetadatas.setIsAssociative(true);
 				
@@ -426,16 +424,16 @@ public class PlayerJsonSerializer extends JsonSerializer<Object> {
 									+ " {0}: {1};\n"
 									+ " {2}: {3}\n"
 									+ " {4}: {5}",
-							"playerMetadatas.id", this.managersHolder.getStartedManagerImplementor().getCurrId(),
+							"playerMetadatas.id", manager.getCurrId(),
 							"playerMetadatas.isLazyUninitialized", true,
 							"playerMetadatas.isAssociative", true));
 				}
 				
-//				if (!this.managersHolder.getStartedManagerImplementor().isNeverSigned(valueToSerializeClass)) {
-					SignatureBean signatureBean = this.managersHolder.getStartedManagerImplementor()
+//				if (!manager.isNeverSigned(valueToSerializeClass)) {
+					SignatureBean signatureBean = manager
 							//.generateLazySignature((HibernateProxy) valueToSerialize);
 							.generateSignature(valueToSerialize);
-					String signatureStr = this.managersHolder.getStartedManagerImplementor().serializeSignature(signatureBean);
+					String signatureStr = manager.serializeSignature(signatureBean);
 					playerMetadatas.setSignature(signatureStr);
 					
 					if (logger.isTraceEnabled()) {
@@ -455,17 +453,17 @@ public class PlayerJsonSerializer extends JsonSerializer<Object> {
 							+ " gen.writeFieldName(\"{0}\");\n"
 							+ " gen.writeObject({1});\n"
 							+ " gen.writeEndObject();",								
-						this.managersHolder.getStartedManagerImplementor().getConfig().getPlayerMetadatasName(), 
+						manager.getConfig().getPlayerMetadatasName(), 
 						playerMetadatas));
 				}
 				try {
-					this.managersHolder.getStartedManagerImplementor().getPlayerMetadatasWritingStack().push(playerMetadatas);				
-					gen.writeFieldName(this.managersHolder.getStartedManagerImplementor().getConfig().getPlayerMetadatasName());
+					manager.getPlayerMetadatasWritingStack().push(playerMetadatas);				
+					gen.writeFieldName(manager.getConfig().getPlayerMetadatasName());
 					gen.writeObject(playerMetadatas);
-					this.managersHolder.getStartedManagerImplementor().getMetadatasCacheMap().put(new IdentityRefKey(valueToSerialize), playerMetadatas);
+					manager.getMetadatasCacheMap().put(new IdentityRefKey(valueToSerialize), playerMetadatas);
 				} finally {
-					if (this.managersHolder.getStartedManagerImplementor().getPlayerMetadatasWritingStack() != null) {
-						PlayerMetadatas playerMetadatasPoped = this.managersHolder.getStartedManagerImplementor().getPlayerMetadatasWritingStack().pop();
+					if (manager.getPlayerMetadatasWritingStack() != null) {
+						PlayerMetadatas playerMetadatasPoped = manager.getPlayerMetadatasWritingStack().pop();
 						if (playerMetadatasPoped != playerMetadatas) {
 							throw new RuntimeException("This should not happen");
 						}					
@@ -474,23 +472,20 @@ public class PlayerJsonSerializer extends JsonSerializer<Object> {
 				gen.writeEndObject();
 				return true;
 			} else {
-				// unwrappedvalue =
-				// ((HibernateProxy)valueToSerialize).getHibernateLazyInitializer().getImplementation();
-				if (this.managersHolder.getStartedManagerImplementor().getIdByObjectMap().containsKey(new IdentityRefKey(valueToSerialize))) {
+				if (manager.getIdByObjectMap().containsKey(new IdentityRefKey(valueToSerialize))) {
 					gen.writeStartObject();
-					PlayerMetadatas playerMetadatasOld = this.managersHolder.getStartedManagerImplementor().getMetadatasCacheMap().get(new IdentityRefKey(valueToSerialize));
-					
-					IPlayerManagerImplementor manager = this.managersHolder.getStartedManagerImplementor(); 
+					PlayerMetadatas playerMetadatasOld = manager.getMetadatasCacheMap().get(new IdentityRefKey(valueToSerialize));
+					 
 					PlayerMetadatas playerMetadatas = manager.getConfig().getMetadataInstantiator().apply(manager);
-					playerMetadatas.setIdRef(this.managersHolder.getStartedManagerImplementor().getIdByObjectMap().get(new IdentityRefKey(valueToSerialize)));
+					playerMetadatas.setIdRef(manager.getIdByObjectMap().get(new IdentityRefKey(valueToSerialize)));
 					try {
-						this.managersHolder.getStartedManagerImplementor().getPlayerMetadatasWritingStack().push(playerMetadatas);				
-						gen.writeFieldName(this.managersHolder.getStartedManagerImplementor().getConfig().getPlayerMetadatasName());
+						manager.getPlayerMetadatasWritingStack().push(playerMetadatas);				
+						gen.writeFieldName(manager.getConfig().getPlayerMetadatasName());
 						gen.writeObject(playerMetadatas);
-						this.managersHolder.getStartedManagerImplementor().getMetadatasCacheMap().put(new IdentityRefKey(valueToSerialize), playerMetadatas);
+						manager.getMetadatasCacheMap().put(new IdentityRefKey(valueToSerialize), playerMetadatas);
 					} finally {
-						if (this.managersHolder.getStartedManagerImplementor().getPlayerMetadatasWritingStack() != null) {
-							PlayerMetadatas playerMetadatasPoped = this.managersHolder.getStartedManagerImplementor().getPlayerMetadatasWritingStack().pop();
+						if (manager.getPlayerMetadatasWritingStack() != null) {
+							PlayerMetadatas playerMetadatasPoped = manager.getPlayerMetadatasWritingStack().pop();
 							if (playerMetadatasPoped != playerMetadatas) {
 								throw new RuntimeException("This should not happen");
 							}					
@@ -505,7 +500,7 @@ public class PlayerJsonSerializer extends JsonSerializer<Object> {
 								+ " gen.writeFieldName(\"{0}\");\n"
 								+ " gen.writeObject({1});\n"
 								+ " gen.writeEndObject();",								
-							this.managersHolder.getStartedManagerImplementor().getConfig().getPlayerMetadatasName(), 
+							manager.getConfig().getPlayerMetadatasName(), 
 							playerMetadatas));
 					}
 					return true;
@@ -513,32 +508,31 @@ public class PlayerJsonSerializer extends JsonSerializer<Object> {
 					return false;
 				}
 			}
-		//} else if (this.managersHolder.getStartedManagerImplementor().getObjPersistenceSupport().isPersistentCollection(aacTrackInfo, valueToSerialize)) {
-		} else if (this.managersHolder.getStartedManagerImplementor().getObjPersistenceSupport().isCollectionRelationship(ownerValueClass, pathFromOwnerRoot)) {
+		//} else if (manager.getObjPersistenceSupport().isPersistentCollection(aacTrackInfo, valueToSerialize)) {
+		} else if (manager.getObjPersistenceSupport().isCollectionRelationship(ownerValueClass, pathFromOwnerRoot)) {
 			//PersistentCollection pcvalue = (PersistentCollection) valueToSerialize;
-			//if (this.managersHolder.getStartedManagerImplementor().getConfig().isSerialiseBySignatureAllRelationship() || !pcvalue.wasInitialized()) {
-			if (this.managersHolder.getStartedManagerImplementor().getConfig().isSerialiseBySignatureAllRelationship()
-					|| this.managersHolder.getStartedManagerImplementor().getObjPersistenceSupport().isLazyUnitialized(
+			//if (manager.getConfig().isSerialiseBySignatureAllRelationship() || !pcvalue.wasInitialized()) {
+			if (manager.getConfig().isSerialiseBySignatureAllRelationship()
+					|| manager.getObjPersistenceSupport().isLazyUnitialized(
 							valueToSerialize, 
 							aacTrackInfo.getEntityOwner(), 
 							pathFromOwnerRoot)
 					) {
 				gen.writeStartObject();
-				IPlayerManagerImplementor manager = this.managersHolder.getStartedManagerImplementor(); 
 				PlayerMetadatas playerMetadatas = manager.getConfig().getMetadataInstantiator().apply(manager);				
 				playerMetadatas.setIsLazyUninitialized(true);
 				playerMetadatas.setIsAssociative(true);
-				SignatureBean signatureBean = this.managersHolder.getStartedManagerImplementor().generateLazySignature((Collection<?>) valueToSerialize);
-				String signatureStr = this.managersHolder.getStartedManagerImplementor().serializeSignature(signatureBean);
+				SignatureBean signatureBean = manager.generateLazySignature((Collection<?>) valueToSerialize);
+				String signatureStr = manager.serializeSignature(signatureBean);
 				playerMetadatas.setSignature(signatureStr);
 				try {
-					this.managersHolder.getStartedManagerImplementor().getPlayerMetadatasWritingStack().push(playerMetadatas);				
-					gen.writeFieldName(this.managersHolder.getStartedManagerImplementor().getConfig().getPlayerMetadatasName());
+					manager.getPlayerMetadatasWritingStack().push(playerMetadatas);				
+					gen.writeFieldName(manager.getConfig().getPlayerMetadatasName());
 					gen.writeObject(playerMetadatas);				
-					this.managersHolder.getStartedManagerImplementor().getMetadatasCacheMap().put(new IdentityRefKey(valueToSerialize), playerMetadatas);
+					manager.getMetadatasCacheMap().put(new IdentityRefKey(valueToSerialize), playerMetadatas);
 				} finally {
-					if (this.managersHolder.getStartedManagerImplementor().getPlayerMetadatasWritingStack() != null) {
-						PlayerMetadatas playerMetadatasPoped = this.managersHolder.getStartedManagerImplementor().getPlayerMetadatasWritingStack().pop();
+					if (manager.getPlayerMetadatasWritingStack() != null) {
+						PlayerMetadatas playerMetadatasPoped = manager.getPlayerMetadatasWritingStack().pop();
 						if (playerMetadatasPoped != playerMetadatas) {
 							throw new RuntimeException("This should not happen");
 						}					
@@ -554,7 +548,7 @@ public class PlayerJsonSerializer extends JsonSerializer<Object> {
 							+ " gen.writeFieldName(\"{0}\");\n"
 							+ " gen.writeObject({1});\n"
 							+ " gen.writeEndObject();",								
-						this.managersHolder.getStartedManagerImplementor().getConfig().getPlayerMetadatasName(), 
+						manager.getConfig().getPlayerMetadatasName(), 
 						playerMetadatas));
 				}
 				return true;
@@ -562,8 +556,8 @@ public class PlayerJsonSerializer extends JsonSerializer<Object> {
 				return false;
 			}
 		} else {
-			if ((this.managersHolder.getStartedManagerImplementor().isCurrentPathFromLastEntityAnEntityRelationship() && this.managersHolder.getStartedManagerImplementor().getConfig().isSerialiseBySignatureAllRelationship())
-			//if ((this.managersHolder.getStartedManagerImplementor().getConfig().isSerialiseBySignatureAllRelationship())
+			if ((manager.isCurrentPathFromLastEntityAnEntityRelationship() && manager.getConfig().isSerialiseBySignatureAllRelationship())
+			//if ((manager.getConfig().isSerialiseBySignatureAllRelationship())
 					&& currPropertyWriter != null
 					&& aacTrackInfo != null
 					) {
@@ -572,31 +566,29 @@ public class PlayerJsonSerializer extends JsonSerializer<Object> {
 				if (currPropertyWriter.getIsPersistent()) {
 					gen.writeStartObject();
 					
-					this.managersHolder.getStartedManagerImplementor().currIdPlusPlus();
-					this.managersHolder.getStartedManagerImplementor().getObjectByIdMap().put(this.managersHolder.getStartedManagerImplementor().getCurrId(), valueToSerialize);
-					this.managersHolder.getStartedManagerImplementor().getIdByObjectMap().put(new IdentityRefKey(valueToSerialize),
-							this.managersHolder.getStartedManagerImplementor().getCurrId());
-					IPlayerManagerImplementor manager = this.managersHolder.getStartedManagerImplementor(); 
+					manager.currIdPlusPlus();
+					manager.getObjectByIdMap().put(manager.getCurrId(), valueToSerialize);
+					manager.getIdByObjectMap().put(new IdentityRefKey(valueToSerialize),
+							manager.getCurrId()); 
 					PlayerMetadatas playerMetadatas = manager.getConfig().getMetadataInstantiator().apply(manager);
-					playerMetadatas.setId(this.managersHolder.getStartedManagerImplementor().getCurrId());
+					playerMetadatas.setId(manager.getCurrId());
 					playerMetadatas.setIsLazyUninitialized(true);
 					playerMetadatas.setIsAssociative(true);
 
 					SignatureBean signatureBean = null;
-						
-					if (this.managersHolder.getStartedManagerImplementor().getObjPersistenceSupport().isComponentByTrack(aacTrackInfo)) {
-						signatureBean = this.managersHolder.getStartedManagerImplementor().generateLazySignatureForCollRelashionship(
+					if (manager.getObjPersistenceSupport().isComponentByTrack(aacTrackInfo)) {
+						signatureBean = manager.generateLazySignatureForCollRelashionship(
 							currPropertyWriter.getCurrOwner().getClass(),
 							currPropertyWriter.getBeanPropertyDefinition().getInternalName(),
 							currPropertyWriter.getCurrOwner(),
 							valueToSerialize);					
-					} else if (this.managersHolder.getStartedManagerImplementor().getObjPersistenceSupport().isPersistentClass(aacTrackInfo.getEntityOwner().getClass())) {
-						signatureBean = this.managersHolder.getStartedManagerImplementor().generateSignature(valueToSerialize);	
+					} else if (manager.isPersistentClass(aacTrackInfo.getEntityOwner().getClass())) {
+						signatureBean = manager.generateSignature(valueToSerialize);	
 					} else {
 						throw new RuntimeException("This should not happen");
 					}
 					
-					String signatureStr = this.managersHolder.getStartedManagerImplementor().serializeSignature(signatureBean);
+					String signatureStr = manager.serializeSignature(signatureBean);
 					playerMetadatas.setSignature(signatureStr);
 
 					if (logger.isTraceEnabled()) {
@@ -626,17 +618,17 @@ public class PlayerJsonSerializer extends JsonSerializer<Object> {
 								+ " gen.writeFieldName(\"{0}\");\n"
 								+ " gen.writeObject({1});\n"
 								+ " gen.writeEndObject();",								
-							this.managersHolder.getStartedManagerImplementor().getConfig().getPlayerMetadatasName(), 
+							manager.getConfig().getPlayerMetadatasName(), 
 							playerMetadatas));
 					}
 					try {
-						this.managersHolder.getStartedManagerImplementor().getPlayerMetadatasWritingStack().push(playerMetadatas);				
-						gen.writeFieldName(this.managersHolder.getStartedManagerImplementor().getConfig().getPlayerMetadatasName());
+						manager.getPlayerMetadatasWritingStack().push(playerMetadatas);				
+						gen.writeFieldName(manager.getConfig().getPlayerMetadatasName());
 						gen.writeObject(playerMetadatas);
-						this.managersHolder.getStartedManagerImplementor().getMetadatasCacheMap().put(new IdentityRefKey(valueToSerialize), playerMetadatas);
+						manager.getMetadatasCacheMap().put(new IdentityRefKey(valueToSerialize), playerMetadatas);
 					} finally {
-						if (this.managersHolder.getStartedManagerImplementor().getPlayerMetadatasWritingStack() != null) {
-							PlayerMetadatas playerMetadatasPoped = this.managersHolder.getStartedManagerImplementor().getPlayerMetadatasWritingStack().pop();
+						if (manager.getPlayerMetadatasWritingStack() != null) {
+							PlayerMetadatas playerMetadatasPoped = manager.getPlayerMetadatasWritingStack().pop();
 							if (playerMetadatasPoped != playerMetadatas) {
 								throw new RuntimeException("This should not happen");
 							}					
@@ -645,7 +637,7 @@ public class PlayerJsonSerializer extends JsonSerializer<Object> {
 					gen.writeEndObject();
 					return true;
 				}
-			} else if (!this.managersHolder.getStartedManagerImplementor().getConfig().isIgnoreAllLazyProperty()
+			} else if (!manager.getConfig().isIgnoreAllLazyProperty()
 					&& currPropertyWriter != null) {
 				LazyProperty lazyProperty = currPropertyWriter.getAnnotation(LazyProperty.class);
 				if (lazyProperty != null) {
@@ -671,26 +663,26 @@ public class PlayerJsonSerializer extends JsonSerializer<Object> {
 						if (lazyProperty.nonLazyMaxSize() > 0 && size < lazyProperty.nonLazyMaxSize()) {
 							return false;
 						} else {
-							gen.writeStartObject();
-							IPlayerManagerImplementor manager = this.managersHolder.getStartedManagerImplementor(); 
+							gen.writeStartObject(); 
 							PlayerMetadatas playerMetadatas = manager.getConfig().getMetadataInstantiator().apply(manager);
 							playerMetadatas.setIsLazyUninitialized(true);
 							playerMetadatas.setIsLazyProperty(true);
-							SignatureBean signatureBean = this.managersHolder.getStartedManagerImplementor().generateLazySignatureForLazyProperty(
+							SignatureBean signatureBean = manager.generateLazySignatureForLazyProperty(
 									currPropertyWriter.getCurrOwner().getClass(),
 									currPropertyWriter.getBeanPropertyDefinition().getInternalName(),
-									currPropertyWriter.getCurrOwner(), valueToSerialize);
-							String signatureStr = this.managersHolder.getStartedManagerImplementor().serializeSignature(signatureBean);
+									currPropertyWriter.getCurrOwner(),
+									valueToSerialize);
+							String signatureStr = manager.serializeSignature(signatureBean);
 							playerMetadatas.setSignature(signatureStr);
 							try {
-								this.managersHolder.getStartedManagerImplementor().getPlayerMetadatasWritingStack().push(playerMetadatas);
-								gen.writeFieldName(this.managersHolder.getStartedManagerImplementor().getConfig().getPlayerMetadatasName());
+								manager.getPlayerMetadatasWritingStack().push(playerMetadatas);
+								gen.writeFieldName(manager.getConfig().getPlayerMetadatasName());
 								gen.writeObject(playerMetadatas);
-								this.managersHolder.getStartedManagerImplementor().getMetadatasCacheMap().put(new IdentityRefKey(valueToSerialize),
+								manager.getMetadatasCacheMap().put(new IdentityRefKey(valueToSerialize),
 										playerMetadatas);
 							} finally {
-								if (this.managersHolder.getStartedManagerImplementor().getPlayerMetadatasWritingStack() != null) {
-									PlayerMetadatas playerMetadatasPoped = this.managersHolder.getStartedManagerImplementor()
+								if (manager.getPlayerMetadatasWritingStack() != null) {
+									PlayerMetadatas playerMetadatasPoped = manager
 											.getPlayerMetadatasWritingStack().pop();
 									if (playerMetadatasPoped != playerMetadatas) {
 										throw new RuntimeException("This should not happen");
@@ -703,7 +695,7 @@ public class PlayerJsonSerializer extends JsonSerializer<Object> {
 										"mayWriteBySignatureRef(). Found LazyProperty. Intercepting JsonSerializer.serialize(T, JsonGenerator, SerializerProvider).\n"
 												+ " gen.writeStartObject();\n" + " gen.writeFieldName(\"{0}\");\n"
 												+ " gen.writeObject({1});\n" + " gen.writeEndObject();",
-										this.managersHolder.getStartedManagerImplementor().getConfig().getPlayerMetadatasName(), playerMetadatas));
+										manager.getConfig().getPlayerMetadatasName(), playerMetadatas));
 							}
 							return true;
 
@@ -718,7 +710,8 @@ public class PlayerJsonSerializer extends JsonSerializer<Object> {
 	}
 
 	protected void trackRegisteredComponentOwnerIfNeeded(Object instance, SerializerProvider serializers) throws JsonProcessingException, IOException {
-		List<OwnerAndProperty> ownerPath = this.managersHolder.getStartedManagerImplementor().getRegisteredComponentOwnerList(instance);
+		IPlayerManagerImplementor manager = this.managersHolder.getStartedManagerImplementor();
+		List<OwnerAndProperty> ownerPath = manager.getRegisteredComponentOwnerList(instance);
 		if (ownerPath.size() > 0) {
 			for (OwnerAndProperty ownerAndProperty : ownerPath) {
 				JsonSerializer<?> jsonSerializer = serializers.findValueSerializer(ownerAndProperty.getOwner().getClass());
@@ -728,15 +721,13 @@ public class PlayerJsonSerializer extends JsonSerializer<Object> {
 					
 					playerJsonSerializer.getCurrSerializationBeanStackTL().get().push(ownerAndProperty.getOwner());
 					playerBeanPropertyWriter.getCurrOwnerStackTL().get().push(ownerAndProperty.getOwner());
-					this.managersHolder.getStartedManagerImplementor().getPlayerJsonSerializerStepStack().push(playerJsonSerializer);
-					this.managersHolder.getStartedManagerImplementor().getPlayerBeanPropertyWriterStepStack().push(playerBeanPropertyWriter);
-					
-					if (this.managersHolder.getStartedManagerImplementor().isPersistentClass(ownerAndProperty.getOwner().getClass())) {
-						Object hbId = this.managersHolder.getStartedManagerImplementor().getPlayerObjectId(ownerAndProperty.getOwner());
-						IPlayerManagerImplementor manager = this.managersHolder.getStartedManagerImplementor(); 
+					manager.getPlayerJsonSerializerStepStack().push(playerJsonSerializer);
+					manager.getPlayerBeanPropertyWriterStepStack().push(playerBeanPropertyWriter);
+					if (manager.isPersistentClass(ownerAndProperty.getOwner().getClass())) {
+						Object hbId = manager.getPlayerObjectId(ownerAndProperty.getOwner()); 
 						PlayerMetadatas dammyMetadatas = manager.getConfig().getMetadataInstantiator().apply(manager);
 						dammyMetadatas.setPlayerObjectId(hbId);
-						this.managersHolder.getStartedManagerImplementor().getPlayerMetadatasWritingStack().push(dammyMetadatas);
+						manager.getPlayerMetadatasWritingStack().push(dammyMetadatas);
 					}
 				} else {
 					throw new RuntimeException("This should not happen!");
@@ -746,7 +737,8 @@ public class PlayerJsonSerializer extends JsonSerializer<Object> {
 	}
 	
 	protected void untrackRegisteredComponentIfNeeded(Object instance, SerializerProvider serializers) throws JsonProcessingException, IOException {
-		List<OwnerAndProperty> ownerPath = this.managersHolder.getStartedManagerImplementor().getRegisteredComponentOwnerList(instance);
+		IPlayerManagerImplementor manager = this.managersHolder.getStartedManagerImplementor();
+		List<OwnerAndProperty> ownerPath = manager.getRegisteredComponentOwnerList(instance);
 		List<OwnerAndProperty> ownerReversedPath = new ArrayList<>(ownerPath);
 		Collections.reverse(ownerReversedPath);
 		
@@ -765,18 +757,17 @@ public class PlayerJsonSerializer extends JsonSerializer<Object> {
 					if (ownerAndProperty.getOwner() != owner) {
 						throw new RuntimeException("This should not happen!");
 					}
-					PlayerJsonSerializer poppedPlayerJsonSerializer = this.managersHolder.getStartedManagerImplementor().getPlayerJsonSerializerStepStack().pop();
+					PlayerJsonSerializer poppedPlayerJsonSerializer = manager.getPlayerJsonSerializerStepStack().pop();
 					if (poppedPlayerJsonSerializer != playerJsonSerializer) {
 						throw new RuntimeException("This should not happen!");
 					}	
-					PlayerBeanPropertyWriter poppedPlayerBeanPropertyWriter = this.managersHolder.getStartedManagerImplementor().getPlayerBeanPropertyWriterStepStack().pop();
+					PlayerBeanPropertyWriter poppedPlayerBeanPropertyWriter = manager.getPlayerBeanPropertyWriterStepStack().pop();
 					if (poppedPlayerBeanPropertyWriter != playerBeanPropertyWriter) {
 						throw new RuntimeException("This should not happen!");
 					}
-					
-					if (this.managersHolder.getStartedManagerImplementor().isPersistentClass(ownerAndProperty.getOwner().getClass())) {
-						Object hbId = this.managersHolder.getStartedManagerImplementor().getPlayerObjectId(ownerAndProperty.getOwner());
-						PlayerMetadatas dammyMetadatas = this.managersHolder.getStartedManagerImplementor().getPlayerMetadatasWritingStack().pop();
+					if (manager.isPersistentClass(ownerAndProperty.getOwner().getClass())) {
+						Object hbId = manager.getPlayerObjectId(ownerAndProperty.getOwner());
+						PlayerMetadatas dammyMetadatas = manager.getPlayerMetadatasWritingStack().pop();
 						if (hbId != dammyMetadatas.getPlayerObjectId()) {
 							throw new RuntimeException("This should not happen!");	
 						}

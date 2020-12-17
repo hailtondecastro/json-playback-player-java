@@ -79,8 +79,6 @@ public class PlayerJsonGeneratorDelegate extends JsonGeneratorDelegate {
 			}
 			PlayerMetadatas playerMetadatas = manager.getConfig().getMetadataInstantiator().apply(manager);
 			playerMetadatas.setId(this.managersHolder.getStartedManagerImplementor().getCurrId());
-			
-			//if (this.managersHolder.getStartedManagerImplementor().isPersistentClass(forValue.getClass()) && !this.managersHolder.getStartedManagerImplementor().isNeverSigned(forValue.getClass())) {
 			if (this.managersHolder.getStartedManagerImplementor().isPersistentClass(forValue.getClass())) {
 				SignatureBean signatureBean = this.managersHolder.getStartedManagerImplementor().generateSignature(forValue);
 				String signatureStr = this.managersHolder.getStartedManagerImplementor().serializeSignature(signatureBean);

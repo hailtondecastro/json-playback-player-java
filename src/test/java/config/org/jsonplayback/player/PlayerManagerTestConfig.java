@@ -13,11 +13,13 @@ import org.jsonplayback.hibernate.Hb5Support;
 import org.jsonplayback.jpa.JpaSupport;
 import org.jsonplayback.player.IPlayerConfig;
 import org.jsonplayback.player.IPlayerManager;
+import org.jsonplayback.player.IPlayerSnapshot;
 import org.jsonplayback.player.ObjPersistenceMode;
 import org.jsonplayback.player.PlayerManagerTest;
 import org.jsonplayback.player.PlayerSnapshot;
 import org.jsonplayback.player.SignatureBean;
 import org.jsonplayback.player.hibernate.entities.DetailAEnt;
+import org.jsonplayback.player.hibernate.entities.DetailARefererEnt;
 import org.jsonplayback.player.hibernate.entities.MasterAEnt;
 import org.jsonplayback.player.hibernate.entities.MasterBEnt;
 import org.jsonplayback.player.hibernate.nonentities.DetailAWrapper;
@@ -146,7 +148,8 @@ public class PlayerManagerTestConfig {
 				new String[]{
 					PlayerManagerTest.class.getPackage().getName().replaceAll("\\.", "/")+"/"+"MasterAEnt.hbm.xml",
 					PlayerManagerTest.class.getPackage().getName().replaceAll("\\.", "/")+"/"+"MasterBEnt.hbm.xml",
-					PlayerManagerTest.class.getPackage().getName().replaceAll("\\.", "/")+"/"+"/DetailAEnt.hbm.xml"
+					PlayerManagerTest.class.getPackage().getName().replaceAll("\\.", "/")+"/"+"/DetailAEnt.hbm.xml",
+					PlayerManagerTest.class.getPackage().getName().replaceAll("\\.", "/")+"/"+"/DetailARefererEnt.hbm.xml"					
 				}
 			}
 		);
@@ -200,7 +203,8 @@ public class PlayerManagerTestConfig {
 				new Class<?>[]{
 		    		MasterAEnt.class,
 		    		MasterBEnt.class,
-		    		DetailAEnt.class
+		    		DetailAEnt.class,
+		    		DetailARefererEnt.class
 		    	}
 			}
 		);
@@ -242,7 +246,8 @@ public class PlayerManagerTestConfig {
     	localSessionFactoryBean.setAnnotatedClasses(new Class<?>[]{
     		MasterAEnt.class,
     		MasterBEnt.class,
-    		DetailAEnt.class
+    		DetailAEnt.class,
+    		DetailARefererEnt.class
     	});
     	Properties hbProperties = new Properties();
     	hbProperties.setProperty("hibernate.dialect", "org.hibernate.dialect.HSQLDialect");
@@ -266,7 +271,8 @@ public class PlayerManagerTestConfig {
     	localSessionFactoryBean.setAnnotatedClasses(new Class<?>[]{
     		MasterAEnt.class,
     		MasterBEnt.class,
-    		DetailAEnt.class
+    		DetailAEnt.class,
+    		DetailARefererEnt.class
     	});
     	Properties hbProperties = new Properties();
     	hbProperties.setProperty("hibernate.dialect", "org.hibernate.dialect.HSQLDialect");
@@ -290,7 +296,8 @@ public class PlayerManagerTestConfig {
     	localSessionFactoryBean.setAnnotatedClasses(new Class<?>[]{
     		MasterAEnt.class,
     		MasterBEnt.class,
-    		DetailAEnt.class
+    		DetailAEnt.class,
+    		DetailARefererEnt.class
     	});
     	Properties hbProperties = new Properties();
     	hbProperties.setProperty("hibernate.dialect", "org.hibernate.dialect.HSQLDialect");
@@ -464,7 +471,7 @@ public class PlayerManagerTestConfig {
 		PlayerBeanSerializerModifier modifier = new PlayerBeanSerializerModifier().configManagerHolder(managersHolder);
 		//jsonComponentModule.addSerializer(PlayerSnapshot.class, playerSnapshotSerializer);
 		//mapper.registerModule(jsonComponentModule);
-		module.addSerializer(PlayerSnapshot.class, playerSnapshotSerializer);
+		module.addSerializer(IPlayerSnapshot.class, playerSnapshotSerializer);
 		module.setSerializerModifier(modifier);
 		ObjectMapper mapperOriginal = mappingJackson2HttpMessageConverter.getObjectMapper();
 		ObjectMapper mapperNovo = builder.build();

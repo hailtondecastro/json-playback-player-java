@@ -2,15 +2,14 @@ package org.jsonplayback.player.implementation;
 
 import java.io.IOException;
 
-import org.jsonplayback.player.IPlayerManager;
-import org.jsonplayback.player.PlayerSnapshot;
+import org.jsonplayback.player.IPlayerSnapshot;
 
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.SerializerProvider;
 
-public class PlayerSnapshotSerializer extends JsonSerializer<PlayerSnapshot> {
+public class PlayerSnapshotSerializer extends JsonSerializer<IPlayerSnapshot> {
 
 	public PlayerSnapshotSerializer(){
 		
@@ -25,9 +24,12 @@ public class PlayerSnapshotSerializer extends JsonSerializer<PlayerSnapshot> {
 	
 	@SuppressWarnings("rawtypes")
 	@Override
-	public void serialize(PlayerSnapshot value, JsonGenerator gen, SerializerProvider serializers)
+	public void serialize(IPlayerSnapshot value, JsonGenerator gen, SerializerProvider serializers)
 			throws IOException, JsonProcessingException {
 		try {
+			if(value.getOverwrittenConfiguration() != null) {
+				value.getManager().overwriteConfigurationTemporarily(value.getOverwrittenConfiguration());
+			}
 			value.getManager().startJsonWriteIntersept();
 
 			final JsonSerializer<Object> defaultJsonSerializer = serializers.findValueSerializer(Object.class);
