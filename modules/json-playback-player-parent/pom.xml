@@ -43,7 +43,7 @@
 		<jsonplayback.hbversion4>4.3.11.Final</jsonplayback.hbversion4>
 		<jsonplayback.hbversion5>5.4.5.Final</jsonplayback.hbversion5>
 		<jsonplayback.hbversion6>6.0.0.Alpha2</jsonplayback.hbversion6>
-		<revision>0.7.0</revision>
+		<revision>0.7.1</revision>
 		<changelist>-SNAPSHOT</changelist>
 		<sha1 />
 	</properties>
