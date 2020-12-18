@@ -56,7 +56,13 @@ public abstract class HbObjPersistenceSupportBase implements ObjPersistenceSuppo
 	
 	public abstract SessionFactory getSessionFactory();
 	public Session getCurrentSession() {
-		return this.getSessionFactory().getCurrentSession();
+		return (Session) this.runByReflection(
+			SessionFactory.class.getName(), 
+			"getCurrentSession", 
+			new String[] {}, 
+			this.getSessionFactory(),
+			new Object[] {}
+		);
 	}
 
 	public HbObjPersistenceSupportBase() {
@@ -127,7 +133,7 @@ public abstract class HbObjPersistenceSupportBase implements ObjPersistenceSuppo
 //	@Override
 //	public Connection getConnection() {
 //		final AtomicReference<Connection> connRef = new AtomicReference<>();
-//		this.getSessionFactory().getCurrentSession().doWork(connection -> {
+//		this.getCurrentSession().doWork(connection -> {
 //			connRef.set(connection);
 //		});
 //		return connRef.get();
@@ -477,7 +483,7 @@ public abstract class HbObjPersistenceSupportBase implements ObjPersistenceSuppo
 
 	@Override
 	public Object getById(Class<?> entityClass, Object idValue) {
-		return this.getSessionFactory().getCurrentSession().get(entityClass, (Serializable) idValue);
+		return this.getCurrentSession().get(entityClass, (Serializable) idValue);
 	}
 
 	@Override

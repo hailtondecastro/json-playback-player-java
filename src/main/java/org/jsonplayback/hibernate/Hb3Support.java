@@ -10,7 +10,6 @@ import java.util.Map;
 import java.util.Set;
 
 import org.hibernate.HibernateException;
-import org.hibernate.SessionFactory;
 import org.hibernate.metadata.ClassMetadata;
 import org.hibernate.proxy.HibernateProxy;
 import org.hibernate.type.Type;
@@ -89,11 +88,11 @@ public abstract class Hb3Support extends HbObjPersistenceSupportBase {
 					playerStatment, 
 					idValue, 
 					0, 
-					this.getSessionFactory().getCurrentSession()
+					this.getCurrentSession()
 				}
 			);
 //			hbIdType.nullSafeSet(playerStatment, idValue, 0,
-//					(org.hibernate.engine.SessionImplementor) this.getSessionFactory().getCurrentSession());
+//					(org.hibernate.engine.SessionImplementor) this.getCurrentSession());
 		} catch (HibernateException e) {
 			throw new RuntimeException("This should not happen", e);
 		}
@@ -115,7 +114,7 @@ public abstract class Hb3Support extends HbObjPersistenceSupportBase {
 						"getIdentifier",
 						new String[]{ Object.class.getName(), "org.hibernate.engine.SessionImplementor"},
 						classMetadata,
-						new Object[]{ nonHibernateProxy, this.getSessionFactory().getCurrentSession()});
+						new Object[]{ nonHibernateProxy, this.getCurrentSession()});
 //		Object idValue = classMetadata.getIdentifier(nonHibernateProxy,
 //				(org.hibernate.engine.SessionImplementor) this.getSessionFactory()
 //						.getCurrentSession());
@@ -136,11 +135,11 @@ public abstract class Hb3Support extends HbObjPersistenceSupportBase {
 						playerStatment, 
 						idValue, 
 						0, 
-						this.getSessionFactory().getCurrentSession()
+						this.getCurrentSession()
 					}
 				);
 //			hbIdType.nullSafeSet(playerStatment, idValue, 0,
-//					(org.hibernate.engine.SessionImplementor) this.getSessionFactory().getCurrentSession());
+//					(org.hibernate.engine.SessionImplementor) this.getCurrentSession());
 		} catch (HibernateException e) {
 			throw new RuntimeException("This should not happen", e);
 		}
@@ -186,13 +185,13 @@ public abstract class Hb3Support extends HbObjPersistenceSupportBase {
 //						new Object[]{
 //							playerResultSet,
 //							playerResultSet.getColumnNames(),
-//							this.getSessionFactory().getCurrentSession(),
+//							this.getCurrentSession(),
 //							null
 //						}
 //					);
 //			
 ////			idValue = (Serializable) hbIdType.nullSafeGet(playerResultSet, playerResultSet.getColumnNames(),
-////					(org.hibernate.engine.SessionImplementor) this.getSessionFactory().getCurrentSession(), null);
+////					(org.hibernate.engine.SessionImplementor) this.getCurrentSession(), null);
 //		} catch (HibernateException e) {
 //			throw new RuntimeException("This should not happen. prpType: ");
 //		}
@@ -217,7 +216,7 @@ public abstract class Hb3Support extends HbObjPersistenceSupportBase {
 				"getIdentifier",
 				new String[]{ Object.class.getName(), "org.hibernate.engine.SessionImplementor"},
 				classMetadata,
-				new Object[]{ entityInstanceOrProxy, this.getSessionFactory().getCurrentSession()});
+				new Object[]{ entityInstanceOrProxy, this.getCurrentSession()});
 		return idValue;
 	}
 	
@@ -250,13 +249,13 @@ public abstract class Hb3Support extends HbObjPersistenceSupportBase {
 						new Object[]{
 							playerResultSet,
 							playerResultSet.getColumnNames(),
-							this.getSessionFactory().getCurrentSession(),
+							this.getCurrentSession(),
 							null
 						}
 					);
 			
 //			idValue = (Serializable) hbIdType.nullSafeGet(playerResultSet, playerResultSet.getColumnNames(),
-//					(org.hibernate.engine.SessionImplementor) this.getSessionFactory().getCurrentSession(), null);
+//					(org.hibernate.engine.SessionImplementor) this.getCurrentSession(), null);
 		} catch (HibernateException e) {
 			throw new RuntimeException("This should not happen. prpType: ");
 		}
