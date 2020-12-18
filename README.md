@@ -110,6 +110,8 @@ Framework for integrate entity object graph operations (field, collections modif
   On shell:
   ```bash
   $ cd /c/git/github.com/hailtondecastro/json-playback-player-hibernate
+  $ # copy the PASSPHRASE generated below
+  $ gpg --gen-random --armor 1 60
   $ gpg --full-generate-key
     gpg (GnuPG) 2.2.11-unknown; Copyright (C) 2018 Free Software Foundation, Inc.
     This is free software: you are free to change and redistribute it.
@@ -131,7 +133,7 @@ Framework for integrate entity object graph operations (field, collections modif
           <n>m = key expires in n months
           <n>y = key expires in n years
     Key is valid for? (0) 100
-    Key expires at qui, 24 de out de 2019 20:47:39
+    Key expires at qui,  at 28/03/2021 08:05:41 Hora oficial do Brasil
     Is this correct? (y/N) y
     
     GnuPG needs to construct a user ID to identify your key.
@@ -151,16 +153,16 @@ Framework for integrate entity object graph operations (field, collections modif
     some other action (type on the keyboard, move the mouse, utilize the
     disks) during the prime generation; this gives the random number
     generator a better chance to gain enough entropy.
-    gpg: key D3863F4B2A84E423 marked as ultimately trusted
-    gpg: revocation certificate stored as '/c/Users/63315947368/.gnupg/openpgp-revocs.d/F4532B1D729C24A899FA83ECD3863F4B2A84E423.rev'
-    public and secret key created and signed.
+    gpg: key EA7BBD7233EA9213 marked as ultimately trusted
+    gpg: directory 'C:/Users/63315947368/AppData/Roaming/gnupg/openpgp-revocs.d' created
+    gpg: revocation certificate stored as 'C:/Users/63315947368/AppData/Roaming/gnupg/openpgp-revocs.d\047DC3C2E28CCC3B76906AEFEA7BBD7233EA9213.rev'
     
-    pub   rsa4096 2019-07-16 [SC] [expires: 2019-10-24]
-          F4532B1D729C24A899FA83ECD3863F4B2A84E423
+    pub   rsa4096 2020-12-18 [SC] [expires: 2021-03-28]
+          047DC3C2E28CCC3B76906AEFEA7BBD7233EA9213
     uid                      hailtondecastro (gpg for travis-ci.com) <hailtondecastro@gmail.com>
-    sub   rsa4096 2019-07-16 [E] [expires: 2019-10-24]
-  $ gpg --export-secret-keys F4532B1D729C24A899FA83ECD3863F4B2A84E423 > travis.gpg
-  $ gpg --armor --export     F4532B1D729C24A899FA83ECD3863F4B2A84E423 > travis.gpg.pub
+    sub   rsa4096 2020-12-18 [E] [expires: 2021-03-28]
+  $ gpg --export-secret-keys 047DC3C2E28CCC3B76906AEFEA7BBD7233EA9213 > travis.gpg
+  $ gpg --armor --export     047DC3C2E28CCC3B76906AEFEA7BBD7233EA9213 > travis.gpg.pub
   $ gpg --send-keys
   ```    
   Update pom.xml:
@@ -177,7 +179,7 @@ Framework for integrate entity object graph operations (field, collections modif
 									<goal>sign</goal>
 								</goals>
 								<configuration>
-									<keyname>584A811A6F2547609E2A5F304B8D861E3E8D8C8B</keyname>
+									<keyname>047DC3C2E28CCC3B76906AEFEA7BBD7233EA9213</keyname>
 								</configuration>
 							</execution>
 						</executions>

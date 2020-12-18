@@ -313,7 +313,7 @@
 									<goal>sign</goal>
 								</goals>
 								<configuration>
-									<keyname>584A811A6F2547609E2A5F304B8D861E3E8D8C8B</keyname>
+									<keyname>047DC3C2E28CCC3B76906AEFEA7BBD7233EA9213</keyname>
 								</configuration>
 							</execution>
 						</executions>
