@@ -1,0 +1,99 @@
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns="http://maven.apache.org/POM/4.0.0"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+
+	<modelVersion>4.0.0</modelVersion>
+	<parent>
+		<groupId>io.github.hailtondecastro</groupId>
+		<artifactId>json-playback-player-parent</artifactId>
+		<relativePath>../json-playback-player-parent/</relativePath>
+		<version>1</version>
+	</parent>
+	<artifactId>json-playback-player</artifactId>
+	<version>${revision}${sha1}${changelist}</version>
+	<packaging>jar</packaging>
+	<name>json-playback-player</name>
+	<description>Frameworks and APIs for exchanging/interoperation entity object graph states and their operations (changing fields, collections modifications, etc) between two software layers using json.</description>
+	<url>https://github.com/hailtondecastro/json-playback-player-java</url>
+	
+	<licenses>
+		<license>
+			<name>MIT License</name>
+			<url>http://www.opensource.org/licenses/mit-license.php</url>
+			<distribution>repo</distribution>
+		</license>
+	</licenses>
+
+	<developers>
+		<developer>
+			<email>hailtondecastro@gmail.com</email>
+			<name>Hailton de Castro Pacheco Barros</name>
+			<url>https://github.com/hailtondecastro</url>
+			<id>hailtondecastro</id>
+		</developer>
+	</developers>
+
+	<properties>
+		<jsonplayback.springboot.version>2.1.8.RELEASE</jsonplayback.springboot.version>
+		<jsonplayback.spring.version>5.1.9.RELEASE</jsonplayback.spring.version>
+	</properties>
+
+	<dependencies>
+		<dependency>
+			<groupId>com.fasterxml.jackson.core</groupId>
+			<artifactId>jackson-databind</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>commons-codec</groupId>
+			<artifactId>commons-codec</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>commons-beanutils</groupId>
+			<artifactId>commons-beanutils-core</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-api</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.javassist</groupId>
+			<artifactId>javassist</artifactId>
+		</dependency>
+	</dependencies>
+
+	<distributionManagement>
+		<snapshotRepository>
+			<id>ossrh</id>
+			<url>https://oss.sonatype.org/content/repositories/snapshots</url>
+		</snapshotRepository>
+		<repository>
+			<id>ossrh</id>
+			<url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+		</repository>
+	</distributionManagement>
+
+	<build>
+	</build>
+	<profiles>
+		<profile>
+			<id>build-to-dist</id>
+			<activation>
+				<activeByDefault>true</activeByDefault>
+			</activation>
+			<properties>
+				<jsonplayback.test-profile>customized-persistence</jsonplayback.test-profile>
+				<jsonplayback.springboot.version>2.1.8.RELEASE</jsonplayback.springboot.version>
+				<jsonplayback.spring.version>5.1.9.RELEASE</jsonplayback.spring.version>
+			</properties>
+			<dependencies>
+				<dependency>
+					<groupId>org.hibernate</groupId>
+					<artifactId>hibernate-core</artifactId>
+					<version>${jsonplayback.hbversion5}</version>
+					<scope>compile</scope>
+					<optional>true</optional>
+				</dependency>
+			</dependencies>			
+		</profile>
+	</profiles>
+</project>
