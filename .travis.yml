@@ -21,8 +21,8 @@ deploy:
   provider: script
 #  script: mvn -P hb3,travis deploy -DskipTests=true && mvn -P hb4,travis deploy -DskipTests=true && mvn -P hb5,travis deploy -DskipTests=true && mvn -P jpa,travis deploy -DskipTests=true && mvn -P jpa,travis deploy -DskipTests=true && mvn -P customized-persistence,travis deploy -DskipTests=true
   script: >
-    mvn -f modules/json-playback-player-parent/ -P travis deploy -DskipTests=true
-    && mvn -f modules/json-playback-player/ -P build-to-dist,travis deploy -DskipTests=true
+    mvn -f modules/json-playback-player-parent/ -P build-to-dist,travis deploy -DskipTests=true
+    && mvn -f modules/json-playback-player/     -P build-to-dist,travis deploy -DskipTests=true
   skip_cleanup: true
   on:
     tags: true
