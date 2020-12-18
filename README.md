@@ -163,7 +163,7 @@ Framework for integrate entity object graph operations (field, collections modif
     sub   rsa4096 2020-12-18 [E] [expires: 2021-03-28]
   $ gpg --export-secret-keys 047DC3C2E28CCC3B76906AEFEA7BBD7233EA9213 > travis.gpg
   $ gpg --armor --export     047DC3C2E28CCC3B76906AEFEA7BBD7233EA9213 > travis.gpg.pub
-  $ gpg --send-keys
+  $ gpg --keyserver http://keys.openpgp.org --send-keys 047DC3C2E28CCC3B76906AEFEA7BBD7233EA9213 
   ```    
   Update pom.xml:
   ```xml
