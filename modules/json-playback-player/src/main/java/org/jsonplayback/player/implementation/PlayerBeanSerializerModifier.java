@@ -49,7 +49,7 @@ public class PlayerBeanSerializerModifier extends BeanSerializerModifier {
 			beanClassIsPersistent = manager.isPersistentClass(beanClass);
 			
 			if (beanClassIsPersistent) {
-				playerObjectIdName = this.managersHolder.getStartedManagerImplementor().getPlayerObjectIdName(beanClass);			
+				playerObjectIdName = manager.getPlayerObjectIdName(beanClass);			
 			}
 		}
 		for (int i = 0; i < beanProperties.size(); i++) {
