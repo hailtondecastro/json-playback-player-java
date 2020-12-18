@@ -8,14 +8,13 @@ before_install:
   - cp settings.template.xml $HOME/.m2/settings.xml
 
 script:
-  - mvn -f modules/json-playback-player-parent/                         clean install
-  - mvn -f modules/dummy/                                               clean install
-  - mvn -f modules/json-playback-player/                                clean install
-  - mvn -f modules/json-playback-player-test/ -P hb3                    clean test
-  - mvn -f modules/json-playback-player-test/ -P hb4                    clean test
-  - mvn -f modules/json-playback-player-test/ -P hb5                    clean test
-  - mvn -f modules/json-playback-player-test/ -P jpa                    clean test
-  - mvn -f modules/json-playback-player-test/ -P customized-persistence clean test
+  - mvn -f modules/json-playback-player-parent/ -P build-to-dist,travis   clean install
+  - mvn -f modules/json-playback-player/        -P build-to-dist,travis   clean install
+  - mvn -f modules/json-playback-player-test/   -P hb3                    clean test
+  - mvn -f modules/json-playback-player-test/   -P hb4                    clean test
+  - mvn -f modules/json-playback-player-test/   -P hb5                    clean test
+  - mvn -f modules/json-playback-player-test/   -P jpa                    clean test
+  - mvn -f modules/json-playback-player-test/   -P customized-persistence clean test
     
 deploy:
   provider: script
