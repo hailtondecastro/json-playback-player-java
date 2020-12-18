@@ -1,0 +1,19 @@
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns="http://maven.apache.org/POM/4.0.0"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+
+	<modelVersion>4.0.0</modelVersion>
+
+	<groupId>org.jsonplayback</groupId>
+	<artifactId>json-playback-player-java</artifactId>
+	<version>0.0.1-SNAPSHOT</version>
+	<packaging>pom</packaging>
+
+	<name>json-playback-player-java</name>
+	<description>This pom is only to make easy to import maven project on eclipse</description>
+	
+	<properties>
+		<encoding.default>UTF-8</encoding.default>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+	</properties>
+</project>

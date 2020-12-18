@@ -6,7 +6,7 @@
 
 	<groupId>io.github.hailtondecastro</groupId>
 	<artifactId>json-playback-player-parent</artifactId>
-	<version>1</version>
+	<version>2-SNAPSHOT</version>
 	<packaging>pom</packaging>
 	<name>json-playback-player-parent</name>
 	<description>Frameworks and APIs for exchanging/interoperation entity object graph states and their operations (changing fields, collections modifications, etc) between two software layers using json.</description>
